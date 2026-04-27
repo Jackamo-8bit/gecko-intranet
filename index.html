@@ -513,7 +513,517 @@ body {
 
 /* /* ═══ HOME / OVERVIEW SECTION STYLES ═══ */
 /* /* ═══ PROFITABILITY SECTION STYLES ═══ */
-/* /* ═══ MILEAGE SECTION STYLES ═══ */
+/* ╔═══════════════════════════════════════════════════════════════════╗
+   ║                                                                   ║
+   ║   MILEAGE SECTION STYLES                                          ║
+   ║                                                                   ║
+   ║   All styles for the Mileage Tracker. Scoped under `.mileage-`    ║
+   ║   prefixes so nothing collides with other sections. Uses the      ║
+   ║   shared design tokens (--card, --green, etc.) — no hardcoded     ║
+   ║   colours here.                                                   ║
+   ║                                                                   ║
+   ╚═══════════════════════════════════════════════════════════════════╝ */
+
+/* — Section wrapper that holds the whole tracker — */
+.mil-wrap { display: flex; flex-direction: column; gap: 18px; }
+
+/* — Section toolbar (lives in the section head, holds refresh button) — */
+.mil-head-actions {
+  display: flex; gap: 8px; align-items: center;
+  margin-top: 10px;
+}
+.mil-refresh {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: var(--radius-sm);
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--muted); font-size: 12px; cursor: pointer;
+  font-family: 'Instrument Sans', sans-serif;
+  transition: all .15s ease;
+}
+.mil-refresh:hover:not(:disabled) { color: var(--green); border-color: var(--green); }
+.mil-refresh:disabled { opacity: .5; cursor: not-allowed; }
+.mil-refresh svg { transition: transform .4s ease; }
+.mil-refresh.spinning svg { animation: milSpin 1s linear infinite; }
+@keyframes milSpin { to { transform: rotate(360deg); } }
+.mil-last-sync { font-size: 11px; color: var(--muted); margin-left: 4px; }
+
+/* — Summary strip (4 KPI cards across the top) — */
+.mil-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.mil-kpi {
+  background: var(--card);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  transition: border-color .2s ease;
+}
+.mil-kpi:hover { border-color: var(--border); }
+.mil-kpi .k-label {
+  font-size: 9px; color: var(--muted);
+  letter-spacing: .12em; text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.mil-kpi .k-value {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800; font-size: 28px;
+  letter-spacing: .02em;
+  color: var(--green);
+  line-height: 1.1;
+}
+.mil-kpi.combined .k-value { color: var(--white); }
+.mil-kpi.tax .k-value { color: var(--amber); }
+.mil-kpi .k-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* — Tabs — */
+.mil-tabs {
+  display: flex; gap: 2px;
+  background: var(--card);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius);
+  padding: 4px;
+  width: fit-content;
+}
+.mil-tab {
+  padding: 8px 18px;
+  font-size: 12px; font-weight: 600;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: 'Instrument Sans', sans-serif;
+  letter-spacing: .03em;
+  transition: all .15s ease;
+}
+.mil-tab:hover { color: var(--white); }
+.mil-tab.active {
+  background: var(--green-glow);
+  color: var(--green);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+/* — Tab panels — */
+.mil-panel { display: none; }
+.mil-panel.active { display: block; animation: fadeIn .2s ease; }
+
+/* — Cards specific to mileage section — */
+.mil-card {
+  background: var(--card);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius);
+  padding: 22px;
+}
+.mil-card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px; gap: 12px; flex-wrap: wrap;
+}
+.mil-card-head h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 16px;
+  letter-spacing: .07em; text-transform: uppercase;
+  color: var(--white);
+}
+.mil-card-head .count {
+  font-size: 11px; color: var(--muted);
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: .05em; text-transform: uppercase;
+}
+
+/* — Add Journey form — */
+.mil-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 18px;
+}
+.mil-field { display: flex; flex-direction: column; gap: 6px; }
+.mil-field.full { grid-column: 1 / -1; }
+.mil-field label {
+  font-size: 10px; color: var(--muted);
+  letter-spacing: .08em; text-transform: uppercase;
+  font-weight: 600;
+}
+.mil-input, .mil-select {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--dark);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-sm);
+  color: var(--white);
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 13px;
+  outline: none;
+  transition: border-color .15s ease;
+}
+.mil-input:focus, .mil-select:focus {
+  border-color: var(--green);
+  background: var(--black);
+}
+.mil-input::placeholder { color: var(--muted); }
+
+/* Native select arrow tinted to muted */
+.mil-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none' stroke='%237a8f80' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='1 1 5 5 9 1'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+.mil-form-actions {
+  grid-column: 1 / -1;
+  display: flex; justify-content: flex-end; gap: 8px;
+  margin-top: 4px;
+}
+
+/* — HMRC rate hint banner — */
+.mil-hmrc-hint {
+  background: var(--green-glow);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 11px; color: var(--green);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+  flex-wrap: wrap;
+}
+.mil-hmrc-hint strong { color: var(--white); }
+.mil-hmrc-hint .sep { color: var(--border); }
+
+/* — Driver filter chips (Journey Log) — */
+.mil-filter {
+  display: flex; gap: 6px; margin-bottom: 14px;
+}
+.mil-chip {
+  padding: 5px 14px;
+  font-size: 11px; font-weight: 600;
+  border-radius: 999px;
+  border: 1px solid var(--border-dim);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: 'Instrument Sans', sans-serif;
+  transition: all .15s ease;
+}
+.mil-chip:hover { color: var(--white); border-color: var(--border); }
+.mil-chip.active {
+  background: var(--green-glow);
+  color: var(--green);
+  border-color: var(--green);
+}
+
+/* — Tables (shared) — */
+.mil-tbl-wrap { overflow-x: auto; border-radius: var(--radius-sm); }
+.mil-tbl {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px;
+}
+.mil-tbl thead th {
+  padding: 9px 12px;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted);
+  background: rgba(0,0,0,0.3);
+  border-bottom: 1px solid var(--border-dim);
+  text-align: left;
+  white-space: nowrap;
+}
+.mil-tbl thead th.num { text-align: right; }
+.mil-tbl tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-dim);
+  vertical-align: middle;
+}
+.mil-tbl tbody tr:last-child td { border-bottom: none; }
+.mil-tbl tbody tr:hover td { background: rgba(255,255,255,0.015); }
+.mil-tbl tbody td.num {
+  text-align: right;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600; font-size: 14px;
+}
+.mil-tbl tbody td.num.amt { color: var(--green); font-weight: 700; }
+.mil-tbl tbody td.actions { text-align: right; width: 1%; white-space: nowrap; }
+
+/* Driver pill in tables */
+.mil-driver-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: .04em;
+  background: var(--blue-dim); color: var(--blue);
+  border: 1px solid rgba(74,158,221,0.3);
+}
+.mil-driver-pill.philip { background: var(--green-glow); color: var(--green); border-color: var(--border); }
+.mil-driver-pill.jack   { background: var(--purple-dim); color: var(--purple); border-color: rgba(155,109,255,0.3); }
+
+/* Rate pill (45p / 25p / Mixed) */
+.mil-rate-pill {
+  display: inline-block;
+  padding: 1px 7px; border-radius: 4px;
+  font-size: 10px; font-weight: 700;
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: .04em;
+  background: var(--border-dim); color: var(--muted);
+}
+.mil-rate-pill.r45 { color: var(--green); background: var(--green-glow); }
+.mil-rate-pill.r25 { color: var(--amber); background: var(--amber-dim); }
+.mil-rate-pill.rm  { color: var(--blue);  background: var(--blue-dim); }
+
+/* — Table action icon buttons — */
+.mil-icon-btn {
+  width: 28px; height: 28px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; border: 1px solid var(--border-dim);
+  border-radius: 6px; color: var(--muted);
+  cursor: pointer; transition: all .15s ease;
+}
+.mil-icon-btn:hover { color: var(--white); border-color: var(--border); }
+.mil-icon-btn.danger:hover { color: var(--red); border-color: var(--red); }
+
+/* — Empty-state row — */
+.mil-empty {
+  text-align: center;
+  padding: 36px 18px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.mil-empty .e-ic {
+  width: 44px; height: 44px;
+  margin: 0 auto 12px;
+  border-radius: 12px;
+  background: var(--green-glow);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--green);
+}
+
+/* — Client distances list — */
+.mil-clients {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.mil-client-row {
+  display: flex; align-items: center;
+  background: var(--dark);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  gap: 10px;
+  transition: border-color .15s ease;
+}
+.mil-client-row:hover { border-color: var(--border); }
+.mil-client-row .cn {
+  flex: 1; min-width: 0;
+  font-size: 13px; color: var(--white);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.mil-client-row .cm {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 14px;
+  color: var(--green);
+  padding: 2px 8px;
+  background: var(--green-glow);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.mil-client-row .ca { display: flex; gap: 4px; }
+
+/* — Add Client inline form — */
+.mil-add-client-form {
+  display: grid;
+  grid-template-columns: 2fr 1fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+/* — Monthly summary cards — */
+.mil-month-grid {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.mil-month {
+  background: var(--card);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.mil-month-head {
+  padding: 12px 18px;
+  display: flex; align-items: center; gap: 16px;
+  border-bottom: 1px solid var(--border-dim);
+  background: rgba(0,0,0,0.2);
+  flex-wrap: wrap;
+}
+.mil-month-head .mh-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 15px;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--white);
+}
+.mil-month-head .mh-stat {
+  font-size: 11px; color: var(--muted);
+  letter-spacing: .04em;
+}
+.mil-month-head .mh-stat strong {
+  font-family: 'Barlow Condensed', sans-serif;
+  color: var(--white); font-size: 14px; margin-left: 4px;
+}
+.mil-month-head .mh-stat.amt strong { color: var(--green); }
+.mil-month-head .mh-spacer { flex: 1; }
+
+.mil-month-split {
+  padding: 12px 18px;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  font-size: 12px;
+}
+.mil-month-split .ms-driver {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.mil-month-split .ms-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 16px;
+  color: var(--white);
+}
+.mil-month-split .ms-val .miles {
+  color: var(--muted); font-size: 12px; font-weight: 500; margin-left: 6px;
+}
+.mil-month-split .ms-val.amt { color: var(--green); }
+
+/* — Export tab — */
+.mil-export-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.mil-export-card .mec-head {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 4px;
+}
+.mil-export-card .mec-head h4 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 15px;
+  letter-spacing: .07em; text-transform: uppercase;
+}
+.mil-export-card .mec-head .veh {
+  font-size: 10px; color: var(--muted);
+  letter-spacing: .05em;
+}
+.mil-export-card .mec-total {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800; font-size: 24px;
+  color: var(--green);
+  margin-top: 6px;
+}
+.mil-export-card .mec-sub {
+  font-size: 11px; color: var(--muted);
+  margin-top: 2px;
+}
+
+/* HMRC compliance footnote */
+.mil-hmrc-note {
+  background: var(--card);
+  border: 1px solid var(--border-dim);
+  border-left: 3px solid var(--amber);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  font-size: 12px; color: var(--muted);
+  line-height: 1.6;
+}
+.mil-hmrc-note strong { color: var(--amber); display: block; margin-bottom: 4px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+
+/* Year totals row inside Export */
+.mil-year-totals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+  padding: 14px;
+  background: rgba(0,0,0,0.25);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-dim);
+}
+.mil-year-totals .yt-cell { text-align: center; }
+.mil-year-totals .yt-cell .l {
+  font-size: 9px; color: var(--muted);
+  letter-spacing: .1em; text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.mil-year-totals .yt-cell .v {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800; font-size: 20px;
+  color: var(--white);
+}
+.mil-year-totals .yt-cell.acc .v { color: var(--green); }
+.mil-year-totals .yt-cell.tax .v { color: var(--amber); }
+
+/* — Confirm modal (delete confirmations) — */
+.mil-modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.65);
+  display: none; align-items: center; justify-content: center;
+  z-index: 1500;
+  animation: fadeIn .15s ease;
+}
+.mil-modal-bg.show { display: flex; }
+.mil-modal {
+  width: 100%; max-width: 380px; margin: 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+}
+.mil-modal h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 17px;
+  letter-spacing: .06em; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.mil-modal p { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+.mil-modal .mm-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.btn-danger {
+  background: var(--red); border-color: var(--red); color: var(--white); font-weight: 700;
+}
+.btn-danger:hover { background: #c84545; border-color: #c84545; color: var(--white); }
+
+/* Inline edit input (for client distances) */
+.mil-edit-mi {
+  width: 64px;
+  padding: 3px 6px;
+  background: var(--black);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--white);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px; font-weight: 700;
+  text-align: right;
+  outline: none;
+}
+.mil-edit-mi:focus { border-color: var(--green); }
+
+/* Responsive collapses */
+@media (max-width: 880px) {
+  .mil-kpis { grid-template-columns: 1fr 1fr; }
+  .mil-form { grid-template-columns: 1fr; }
+  .mil-export-grid { grid-template-columns: 1fr; }
+  .mil-month-split { grid-template-columns: 1fr; }
+  .mil-add-client-form { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  .mil-kpis { grid-template-columns: 1fr; }
+  .mil-tabs { width: 100%; overflow-x: auto; }
+  .mil-tab { flex: 1; white-space: nowrap; }
+}
 /* /* ═══ CLIENTS SECTION STYLES ═══ */
 /* /* ═══ TIMESHEETS SECTION STYLES ═══ */
 /* /* ═══ COMPLIANCE SECTION STYLES ═══ */
@@ -662,17 +1172,264 @@ body {
     </section>
 
 
-    <!-- ═══ MILEAGE SECTION ════════════════════════════════════════ -->
+    <!-- ═══════════════════════════════════════════════════════════════
+         MILEAGE SECTION
+         — HMRC-compliant journey log + reimbursement calculator.
+         — Reads/writes to SharePoint MileageJourneys + MileageClients.
+         — Lazy-loaded on first nav to this section (see initMileage).
+         ═══════════════════════════════════════════════════════════════ -->
     <section class="section" id="section-mileage">
+
       <div class="section-head">
         <h1>MILEAGE <span>TRACKER</span></h1>
-        <p>HMRC-compliant journey logging for Philip and Jack.</p>
+        <p>HMRC-compliant journey log · Tax Year <span id="milTaxYear">2026/27</span> · Philip Morris &amp; Jack Morris</p>
+        <div class="mil-head-actions">
+          <button class="mil-refresh" id="milRefresh" type="button" onclick="milRefreshData()" title="Reload from SharePoint">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+            Refresh
+          </button>
+          <span class="mil-last-sync" id="milLastSync"></span>
+        </div>
       </div>
-      <div class="placeholder">
-        <div class="ph-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" ><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
-        <h3>Mileage Tracker Will Load Here</h3>
-        <p>Phase 2 will port the existing mileage tracker (live at <strong style="color:var(--green)">jackamo-8bit.github.io/mileage-tracker</strong>) into this panel and reskin it to match the dark portal theme. Auth will be shared with the rest of the portal.</p>
+
+      <div class="mil-wrap">
+
+        <!-- — KPI strip (4 summary cards) — -->
+        <div class="mil-kpis">
+          <div class="mil-kpi">
+            <div class="k-label">Philip — Total Due</div>
+            <div class="k-value" id="milKpiPhilipAmt">£0.00</div>
+            <div class="k-sub" id="milKpiPhilipMiles">0 miles recorded</div>
+          </div>
+          <div class="mil-kpi">
+            <div class="k-label">Jack — Total Due</div>
+            <div class="k-value" id="milKpiJackAmt">£0.00</div>
+            <div class="k-sub" id="milKpiJackMiles">0 miles recorded</div>
+          </div>
+          <div class="mil-kpi combined">
+            <div class="k-label">Combined Total</div>
+            <div class="k-value" id="milKpiCombined">£0.00</div>
+            <div class="k-sub" id="milKpiLabel">Business expense (self-assessment)</div>
+          </div>
+          <div class="mil-kpi tax">
+            <div class="k-label">Income Tax Saving (est. 20%)</div>
+            <div class="k-value" id="milKpiTaxSave">£0.00</div>
+            <div class="k-sub">Effective tax saving</div>
+          </div>
+        </div>
+
+        <!-- — Tab strip — -->
+        <div class="mil-tabs" role="tablist">
+          <button class="mil-tab active" data-tab="log"     onclick="milTab('log')"     type="button" role="tab">Journey Log</button>
+          <button class="mil-tab"        data-tab="clients" onclick="milTab('clients')" type="button" role="tab">Client Distances</button>
+          <button class="mil-tab"        data-tab="month"   onclick="milTab('month')"   type="button" role="tab">Monthly Summary</button>
+          <button class="mil-tab"        data-tab="export"  onclick="milTab('export')"  type="button" role="tab">Export / HMRC</button>
+        </div>
+
+
+        <!-- ═══ JOURNEY LOG TAB ═══ -->
+        <div class="mil-panel active" id="milPanelLog" role="tabpanel">
+
+          <!-- Add Journey card -->
+          <div class="mil-card" style="margin-bottom:16px;">
+            <div class="mil-card-head"><h3>Add Journey</h3></div>
+
+            <div class="mil-hmrc-hint">
+              <span><strong>HMRC Approved Rates:</strong></span>
+              <span>First 10,000 miles · 45p/mile</span>
+              <span class="sep">·</span>
+              <span>Above 10,000 miles · 25p/mile</span>
+              <span class="sep">·</span>
+              <span>Selecting a client auto-fills the distance</span>
+            </div>
+
+            <form class="mil-form" id="milForm" onsubmit="return milAddJourney(event)">
+              <div class="mil-field">
+                <label for="milClient">Client / Destination</label>
+                <select class="mil-select" id="milClient" required onchange="milClientPicked()">
+                  <option value="">— Select client —</option>
+                </select>
+              </div>
+              <div class="mil-field">
+                <label for="milMiles">Miles (round trip)</label>
+                <input class="mil-input" id="milMiles" type="number" min="0" step="0.1" required placeholder="0.0">
+              </div>
+              <div class="mil-field">
+                <label for="milDriver">Driver</label>
+                <select class="mil-select" id="milDriver" required>
+                  <option value="Philip Morris">Philip Morris</option>
+                  <option value="Jack Morris">Jack Morris</option>
+                </select>
+              </div>
+              <div class="mil-field">
+                <label for="milDate">Date</label>
+                <input class="mil-input" id="milDate" type="date" required>
+              </div>
+              <div class="mil-field full">
+                <label for="milPurpose">Business Purpose</label>
+                <select class="mil-select" id="milPurpose" required>
+                  <option value="">— Select purpose —</option>
+                  <option>Client site visit — IT support</option>
+                  <option>Client site visit — installation</option>
+                  <option>Client site visit — maintenance</option>
+                  <option>Client site visit — survey</option>
+                  <option>Client site visit — sales meeting</option>
+                  <option>Hardware delivery / collection</option>
+                  <option>Supplier visit</option>
+                  <option>Accountant / professional meeting</option>
+                  <option>Other business travel</option>
+                </select>
+              </div>
+              <div class="mil-form-actions">
+                <button type="submit" class="btn btn-primary" id="milAddBtn">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Add Journey
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Journey list card -->
+          <div class="mil-card">
+            <div class="mil-card-head">
+              <h3>All Journeys</h3>
+              <span class="count" id="milLogCount">0 recorded</span>
+            </div>
+
+            <div class="mil-filter">
+              <button class="mil-chip active" data-filter="all"    onclick="milFilter('all',this)"    type="button">All</button>
+              <button class="mil-chip"        data-filter="Philip Morris" onclick="milFilter('Philip Morris',this)" type="button">Philip</button>
+              <button class="mil-chip"        data-filter="Jack Morris"   onclick="milFilter('Jack Morris',this)"   type="button">Jack</button>
+            </div>
+
+            <div class="mil-tbl-wrap">
+              <table class="mil-tbl">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Driver</th>
+                    <th>Destination</th>
+                    <th>Purpose</th>
+                    <th class="num">Miles</th>
+                    <th>Rate</th>
+                    <th class="num">Amount</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="milLogBody">
+                  <tr><td colspan="8" class="mil-empty">Loading journeys…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- ═══ CLIENT DISTANCES TAB ═══ -->
+        <div class="mil-panel" id="milPanelClients" role="tabpanel">
+          <div class="mil-card" style="margin-bottom:16px;">
+            <div class="mil-card-head">
+              <h3>Pre-set Client Distances</h3>
+              <span class="count" id="milClientsCount">0 clients</span>
+            </div>
+            <p style="color:var(--muted);font-size:12px;margin-bottom:14px;">
+              Round-trip distances from your home base. Selecting a client when adding a journey auto-fills the mileage.
+              Edit a value inline and tab away (or press Enter) to save.
+            </p>
+            <div class="mil-clients" id="milClientsList">
+              <div class="mil-empty" style="grid-column:1/-1;">Loading clients…</div>
+            </div>
+          </div>
+
+          <div class="mil-card">
+            <div class="mil-card-head"><h3>Add New Client</h3></div>
+            <form class="mil-add-client-form" id="milAddClientForm" onsubmit="return milAddClient(event)">
+              <div class="mil-field">
+                <label for="milNewClientName">Client / Destination Name</label>
+                <input class="mil-input" id="milNewClientName" type="text" required placeholder="e.g. Daron Motors">
+              </div>
+              <div class="mil-field">
+                <label for="milNewClientMiles">Round-trip Miles</label>
+                <input class="mil-input" id="milNewClientMiles" type="number" min="0" step="0.1" required placeholder="0.0">
+              </div>
+              <button type="submit" class="btn btn-primary" id="milAddClientBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add Client
+              </button>
+            </form>
+          </div>
+        </div>
+
+
+        <!-- ═══ MONTHLY SUMMARY TAB ═══ -->
+        <div class="mil-panel" id="milPanelMonth" role="tabpanel">
+          <div class="mil-month-grid" id="milMonthGrid">
+            <div class="mil-empty">Loading monthly summary…</div>
+          </div>
+        </div>
+
+
+        <!-- ═══ EXPORT / HMRC TAB ═══ -->
+        <div class="mil-panel" id="milPanelExport" role="tabpanel">
+          <div class="mil-card" style="margin-bottom:16px;">
+            <div class="mil-card-head">
+              <h3>Tax Year Export</h3>
+              <button class="btn btn-primary" type="button" onclick="milDownloadCsv()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download CSV
+              </button>
+            </div>
+            <p style="color:var(--muted);font-size:12px;" id="milExportSubtitle">
+              Full per-driver journey list for tax year <strong id="milExportYear" style="color:var(--white)">2026/27</strong> — company claims reimbursement as operating expense; driver receives tax-free reimbursement up to AMAP rates.
+            </p>
+
+            <div class="mil-export-grid" style="margin-top:16px;">
+              <div class="mil-card mil-export-card" style="margin:0;background:var(--dark);">
+                <div class="mec-head">
+                  <h4>Philip Morris</h4>
+                  <span class="veh" id="milExpPhilipRole">· Sole Trader · Tesla</span>
+                </div>
+                <div class="mec-total" id="milExpPhilipAmt">£0.00</div>
+                <div class="mec-sub"><span id="milExpPhilipMiles">0</span> miles · Total reimbursement</div>
+              </div>
+              <div class="mil-card mil-export-card" style="margin:0;background:var(--dark);">
+                <div class="mec-head">
+                  <h4>Jack Morris</h4>
+                  <span class="veh" id="milExpJackRole">· Employee · Hyundai Kona</span>
+                </div>
+                <div class="mec-total" id="milExpJackAmt">£0.00</div>
+                <div class="mec-sub"><span id="milExpJackMiles">0</span> miles · Total reimbursement</div>
+              </div>
+            </div>
+
+            <div class="mil-year-totals">
+              <div class="yt-cell"><div class="l">Philip Miles</div><div class="v" id="milYtPhilipMiles">0</div></div>
+              <div class="yt-cell"><div class="l">Jack Miles</div><div class="v" id="milYtJackMiles">0</div></div>
+              <div class="yt-cell acc"><div class="l">Combined Total</div><div class="v" id="milYtCombined">£0.00</div></div>
+              <div class="yt-cell tax"><div class="l">Tax Saving (20%)</div><div class="v" id="milYtTaxSave">£0.00</div></div>
+            </div>
+          </div>
+
+          <div class="mil-hmrc-note" id="milHmrcNote">
+            <strong>HMRC Mileage Record Requirements</strong>
+            This log captures every required field — date, destination, business purpose, miles, and reimbursement amount. Retain records for 6 years after the end of the tax year. As a sole trader, Philip claims mileage allowance as a business expense on his Self Assessment (SA103). Jack's mileage is reimbursed directly by the business — retain bank statements as evidence of payment.
+          </div>
+        </div>
+
       </div>
+
+      <!-- Confirm-delete modal (used for both journeys and clients) -->
+      <div class="mil-modal-bg" id="milModalBg" onclick="if(event.target===this)milCloseModal()">
+        <div class="mil-modal">
+          <h3 id="milModalTitle">Confirm Delete</h3>
+          <p id="milModalBody">Are you sure?</p>
+          <div class="mm-actions">
+            <button class="btn btn-ghost" type="button" onclick="milCloseModal()">Cancel</button>
+            <button class="btn btn-danger" type="button" id="milModalConfirm">Delete</button>
+          </div>
+        </div>
+      </div>
+
     </section>
 
 
@@ -917,6 +1674,14 @@ function navTo(sectionKey) {
 
   // — Close mobile sidebar after selection —
   closeSidebar();
+
+  // — Lazy-load section data on first visit —
+  // Each section's init runs once on first nav. Subsequent navs use cached
+  // data; the user can refresh manually via the section's refresh control.
+  if (sectionKey === 'mileage' && typeof initMileage === 'function') {
+    initMileage();
+  }
+  // Future phases: profitability, overview, clients hook in here too.
 }
 
 function openSidebar() {
@@ -1024,8 +1789,851 @@ function onSignedIn() {
 // /* ═══ PROFITABILITY INIT ═══ */
 // async function initProfitability() { /* Phase 3 */ }
 
-// /* ═══ MILEAGE INIT ═══ */
-// async function initMileage() { /* Phase 2 */ }
+
+/* ╔═══════════════════════════════════════════════════════════════════╗
+   ║                                                                   ║
+   ║   MILEAGE TRACKER                                                 ║
+   ║                                                                   ║
+   ║   Self-contained module for the Mileage section. Uses the         ║
+   ║   portal's shared getToken(), graphFetch(), toast(), showLoading. ║
+   ║                                                                   ║
+   ║   Lazy-loaded: initMileage() runs once, on first nav to the       ║
+   ║   section. After that, data is cached in module state. The user   ║
+   ║   can manually refresh via the "Refresh" button in the header.    ║
+   ║                                                                   ║
+   ║   SharePoint lists used:                                          ║
+   ║     MileageJourneys — Title, Driver, JourneyDate, Miles,          ║
+   ║                       Purpose, Amount, RateType                   ║
+   ║     MileageClients  — Title, TypicalMiles                         ║
+   ║                                                                   ║
+   ╚═══════════════════════════════════════════════════════════════════╝ */
+
+// ─── Mileage module state ─────────────────────────────────────────────
+const MIL = {
+  initialised: false,
+  loading:     false,
+  journeys:    [],   // [{ id, destination, driver, date, miles, purpose, amount, rate }]
+  clients:     [],   // [{ id, name, miles }]
+  filter:      'all',
+  activeTab:   'log',
+  siteId:      null, // resolved on first init
+  listIds:     { journeys: null, clients: null },
+  drivers:     ['Philip Morris', 'Jack Morris'],
+  taxYear:     null, // { label: '2026/27', start: Date, end: Date }
+  modalConfirmFn: null,
+  // First-run defaults — used to seed MileageClients ONLY if the list is empty.
+  // Mirrors the live tracker's seed values; safe no-op when list is populated.
+  defaults: [
+    { name: 'Daron Motors',                miles: 30 },
+    { name: 'Cowan Consultancy',           miles: 15 },
+    { name: 'CDA Ltd',                     miles: 22 },
+    { name: 'Onsite Commercial Services',  miles: 28 },
+    { name: 'Clarke Lane Engineering',     miles: 18 },
+    { name: 'Freeston Water Treatment',    miles: 25 },
+    { name: 'PM Packing',                  miles: 24 },
+    { name: 'MSA Safety',                  miles: 12 },
+    { name: 'Southern Glass Services',     miles: 16 },
+    { name: 'West Country Fires',          miles: 35 },
+    { name: 'Regal Autosport',             miles: 20 },
+    { name: 'Hillcrest Engineering',       miles: 19 },
+    { name: 'ALS Locksmiths',              miles: 14 },
+    { name: 'Brazier Interiors',           miles: 17 }
+  ]
+};
+
+/* ╔═══════════════════════════════════════════════════════════════════╗
+   ║                                                                   ║
+   ║   ENTITY CONFIG — SOLE TRADER vs LIMITED COMPANY                 ║
+   ║                                                                   ║
+   ║   When Gecko IT converts to a Limited Company, swap ENTITY_TYPE  ║
+   ║   from 'sole_trader' to 'ltd_company'. All text labels, driver   ║
+   ║   descriptions, and compliance notes will auto-update.           ║
+   ║                                                                   ║
+   ║   No data is lost — journeys, clients, amounts, rates all stay   ║
+   ║   identical. Only the UI labels and explanations change.         ║
+   ║                                                                   ║
+   ║   WHEN READY TO SWITCH:                                          ║
+   ║   1. Change ENTITY_TYPE = 'ltd_company' (line below)             ║
+   ║   2. Update driver descriptions (vehicles, roles — see CONFIG)   ║
+   ║   3. Test in dev                                                 ║
+   ║   4. Deploy                                                      ║
+   ║   5. SharePoint data untouched, all journeys preserved           ║
+   ║                                                                   ║
+   ╚═══════════════════════════════════════════════════════════════════╝ */
+
+const ENTITY_TYPE = 'sole_trader'; // Change to 'ltd_company' when ready (no data loss)
+
+const ENTITY_CONFIG = {
+  sole_trader: {
+    // ─ Driver descriptions (shown in Export tab)
+    drivers: {
+      'Philip Morris': { role: 'Sole Trader', vehicle: 'Tesla' },
+      'Jack Morris':   { role: 'Employee',    vehicle: 'Hyundai Kona' }
+    },
+    // ─ Export tab heading and footer copy
+    exportTitle: 'Tax Year Export',
+    exportSubtitle: 'Full per-driver journey list for tax year — give this to your accountant or attach to your Self Assessment.',
+    // ─ HMRC compliance note (shown below export cards)
+    hmrcNote: `<strong>HMRC Mileage Record Requirements</strong>
+This log captures every required field — date, destination, business purpose, miles, and reimbursement amount. Retain records for 6 years after the end of the tax year. As a sole trader, Philip claims mileage allowance as a business expense on his Self Assessment (SA103). Jack's mileage is reimbursed directly by the business — retain bank statements as evidence of payment.`,
+    // ─ KPI label (shown in top cards)
+    kpiLabel: 'Business expense (self-assessment)',
+    // ─ Comments for future reference
+    _note: 'Sole trader entity: drivers claim expense on personal tax return, reimbursement is self-employment income'
+  },
+  ltd_company: {
+    // ─ Driver descriptions (shown in Export tab)
+    drivers: {
+      'Philip Morris': { role: 'Director',  vehicle: 'Tesla' },
+      'Jack Morris':   { role: 'Employee',  vehicle: 'Hyundai Kona' }
+    },
+    // ─ Export tab heading and footer copy
+    exportTitle: 'Tax Year Export',
+    exportSubtitle: 'Full per-driver journey list — company claims reimbursement as operating expense; driver receives tax-free reimbursement up to AMAP rates.',
+    // ─ HMRC compliance note (shown below export cards)
+    hmrcNote: `<strong>HMRC Mileage Record Requirements</strong>
+This log captures every required field — date, destination, business purpose, miles, and reimbursement amount. Retain records for 6 years after the end of the tax year. The company reimburses mileage at AMAP rates (up to 45p/25p) — this is tax-free to the employee/director. The company claims the full reimbursement as an operating expense. Retain bank statements as evidence of payment.`,
+    // ─ KPI label (shown in top cards)
+    kpiLabel: 'Operating expense (company)',
+    // ─ Comments for future reference
+    _note: 'Limited company entity: company claims expense, driver receives tax-free reimbursement (AMAP rates)'
+  }
+};
+
+// Convenience getter — returns the active config based on ENTITY_TYPE
+function milConfig(key) {
+  return ENTITY_CONFIG[ENTITY_TYPE][key];
+}
+
+// ─── HMRC rate constants ──────────────────────────────────────────────
+const HMRC_RATE_HIGH = 0.45;   // £/mile, first 10,000 per driver per tax year
+const HMRC_RATE_LOW  = 0.25;   // £/mile, above 10,000
+const HMRC_THRESHOLD = 10000;  // miles
+
+
+// ─── Tax year helpers ─────────────────────────────────────────────────
+// UK tax year runs 6 April → 5 April of the following year.
+function milComputeTaxYear(today = new Date()) {
+  const y = today.getFullYear();
+  const taxYearStart = new Date(y, 3, 6); // 6 April this year
+  let startYear, endYear;
+  if (today >= taxYearStart) { startYear = y;     endYear = y + 1; }
+  else                       { startYear = y - 1; endYear = y;     }
+  return {
+    label: `${startYear}/${String(endYear).slice(2)}`,
+    start: new Date(startYear, 3, 6),
+    end:   new Date(endYear,   3, 5, 23, 59, 59, 999)
+  };
+}
+
+
+// ─── Formatting ───────────────────────────────────────────────────────
+const milFmt = v => '£' + (Number(v) || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+const milFmtMiles = v => Number(v || 0).toLocaleString('en-GB', { maximumFractionDigits: 1 });
+
+function milFmtDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return iso;
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+
+// ─── HMRC reimbursement calculator ────────────────────────────────────
+/**
+ * Calculate reimbursement for a single journey, taking into account the
+ * driver's cumulative tax-year mileage BEFORE this journey was added.
+ * Splits the calculation if the journey crosses the 10,000-mile threshold.
+ *
+ * Returns { amount, rate } where rate is one of '45p/mi', '25p/mi', 'Mixed'.
+ */
+function milCalcReimbursement(miles, milesBefore) {
+  const m       = Number(miles) || 0;
+  const before  = Number(milesBefore) || 0;
+  const after   = before + m;
+
+  if (after <= HMRC_THRESHOLD) {
+    return { amount: +(m * HMRC_RATE_HIGH).toFixed(2), rate: '45p/mi' };
+  }
+  if (before >= HMRC_THRESHOLD) {
+    return { amount: +(m * HMRC_RATE_LOW).toFixed(2),  rate: '25p/mi' };
+  }
+  // Crossing the threshold mid-journey
+  const high = HMRC_THRESHOLD - before;
+  const low  = m - high;
+  return {
+    amount: +((high * HMRC_RATE_HIGH) + (low * HMRC_RATE_LOW)).toFixed(2),
+    rate:   'Mixed'
+  };
+}
+
+/**
+ * Recompute Amount + RateType for every journey in chronological order,
+ * per driver, against the 10,000-mile threshold. Mutates MIL.journeys.
+ * Returns an array of { id, oldAmount, newAmount, oldRate, newRate } for
+ * any items where the value actually changed (so we only PATCH what's needed).
+ */
+function milRecomputeAll() {
+  const sorted = [...MIL.journeys].sort((a, b) => {
+    const da = new Date(a.date).getTime() || 0;
+    const db = new Date(b.date).getTime() || 0;
+    if (da !== db) return da - db;
+    return (a.id || 0) - (b.id || 0);
+  });
+  const driverMiles = {};
+  const changes = [];
+
+  for (const j of sorted) {
+    const before = driverMiles[j.driver] || 0;
+    const calc   = milCalcReimbursement(j.miles, before);
+    if (j.amount !== calc.amount || j.rate !== calc.rate) {
+      changes.push({
+        id: j.id,
+        oldAmount: j.amount, newAmount: calc.amount,
+        oldRate:   j.rate,   newRate:   calc.rate
+      });
+      j.amount = calc.amount;
+      j.rate   = calc.rate;
+    }
+    driverMiles[j.driver] = before + (Number(j.miles) || 0);
+  }
+  return changes;
+}
+
+
+// ─── SharePoint Graph wrappers ────────────────────────────────────────
+// Resolve site ID + list IDs once and cache. Required because Graph wants
+// numeric IDs for write paths, not the friendly list display name.
+async function milResolveListIds() {
+  if (MIL.siteId && MIL.listIds.journeys && MIL.listIds.clients) return;
+
+  // Resolve the site
+  const sitePath = `/sites/${CONFIG.SP_HOST}:${CONFIG.SP_SITE}`;
+  const site = await graphFetch(sitePath);
+  MIL.siteId = site.id;
+
+  // Resolve both lists by display name
+  const lists = await graphFetch(`/sites/${MIL.siteId}/lists?$select=id,displayName,name`);
+  for (const l of (lists.value || [])) {
+    if (l.displayName === 'MileageJourneys' || l.name === 'MileageJourneys') MIL.listIds.journeys = l.id;
+    if (l.displayName === 'MileageClients'  || l.name === 'MileageClients')  MIL.listIds.clients  = l.id;
+  }
+  if (!MIL.listIds.journeys) throw new Error('MileageJourneys list not found in SharePoint site');
+  if (!MIL.listIds.clients)  throw new Error('MileageClients list not found in SharePoint site');
+}
+
+async function milLoadJourneys() {
+  const url = `/sites/${MIL.siteId}/lists/${MIL.listIds.journeys}/items?expand=fields&$top=2000`;
+  const res = await graphFetch(url);
+  MIL.journeys = (res.value || []).map(it => {
+    const f = it.fields || {};
+    return {
+      id:          it.id,
+      destination: f.Title || '',
+      driver:      f.Driver || '',
+      date:        f.JourneyDate ? f.JourneyDate.split('T')[0] : '',
+      miles:       Number(f.Miles) || 0,
+      purpose:     f.Purpose || '',
+      amount:      Number(f.Amount) || 0,
+      rate:        f.RateType || ''
+    };
+  });
+}
+
+async function milLoadClients() {
+  const url = `/sites/${MIL.siteId}/lists/${MIL.listIds.clients}/items?expand=fields&$top=500`;
+  const res = await graphFetch(url);
+  MIL.clients = (res.value || [])
+    .map(it => ({
+      id:    it.id,
+      name:  it.fields?.Title || '',
+      miles: Number(it.fields?.TypicalMiles) || 0
+    }))
+    .filter(c => c.name)
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+async function milSeedClientsIfEmpty() {
+  if (MIL.clients.length > 0) return; // safety net; no-op when populated
+  toast('Client list empty — seeding defaults…', 'info', 4000);
+  for (const c of MIL.defaults) {
+    try {
+      await graphFetch(`/sites/${MIL.siteId}/lists/${MIL.listIds.clients}/items`, {
+        method: 'POST',
+        body:   JSON.stringify({ fields: { Title: c.name, TypicalMiles: c.miles } })
+      });
+    } catch (e) {
+      console.warn('Seed failed for', c.name, e);
+    }
+  }
+  await milLoadClients();
+}
+
+async function milCreateJourney(j) {
+  const body = {
+    fields: {
+      Title:       j.destination,
+      Driver:      j.driver,
+      JourneyDate: j.date,
+      Miles:       j.miles,
+      Purpose:     j.purpose,
+      Amount:      j.amount,
+      RateType:    j.rate
+    }
+  };
+  return graphFetch(
+    `/sites/${MIL.siteId}/lists/${MIL.listIds.journeys}/items`,
+    { method: 'POST', body: JSON.stringify(body) }
+  );
+}
+
+async function milPatchJourneyAmount(id, amount, rate) {
+  return graphFetch(
+    `/sites/${MIL.siteId}/lists/${MIL.listIds.journeys}/items/${id}/fields`,
+    { method: 'PATCH', body: JSON.stringify({ Amount: amount, RateType: rate }) }
+  );
+}
+
+async function milDeleteJourney(id) {
+  return graphFetch(
+    `/sites/${MIL.siteId}/lists/${MIL.listIds.journeys}/items/${id}`,
+    { method: 'DELETE' }
+  );
+}
+
+async function milCreateClient(name, miles) {
+  return graphFetch(
+    `/sites/${MIL.siteId}/lists/${MIL.listIds.clients}/items`,
+    { method: 'POST', body: JSON.stringify({ fields: { Title: name, TypicalMiles: miles } }) }
+  );
+}
+
+async function milPatchClientMiles(id, miles) {
+  return graphFetch(
+    `/sites/${MIL.siteId}/lists/${MIL.listIds.clients}/items/${id}/fields`,
+    { method: 'PATCH', body: JSON.stringify({ TypicalMiles: miles }) }
+  );
+}
+
+async function milDeleteClient(id) {
+  return graphFetch(
+    `/sites/${MIL.siteId}/lists/${MIL.listIds.clients}/items/${id}`,
+    { method: 'DELETE' }
+  );
+}
+
+
+// ─── UI: render KPIs ──────────────────────────────────────────────────
+function milRenderKpis() {
+  const totals = { 'Philip Morris': { miles: 0, amt: 0 }, 'Jack Morris': { miles: 0, amt: 0 } };
+  for (const j of MIL.journeys) {
+    if (!totals[j.driver]) totals[j.driver] = { miles: 0, amt: 0 };
+    totals[j.driver].miles += Number(j.miles) || 0;
+    totals[j.driver].amt   += Number(j.amount) || 0;
+  }
+  const p = totals['Philip Morris'];
+  const k = totals['Jack Morris'];
+  const combined = p.amt + k.amt;
+  const taxSave  = combined * 0.20;
+
+  document.getElementById('milKpiPhilipAmt').textContent   = milFmt(p.amt);
+  document.getElementById('milKpiPhilipMiles').textContent = `${milFmtMiles(p.miles)} miles recorded`;
+  document.getElementById('milKpiJackAmt').textContent     = milFmt(k.amt);
+  document.getElementById('milKpiJackMiles').textContent   = `${milFmtMiles(k.miles)} miles recorded`;
+  document.getElementById('milKpiCombined').textContent    = milFmt(combined);
+  document.getElementById('milKpiTaxSave').textContent     = milFmt(taxSave);
+
+  // Export tab mirrors
+  document.getElementById('milExpPhilipAmt').textContent   = milFmt(p.amt);
+  document.getElementById('milExpPhilipMiles').textContent = milFmtMiles(p.miles);
+  document.getElementById('milExpJackAmt').textContent     = milFmt(k.amt);
+  document.getElementById('milExpJackMiles').textContent   = milFmtMiles(k.miles);
+  document.getElementById('milYtPhilipMiles').textContent  = milFmtMiles(p.miles);
+  document.getElementById('milYtJackMiles').textContent    = milFmtMiles(k.miles);
+  document.getElementById('milYtCombined').textContent     = milFmt(combined);
+  document.getElementById('milYtTaxSave').textContent      = milFmt(taxSave);
+}
+
+
+// ─── UI: render journey log ───────────────────────────────────────────
+function milRenderLog() {
+  const body = document.getElementById('milLogBody');
+  const filtered = MIL.filter === 'all'
+    ? MIL.journeys
+    : MIL.journeys.filter(j => j.driver === MIL.filter);
+
+  // Most-recent first
+  const sorted = [...filtered].sort((a, b) => {
+    const da = new Date(a.date).getTime() || 0;
+    const db = new Date(b.date).getTime() || 0;
+    if (db !== da) return db - da;
+    return (Number(b.id) || 0) - (Number(a.id) || 0);
+  });
+
+  document.getElementById('milLogCount').textContent =
+    `${sorted.length} ${sorted.length === 1 ? 'journey' : 'journeys'}` +
+    (MIL.filter === 'all' ? ' recorded' : ` (${MIL.filter.split(' ')[0]})`);
+
+  if (sorted.length === 0) {
+    body.innerHTML = `
+      <tr><td colspan="8">
+        <div class="mil-empty">
+          <div class="e-ic"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+          <div>No journeys recorded yet${MIL.filter !== 'all' ? ' for ' + MIL.filter.split(' ')[0] : ''}.</div>
+        </div>
+      </td></tr>`;
+    return;
+  }
+
+  body.innerHTML = sorted.map(j => {
+    const dr = j.driver === 'Philip Morris' ? 'philip' : j.driver === 'Jack Morris' ? 'jack' : '';
+    const rateClass = j.rate === '45p/mi' ? 'r45' : j.rate === '25p/mi' ? 'r25' : j.rate === 'Mixed' ? 'rm' : '';
+    return `<tr>
+      <td>${escapeHtml(milFmtDate(j.date))}</td>
+      <td><span class="mil-driver-pill ${dr}">${escapeHtml(j.driver.split(' ')[0])}</span></td>
+      <td>${escapeHtml(j.destination)}</td>
+      <td style="color:var(--muted);font-size:12px;">${escapeHtml(j.purpose)}</td>
+      <td class="num">${milFmtMiles(j.miles)}</td>
+      <td><span class="mil-rate-pill ${rateClass}">${escapeHtml(j.rate || '—')}</span></td>
+      <td class="num amt">${milFmt(j.amount)}</td>
+      <td class="actions">
+        <button class="mil-icon-btn danger" type="button" title="Delete journey" onclick="milConfirmDeleteJourney('${j.id}')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 01-2 2H9a2 2 0 01-2-2L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+
+// ─── UI: render client distances ──────────────────────────────────────
+function milRenderClients() {
+  const wrap = document.getElementById('milClientsList');
+  document.getElementById('milClientsCount').textContent =
+    `${MIL.clients.length} ${MIL.clients.length === 1 ? 'client' : 'clients'}`;
+
+  if (MIL.clients.length === 0) {
+    wrap.innerHTML = `<div class="mil-empty" style="grid-column:1/-1;">No clients yet — add one below.</div>`;
+  } else {
+    wrap.innerHTML = MIL.clients.map(c => `
+      <div class="mil-client-row" data-id="${c.id}">
+        <div class="cn" title="${escapeHtml(c.name)}">${escapeHtml(c.name)}</div>
+        <input class="mil-edit-mi" type="number" min="0" step="0.1" value="${c.miles}" onchange="milUpdateClient('${c.id}', this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+        <span style="color:var(--muted);font-size:11px;">mi</span>
+        <div class="ca">
+          <button class="mil-icon-btn danger" type="button" title="Delete client" onclick="milConfirmDeleteClient('${c.id}')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 01-2 2H9a2 2 0 01-2-2L5 6"/></svg>
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Refresh the dropdown in the Add Journey form
+  const sel = document.getElementById('milClient');
+  if (sel) {
+    const current = sel.value;
+    sel.innerHTML = '<option value="">— Select client —</option>' +
+      MIL.clients.map(c => `<option value="${escapeHtml(c.name)}" data-miles="${c.miles}">${escapeHtml(c.name)} (${milFmtMiles(c.miles)} mi)</option>`).join('');
+    sel.value = current;
+  }
+}
+
+
+// ─── UI: render monthly summary ───────────────────────────────────────
+function milRenderMonth() {
+  const grid = document.getElementById('milMonthGrid');
+  if (MIL.journeys.length === 0) {
+    grid.innerHTML = `
+      <div class="mil-card">
+        <div class="mil-empty">
+          <div class="e-ic"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+          No journeys recorded yet — monthly breakdown will appear here once journeys are added.
+        </div>
+      </div>`;
+    return;
+  }
+
+  // Group by YYYY-MM
+  const groups = new Map();
+  for (const j of MIL.journeys) {
+    if (!j.date) continue;
+    const key = j.date.slice(0, 7); // YYYY-MM
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(j);
+  }
+  const keys = [...groups.keys()].sort().reverse(); // newest first
+
+  grid.innerHTML = keys.map(key => {
+    const items = groups.get(key);
+    const [yr, mo] = key.split('-').map(Number);
+    const label = new Date(yr, mo - 1, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+
+    let pMi = 0, pAmt = 0, jMi = 0, jAmt = 0, count = items.length;
+    for (const j of items) {
+      const m = Number(j.miles) || 0, a = Number(j.amount) || 0;
+      if (j.driver === 'Philip Morris') { pMi += m; pAmt += a; }
+      else if (j.driver === 'Jack Morris') { jMi += m; jAmt += a; }
+    }
+    const total = pAmt + jAmt;
+    const totalMi = pMi + jMi;
+
+    return `
+      <div class="mil-month">
+        <div class="mil-month-head">
+          <div class="mh-title">${escapeHtml(label)}</div>
+          <div class="mh-stat">Journeys<strong>${count}</strong></div>
+          <div class="mh-stat">Total miles<strong>${milFmtMiles(totalMi)}</strong></div>
+          <div class="mh-spacer"></div>
+          <div class="mh-stat amt">Total<strong>${milFmt(total)}</strong></div>
+        </div>
+        <div class="mil-month-split">
+          <div>
+            <div class="ms-driver">Philip Morris</div>
+            <div class="ms-val amt">${milFmt(pAmt)} <span class="miles">· ${milFmtMiles(pMi)} mi</span></div>
+          </div>
+          <div>
+            <div class="ms-driver">Jack Morris</div>
+            <div class="ms-val amt">${milFmt(jAmt)} <span class="miles">· ${milFmtMiles(jMi)} mi</span></div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+
+// ─── Master render ────────────────────────────────────────────────────
+function milRenderAll() {
+  milRenderKpis();
+  milRenderLog();
+  milRenderClients();
+  milRenderMonth();
+}
+
+
+// ─── User actions ─────────────────────────────────────────────────────
+function milTab(name) {
+  MIL.activeTab = name;
+  document.querySelectorAll('#section-mileage .mil-tab').forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('#section-mileage .mil-panel').forEach(p =>
+    p.classList.toggle('active', p.id === 'milPanel' + name.charAt(0).toUpperCase() + name.slice(1)));
+}
+
+function milFilter(driver, btn) {
+  MIL.filter = driver;
+  document.querySelectorAll('#section-mileage .mil-chip').forEach(c => c.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  milRenderLog();
+}
+
+function milClientPicked() {
+  const sel  = document.getElementById('milClient');
+  const opt  = sel.options[sel.selectedIndex];
+  const m    = opt && opt.dataset.miles ? opt.dataset.miles : '';
+  if (m) document.getElementById('milMiles').value = m;
+}
+
+async function milAddJourney(ev) {
+  ev.preventDefault();
+  const btn = document.getElementById('milAddBtn');
+  const data = {
+    destination: document.getElementById('milClient').value.trim(),
+    miles:       Number(document.getElementById('milMiles').value) || 0,
+    driver:      document.getElementById('milDriver').value,
+    date:        document.getElementById('milDate').value,
+    purpose:     document.getElementById('milPurpose').value
+  };
+  if (!data.destination || !data.miles || !data.driver || !data.date || !data.purpose) {
+    toast('Please fill all fields before adding the journey', 'warning');
+    return false;
+  }
+
+  // Compute amount based on this driver's miles already in the tax year up to this journey's date
+  const before = MIL.journeys
+    .filter(j => j.driver === data.driver && new Date(j.date).getTime() <= new Date(data.date).getTime())
+    .reduce((s, j) => s + (Number(j.miles) || 0), 0);
+  const calc = milCalcReimbursement(data.miles, before);
+  data.amount = calc.amount;
+  data.rate   = calc.rate;
+
+  btn.disabled = true;
+  showLoading(true);
+  try {
+    const res = await milCreateJourney(data);
+    // Add to local cache
+    MIL.journeys.push({
+      id:          res.id,
+      destination: data.destination,
+      driver:      data.driver,
+      date:        data.date,
+      miles:       data.miles,
+      purpose:     data.purpose,
+      amount:      data.amount,
+      rate:        data.rate
+    });
+
+    // Recompute everything (this journey may push prior-or-later journeys into a different bracket)
+    const changes = milRecomputeAll();
+    // Push patches in parallel
+    if (changes.length > 0) {
+      try {
+        await Promise.all(changes
+          .filter(c => c.id !== res.id) // server already has the right value for the new one
+          .map(c => milPatchJourneyAmount(c.id, c.newAmount, c.newRate)));
+      } catch (e) {
+        console.warn('Recompute patch failed (non-fatal):', e);
+        toast('Journey saved, but rate recalc could not sync — refresh to retry', 'warning', 5000);
+      }
+    }
+
+    milRenderAll();
+    document.getElementById('milForm').reset();
+    milSetDefaultDate();
+    toast(`Journey added — ${milFmt(data.amount)} reimbursement`, 'success');
+  } catch (err) {
+    console.error('Add journey failed:', err);
+    toast('Could not save journey: ' + (err.message || 'unknown error'), 'error', 5000);
+  } finally {
+    btn.disabled = false;
+    showLoading(false);
+  }
+  return false;
+}
+
+function milConfirmDeleteJourney(id) {
+  const j = MIL.journeys.find(x => x.id === id);
+  if (!j) return;
+  milOpenModal(
+    'Delete journey?',
+    `${milFmtDate(j.date)} · ${j.destination} · ${milFmtMiles(j.miles)} mi (${milFmt(j.amount)}). This cannot be undone.`,
+    () => milDoDeleteJourney(id)
+  );
+}
+
+async function milDoDeleteJourney(id) {
+  showLoading(true);
+  try {
+    await milDeleteJourney(id);
+    MIL.journeys = MIL.journeys.filter(j => j.id !== id);
+    const changes = milRecomputeAll();
+    if (changes.length > 0) {
+      try {
+        await Promise.all(changes.map(c => milPatchJourneyAmount(c.id, c.newAmount, c.newRate)));
+      } catch (e) { console.warn('Post-delete recompute failed:', e); }
+    }
+    milRenderAll();
+    toast('Journey deleted', 'success');
+  } catch (err) {
+    console.error('Delete journey failed:', err);
+    toast('Could not delete journey: ' + (err.message || 'unknown error'), 'error', 5000);
+  } finally {
+    showLoading(false);
+  }
+}
+
+async function milAddClient(ev) {
+  ev.preventDefault();
+  const btn   = document.getElementById('milAddClientBtn');
+  const name  = document.getElementById('milNewClientName').value.trim();
+  const miles = Number(document.getElementById('milNewClientMiles').value) || 0;
+  if (!name) { toast('Client name is required', 'warning'); return false; }
+
+  if (MIL.clients.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+    toast(`A client named "${name}" already exists`, 'warning');
+    return false;
+  }
+
+  btn.disabled = true;
+  showLoading(true);
+  try {
+    const res = await milCreateClient(name, miles);
+    MIL.clients.push({ id: res.id, name, miles });
+    MIL.clients.sort((a, b) => a.name.localeCompare(b.name));
+    milRenderClients();
+    document.getElementById('milAddClientForm').reset();
+    toast(`Client "${name}" added`, 'success');
+  } catch (err) {
+    console.error('Add client failed:', err);
+    toast('Could not add client: ' + (err.message || 'unknown error'), 'error', 5000);
+  } finally {
+    btn.disabled = false;
+    showLoading(false);
+  }
+  return false;
+}
+
+async function milUpdateClient(id, newMiles) {
+  const c = MIL.clients.find(x => x.id === id);
+  if (!c) return;
+  const m = Number(newMiles) || 0;
+  if (m === c.miles) return;
+  showLoading(true);
+  try {
+    await milPatchClientMiles(id, m);
+    c.miles = m;
+    milRenderClients();
+    toast(`Updated "${c.name}" to ${milFmtMiles(m)} mi`, 'success', 2500);
+  } catch (err) {
+    console.error('Update client failed:', err);
+    toast('Could not update client: ' + (err.message || 'unknown error'), 'error', 5000);
+    milRenderClients(); // re-render to revert visual value
+  } finally {
+    showLoading(false);
+  }
+}
+
+function milConfirmDeleteClient(id) {
+  const c = MIL.clients.find(x => x.id === id);
+  if (!c) return;
+  milOpenModal(
+    'Delete client?',
+    `Remove "${c.name}" (${milFmtMiles(c.miles)} mi) from the pre-set distances? Past journeys are unaffected.`,
+    () => milDoDeleteClient(id)
+  );
+}
+
+async function milDoDeleteClient(id) {
+  showLoading(true);
+  try {
+    await milDeleteClient(id);
+    MIL.clients = MIL.clients.filter(c => c.id !== id);
+    milRenderClients();
+    toast('Client removed', 'success');
+  } catch (err) {
+    console.error('Delete client failed:', err);
+    toast('Could not delete client: ' + (err.message || 'unknown error'), 'error', 5000);
+  } finally {
+    showLoading(false);
+  }
+}
+
+
+// ─── Confirm modal ────────────────────────────────────────────────────
+function milOpenModal(title, body, confirmFn) {
+  document.getElementById('milModalTitle').textContent = title;
+  document.getElementById('milModalBody').textContent  = body;
+  MIL.modalConfirmFn = confirmFn;
+  const btn = document.getElementById('milModalConfirm');
+  btn.onclick = () => {
+    milCloseModal();
+    if (MIL.modalConfirmFn) MIL.modalConfirmFn();
+    MIL.modalConfirmFn = null;
+  };
+  document.getElementById('milModalBg').classList.add('show');
+}
+function milCloseModal() {
+  document.getElementById('milModalBg').classList.remove('show');
+  MIL.modalConfirmFn = null;
+}
+
+
+// ─── CSV export ───────────────────────────────────────────────────────
+function milDownloadCsv() {
+  if (MIL.journeys.length === 0) {
+    toast('Nothing to export — no journeys recorded', 'warning');
+    return;
+  }
+  const sorted = [...MIL.journeys].sort((a, b) => {
+    const da = new Date(a.date).getTime() || 0;
+    const db = new Date(b.date).getTime() || 0;
+    return da - db;
+  });
+
+  const esc = v => {
+    const s = String(v ?? '');
+    return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
+
+  const headers = ['Date', 'Driver', 'Destination', 'Purpose', 'Miles', 'Rate', 'Amount (£)'];
+  const rows = sorted.map(j => [
+    j.date, j.driver, j.destination, j.purpose,
+    Number(j.miles).toFixed(1), j.rate, Number(j.amount).toFixed(2)
+  ].map(esc).join(','));
+
+  const csv = [headers.join(','), ...rows].join('\r\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const ty = MIL.taxYear ? MIL.taxYear.label.replace('/', '-') : 'all';
+  a.href = url;
+  a.download = `gecko-mileage-${ty}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 200);
+  toast(`CSV exported — ${sorted.length} journeys`, 'success');
+}
+
+
+// ─── Date helpers ─────────────────────────────────────────────────────
+function milSetDefaultDate() {
+  const el = document.getElementById('milDate');
+  if (el && !el.value) {
+    const t = new Date();
+    el.value = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+  }
+}
+
+
+// ─── Refresh & init ───────────────────────────────────────────────────
+async function milRefreshData(silent = false) {
+  if (MIL.loading) return;
+  MIL.loading = true;
+  const refreshBtn = document.getElementById('milRefresh');
+  refreshBtn.classList.add('spinning');
+  refreshBtn.disabled = true;
+  showLoading(true);
+  try {
+    await milResolveListIds();
+    await Promise.all([milLoadClients(), milLoadJourneys()]);
+    if (MIL.clients.length === 0) await milSeedClientsIfEmpty();
+    milRenderAll();
+    document.getElementById('milLastSync').textContent =
+      'Synced ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    if (!silent) toast(`Refreshed — ${MIL.journeys.length} journeys, ${MIL.clients.length} clients`, 'success', 2500);
+  } catch (err) {
+    console.error('Mileage refresh failed:', err);
+    toast('Could not load mileage data: ' + (err.message || 'unknown error'), 'error', 6000);
+  } finally {
+    refreshBtn.classList.remove('spinning');
+    refreshBtn.disabled = false;
+    showLoading(false);
+    MIL.loading = false;
+  }
+}
+
+async function initMileage() {
+  if (MIL.initialised) return;
+  MIL.initialised = true;
+
+  // Tax year setup
+  MIL.taxYear = milComputeTaxYear();
+  document.getElementById('milTaxYear').textContent   = MIL.taxYear.label;
+  document.getElementById('milExportYear').textContent = MIL.taxYear.label;
+
+  // ─ Apply ENTITY_CONFIG labels ─
+  document.getElementById('milExportSubtitle').textContent = milConfig('exportSubtitle').replace('{{year}}', MIL.taxYear.label);
+  document.getElementById('milHmrcNote').innerHTML = milConfig('hmrcNote');
+  document.getElementById('milKpiLabel').textContent = milConfig('kpiLabel');
+  
+  // Driver descriptions
+  const drvCfg = milConfig('drivers');
+  const philip = drvCfg['Philip Morris'];
+  const jack = drvCfg['Jack Morris'];
+  document.getElementById('milExpPhilipRole').textContent = `· ${philip.role} · ${philip.vehicle}`;
+  document.getElementById('milExpJackRole').textContent   = `· ${jack.role} · ${jack.vehicle}`;
+
+  milSetDefaultDate();
+
+  // Modal: close on ESC
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') milCloseModal();
+  });
+
+  // First data load
+  await milRefreshData(true);
+}
 
 // /* ═══ CLIENTS INIT ═══ */
 // async function initClients() { /* Phase 5 */ }
