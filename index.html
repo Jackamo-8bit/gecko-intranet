@@ -512,7 +512,458 @@ body {
    ═══════════════════════════════════════════════════════════════════ */
 
 /* /* ═══ HOME / OVERVIEW SECTION STYLES ═══ */
-/* /* ═══ PROFITABILITY SECTION STYLES ═══ */
+
+/* ╔═══════════════════════════════════════════════════════════════════╗
+   ║                                                                   ║
+   ║   PROFITABILITY SECTION STYLES                                    ║
+   ║                                                                   ║
+   ║   All styles for the Client Profitability dashboard. Scoped       ║
+   ║   under `.prf-` prefixes so nothing collides with other           ║
+   ║   sections. Uses the shared design tokens (--card, --green, etc.) ║
+   ║   — no hardcoded colours here.                                    ║
+   ║                                                                   ║
+   ╚═══════════════════════════════════════════════════════════════════╝ */
+
+/* — Section head actions (refresh + last sync), mirrors Mileage pattern — */
+.prf-head-actions { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+.prf-refresh {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: var(--radius-sm);
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--muted); font-size: 12px; cursor: pointer;
+  font-family: 'Instrument Sans', sans-serif;
+  transition: all .15s ease;
+}
+.prf-refresh:hover:not(:disabled) { color: var(--green); border-color: var(--green); }
+.prf-refresh:disabled { opacity: .5; cursor: not-allowed; }
+.prf-refresh svg { transition: transform .4s ease; }
+.prf-refresh.spinning svg { animation: prfSpin 1s linear infinite; }
+@keyframes prfSpin { to { transform: rotate(360deg); } }
+.prf-last-sync { font-size: 11px; color: var(--muted); margin-left: 4px; }
+.prf-add-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: var(--radius-sm);
+  background: var(--green); color: var(--black);
+  border: 1px solid var(--green);
+  font-family: 'Instrument Sans', sans-serif; font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: all .15s ease;
+}
+.prf-add-btn:hover { background: var(--green-dark); border-color: var(--green-dark); color: var(--white); }
+
+/* — Wrapper layout — */
+.prf-wrap { display: flex; flex-direction: column; gap: 14px; }
+
+/* — Empty / seed banner — */
+.prf-seed {
+  background: var(--card); border: 1px dashed var(--green);
+  border-radius: var(--radius); padding: 26px 24px;
+  display: flex; gap: 18px; align-items: center; flex-wrap: wrap;
+}
+.prf-seed-ic {
+  width: 44px; height: 44px; border-radius: 10px;
+  background: var(--green-glow); border: 1px solid var(--border);
+  color: var(--green);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.prf-seed-text { flex: 1; min-width: 220px; }
+.prf-seed-text h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800; font-size: 17px; letter-spacing: .05em;
+  text-transform: uppercase; margin-bottom: 4px;
+}
+.prf-seed-text p { color: var(--muted); font-size: 13px; }
+.prf-seed-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+/* — Summary strip (KPI tiles across the top) — */
+.prf-sum-strip {
+  background: var(--card); border: 1px solid var(--border-dim);
+  border-radius: var(--radius);
+  display: flex; align-items: stretch; overflow-x: auto;
+}
+.prf-sum-s {
+  padding: 14px 22px; border-right: 1px solid var(--border-dim);
+  display: flex; flex-direction: column; gap: 3px; white-space: nowrap;
+  min-width: 110px;
+}
+.prf-sum-s:last-child { border-right: none; }
+.prf-sum-v {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px; font-weight: 700; color: var(--green);
+  letter-spacing: .02em;
+}
+.prf-sum-l {
+  font-size: 9px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .08em;
+}
+
+/* — Filter / search bar — */
+.prf-ctrl {
+  background: var(--card); border: 1px solid var(--border-dim);
+  border-radius: var(--radius);
+  padding: 10px 14px; display: flex; gap: 7px; align-items: center;
+  flex-wrap: wrap;
+}
+.prf-cl {
+  font-size: 9px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .08em; margin-right: 3px;
+}
+.prf-fbtn {
+  padding: 4px 13px; border-radius: 999px; border: 1px solid var(--border);
+  background: transparent; cursor: pointer;
+  font-size: 11px; font-family: 'Instrument Sans', sans-serif;
+  color: var(--muted); transition: all .15s;
+}
+.prf-fbtn:hover { border-color: var(--green); color: var(--green); }
+.prf-fbtn.on { background: var(--green-glow); color: var(--green); border-color: var(--green); }
+.prf-cg { flex: 1; }
+.prf-abtn {
+  padding: 4px 11px; border-radius: 6px; border: 1px solid var(--border-dim);
+  background: transparent; cursor: pointer;
+  font-size: 11px; font-family: 'Instrument Sans', sans-serif;
+  color: var(--muted); transition: all .15s;
+}
+.prf-abtn:hover { color: var(--white); border-color: var(--border); }
+.prf-srch { position: relative; }
+.prf-srch input {
+  padding: 5px 11px 5px 28px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--dark);
+  color: var(--white); font-size: 11px;
+  font-family: 'Instrument Sans', sans-serif;
+  width: 200px; outline: none; transition: border-color .15s;
+}
+.prf-srch input::placeholder { color: var(--muted); }
+.prf-srch input:focus { border-color: var(--green); }
+.prf-srch-ic {
+  position: absolute; left: 9px; top: 50%;
+  transform: translateY(-50%); color: var(--muted);
+  pointer-events: none; font-size: 11px;
+}
+
+/* — Legend (category pill key + margin colour key) — */
+.prf-leg {
+  padding: 8px 14px; display: flex; gap: 14px; align-items: center;
+  flex-wrap: wrap;
+  background: var(--card); border: 1px solid var(--border-dim);
+  border-radius: var(--radius);
+}
+.prf-li { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); }
+.prf-leg-r { margin-left: auto; font-size: 10px; color: var(--muted); display: flex; gap: 10px; }
+.prf-m-hi { color: var(--green); font-weight: 700; }
+.prf-m-md { color: var(--amber); font-weight: 700; }
+.prf-m-lo { color: var(--red); font-weight: 700; }
+
+/* — Category pills — */
+.prf-ct {
+  display: inline-block; padding: 1px 7px; border-radius: 999px;
+  font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .05em;
+}
+.prf-ct-stack    { background: var(--green-glow); color: var(--green); }
+.prf-ct-m365     { background: var(--blue-dim);   color: var(--blue); }
+.prf-ct-hosting  { background: var(--teal-dim);   color: var(--teal); }
+.prf-ct-retainer { background: var(--purple-dim); color: var(--purple); }
+.prf-ct-other    { background: rgba(255,204,51,0.1); color: #ffcc33; }
+
+/* — Client card — */
+.prf-cc {
+  background: var(--card); border: 1px solid var(--border-dim);
+  border-radius: var(--radius); overflow: hidden;
+  transition: border-color .2s;
+}
+.prf-cc:hover { border-color: var(--border); }
+.prf-cc.winding { border-left: 3px solid var(--amber); }
+.prf-cc.isnew   { border-left: 3px solid var(--blue); }
+.prf-cc.open    { border-color: var(--green-line); }
+
+/* — Card header (collapsed view, click to toggle) — */
+.prf-ch {
+  padding: 12px 18px; display: flex; align-items: center; gap: 12px;
+  cursor: pointer; user-select: none; transition: background .15s;
+}
+.prf-ch:hover { background: var(--card-hover); }
+.prf-cav {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--green-glow); border: 1px solid var(--border);
+  color: var(--green);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800; font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.prf-cn {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px; font-weight: 700; letter-spacing: .05em;
+  text-transform: uppercase; color: var(--white); flex: 1;
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.prf-cbadge {
+  font-size: 9px; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; padding: 2px 8px; border-radius: 999px;
+  flex-shrink: 0;
+}
+.prf-b-act { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
+.prf-b-win { background: var(--amber-dim);  color: var(--amber); border: 1px solid rgba(224,154,46,0.3); }
+.prf-b-new { background: var(--blue-dim);   color: var(--blue);  border: 1px solid rgba(74,158,221,0.3); }
+
+.prf-cnums { display: flex; gap: 18px; align-items: center; }
+.prf-cnum { text-align: right; }
+.prf-cnum .v {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px; font-weight: 700;
+}
+.prf-cnum .l {
+  font-size: 9px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .05em;
+}
+.prf-vc { color: var(--red); }
+.prf-vs { color: var(--white); }
+.prf-vg { color: var(--green); }
+
+/* — Margin pill — */
+.prf-mpill {
+  padding: 4px 10px; border-radius: 999px;
+  font-size: 11px; font-weight: 700;
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: .04em; min-width: 50px; text-align: center;
+}
+.prf-mp-hi { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
+.prf-mp-md { background: var(--amber-dim);  color: var(--amber); border: 1px solid rgba(224,154,46,0.3); }
+.prf-mp-lo { background: var(--red-dim);    color: var(--red);   border: 1px solid rgba(224,82,82,0.3); }
+
+/* — Card action buttons (edit pencil, delete bin) on header & rows — */
+.prf-iconbtn {
+  width: 26px; height: 26px; border-radius: 6px;
+  border: 1px solid var(--border-dim); background: transparent;
+  color: var(--muted); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: all .15s; flex-shrink: 0;
+}
+.prf-iconbtn:hover { color: var(--green); border-color: var(--green); background: var(--green-glow); }
+.prf-iconbtn.danger:hover { color: var(--red); border-color: var(--red); background: var(--red-dim); }
+
+.prf-chev {
+  font-size: 10px; color: var(--muted); transition: transform .2s;
+  flex-shrink: 0; margin-left: 4px;
+}
+.prf-cc.open .prf-chev { transform: rotate(180deg); }
+
+/* — Service body (revealed when card is open) — */
+.prf-sbody {
+  display: none; border-top: 1px solid var(--border-dim);
+}
+.prf-cc.open .prf-sbody { display: block; }
+.prf-ret-notice {
+  padding: 8px 18px; background: var(--purple-dim);
+  border-bottom: 1px solid rgba(155,109,255,0.15);
+  font-size: 11px; color: var(--purple);
+}
+
+/* — Service line table — */
+.prf-stbl { width: 100%; border-collapse: collapse; }
+.prf-stbl thead th {
+  padding: 8px 14px;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted);
+  background: rgba(0,0,0,0.25);
+  border-bottom: 1px solid var(--border-dim);
+  text-align: right;
+}
+.prf-stbl thead th:first-child  { text-align: left; width: 95px; }
+.prf-stbl thead th:nth-child(2) { text-align: left; }
+.prf-stbl thead th:last-child   { width: 80px; }
+.prf-stbl tbody tr:hover td { background: rgba(255,255,255,0.015); }
+.prf-stbl tbody td {
+  padding: 9px 14px; border-bottom: 1px solid var(--border-dim);
+  vertical-align: middle; font-size: 13px;
+}
+.prf-stbl tbody tr:last-child td { border-bottom: none; }
+.prf-sn .n { font-weight: 500; color: var(--white); }
+.prf-sn .d { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.prf-nr {
+  text-align: right;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px; font-weight: 600;
+}
+.prf-nc { color: var(--red); }
+.prf-ns { color: var(--white); font-weight: 700; }
+.prf-ng { color: var(--green); font-weight: 700; }
+.prf-nb { color: var(--muted); }
+.prf-pend { color: var(--muted); font-size: 11px; font-style: italic; }
+
+/* — Inline service edit row (replaces a row when editing/adding) — */
+.prf-erow td { background: rgba(82,176,46,0.04); }
+.prf-erow input,
+.prf-erow select {
+  width: 100%; padding: 5px 8px;
+  background: var(--dark); color: var(--white);
+  border: 1px solid var(--border); border-radius: 6px;
+  font-family: 'Instrument Sans', sans-serif; font-size: 12px;
+  outline: none; transition: border-color .15s;
+}
+.prf-erow input:focus,
+.prf-erow select:focus { border-color: var(--green); }
+.prf-erow input[type="number"] {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; text-align: right;
+}
+.prf-erow .prf-eactions { display: flex; gap: 4px; justify-content: flex-end; }
+
+/* — Add-service inline trigger row (last row in service table when card open) — */
+.prf-arow td {
+  background: rgba(0,0,0,0.15);
+  text-align: center; padding: 8px 14px;
+}
+.prf-arow button {
+  background: transparent; border: 1px dashed var(--border);
+  color: var(--muted); padding: 5px 14px; border-radius: 999px;
+  font-size: 11px; font-family: 'Instrument Sans', sans-serif;
+  cursor: pointer; transition: all .15s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.prf-arow button:hover { color: var(--green); border-color: var(--green); }
+
+/* — Total row — */
+.prf-trow td {
+  background: rgba(82,176,46,0.07);
+  border-top: 1px solid var(--green-line) !important;
+  border-bottom: none !important;
+  padding: 10px 14px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px; font-weight: 700;
+  letter-spacing: .04em; text-transform: uppercase;
+  color: var(--white);
+}
+.prf-trow td.prf-nr { font-size: 15px; }
+
+/* — Xero reconciliation row — */
+.prf-xrow td {
+  background: rgba(0,0,0,0.25);
+  border-top: 1px dashed var(--border) !important;
+  border-bottom: none !important;
+  padding: 8px 14px;
+}
+.prf-xlbl { font-size: 10px; color: var(--muted); }
+.prf-xctrl { display: flex; align-items: center; gap: 7px; justify-content: flex-end; flex-wrap: wrap; }
+.prf-xcalc { font-size: 10px; color: var(--muted); }
+.prf-xcalc strong {
+  font-family: 'Barlow Condensed', sans-serif;
+  color: var(--white); font-size: 13px;
+}
+.prf-xinput {
+  width: 105px; padding: 4px 7px;
+  background: var(--dark); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--white);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px; font-weight: 700; text-align: right;
+  outline: none; transition: border-color .15s;
+}
+.prf-xinput:focus { border-color: var(--green); }
+.prf-xst {
+  font-size: 9px; font-weight: 700; padding: 3px 8px;
+  border-radius: 999px; letter-spacing: .04em; white-space: nowrap;
+}
+.prf-xsp { background: var(--border-dim); color: var(--muted); }
+.prf-xsm { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
+.prf-xsc { background: var(--amber-dim);  color: var(--amber); }
+.prf-xsd { background: var(--red-dim);    color: var(--red); }
+.prf-xdelta { font-size: 11px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; }
+.prf-xdp { color: var(--amber); }
+.prf-xdn { color: var(--red); }
+
+/* — Grand total card (bottom of section) — */
+.prf-gtot {
+  background: var(--card); border: 1px solid var(--green-line);
+  border-radius: var(--radius);
+  padding: 18px 24px; display: flex; align-items: center; gap: 0;
+  overflow: hidden; flex-wrap: wrap;
+}
+.prf-gtlbl { flex: 1; padding-right: 24px; border-right: 1px solid var(--border); min-width: 220px; }
+.prf-gtlbl strong {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px; font-weight: 800;
+  letter-spacing: .06em; text-transform: uppercase; display: block;
+}
+.prf-gtlbl strong span { color: var(--green); }
+.prf-gtlbl p { font-size: 10px; color: var(--muted); margin-top: 3px; }
+.prf-gtstats { display: flex; flex-wrap: wrap; }
+.prf-gtst { padding: 0 22px; border-right: 1px solid var(--border); text-align: center; }
+.prf-gtst:last-child { border-right: none; padding-right: 0; }
+.prf-gtst .v {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 24px; font-weight: 800; display: block;
+  letter-spacing: .02em;
+}
+.prf-gtst .l {
+  font-size: 9px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .08em;
+}
+
+/* — Empty state (no clients yet, but lists exist with rows so seed banner won't show) — */
+.prf-empty {
+  background: var(--card); border: 1px dashed var(--border-dim);
+  border-radius: var(--radius); padding: 50px 30px; text-align: center;
+}
+.prf-empty h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px; font-weight: 700;
+  letter-spacing: .05em; text-transform: uppercase;
+  color: var(--white); margin-bottom: 6px;
+}
+.prf-empty p { color: var(--muted); font-size: 13px; }
+
+/* — Profitability modal (mirrors mil-modal pattern, slightly wider for forms) — */
+.prf-modal-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+  display: none; align-items: center; justify-content: center;
+  z-index: 1500; animation: fadeIn .15s ease;
+}
+.prf-modal-bg.show { display: flex; }
+.prf-modal {
+  width: 100%; max-width: 480px; margin: 20px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+  max-height: 90vh; overflow-y: auto;
+}
+.prf-modal h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 17px;
+  letter-spacing: .06em; text-transform: uppercase; margin-bottom: 14px;
+}
+.prf-modal p { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+.prf-form-grp { margin-bottom: 14px; }
+.prf-form-grp label {
+  display: block;
+  font-size: 10px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .07em;
+  margin-bottom: 6px; font-weight: 600;
+}
+.prf-form-grp input,
+.prf-form-grp select,
+.prf-form-grp textarea {
+  width: 100%; padding: 8px 12px;
+  background: var(--dark); color: var(--white);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-family: 'Instrument Sans', sans-serif; font-size: 13px;
+  outline: none; transition: border-color .15s;
+}
+.prf-form-grp input:focus,
+.prf-form-grp select:focus,
+.prf-form-grp textarea:focus { border-color: var(--green); }
+.prf-form-grp textarea { resize: vertical; min-height: 70px; }
+.prf-mm-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+
+/* — Mobile/tablet adjustments — */
+@media (max-width: 900px) {
+  .prf-cnums .prf-cnum:not(.keep) { display: none; }
+  .prf-srch input { width: 140px; }
+  .prf-gtlbl { border-right: none; padding-right: 0; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .prf-gtst { padding: 0 14px; }
+}
+
+
 /* ╔═══════════════════════════════════════════════════════════════════╗
    ║                                                                   ║
    ║   MILEAGE SECTION STYLES                                          ║
@@ -1159,16 +1610,40 @@ body {
 
 
     <!-- ═══ PROFITABILITY SECTION ═════════════════════════════════ -->
+    <!-- Lazy-loaded on first nav (see initProfitability).            -->
+    <!-- Reads/writes GeckoClients + GeckoServices SharePoint lists.  -->
     <section class="section" id="section-profitability">
+
       <div class="section-head">
         <h1>CLIENT <span>PROFITABILITY</span></h1>
         <p>Service-by-service cost &amp; margin analysis — reconciled to Xero.</p>
+        <div class="prf-head-actions">
+          <button class="prf-add-btn" type="button" onclick="prfOpenClientModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Client
+          </button>
+          <button class="prf-refresh" id="prfRefresh" type="button" onclick="prfRefreshData()" title="Reload from SharePoint">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+            Refresh
+          </button>
+          <span class="prf-last-sync" id="prfLastSync"></span>
+        </div>
       </div>
-      <div class="placeholder">
-        <div class="ph-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" ><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
-        <h3>Coming Soon — Phase 3</h3>
-        <p>Expandable client cards showing cost, revenue, gross profit and margin per client. Will read from the GeckoClients and GeckoServices SharePoint lists once they're created.</p>
+
+      <div class="prf-wrap" id="prfWrap">
+        <!-- All content rendered by prfRenderAll() -->
       </div>
+
+      <!-- ═══ PROFITABILITY MODAL ═══ -->
+      <!-- Used for: Add Client, Edit Client, and confirm Delete dialogs.   -->
+      <!-- Body content is rebuilt by prfOpenClientModal / prfConfirm etc.  -->
+      <div class="prf-modal-bg" id="prfModalBg" onclick="if(event.target===this)prfCloseModal()">
+        <div class="prf-modal" id="prfModal">
+          <h3 id="prfModalTitle">—</h3>
+          <div id="prfModalBody"></div>
+        </div>
+      </div>
+
     </section>
 
 
@@ -1681,7 +2156,10 @@ function navTo(sectionKey) {
   if (sectionKey === 'mileage' && typeof initMileage === 'function') {
     initMileage();
   }
-  // Future phases: profitability, overview, clients hook in here too.
+  if (sectionKey === 'profitability' && typeof initProfitability === 'function') {
+    initProfitability();
+  }
+  // Future phases: overview, clients hook in here too.
 }
 
 function openSidebar() {
@@ -1787,7 +2265,1009 @@ function onSignedIn() {
 // async function initOverview() { /* Phase 4 */ }
 
 // /* ═══ PROFITABILITY INIT ═══ */
-// async function initProfitability() { /* Phase 3 */ }
+// (Full Phase 3 module follows further down — search for "PROFITABILITY MODULE")
+
+
+/* ╔═══════════════════════════════════════════════════════════════════╗
+   ║                                                                   ║
+   ║   PROFITABILITY MODULE                                            ║
+   ║                                                                   ║
+   ║   Self-contained module for the Client Profitability section.     ║
+   ║   Uses the portal's shared getToken(), graphFetch(), toast(),     ║
+   ║   showLoading(), escapeHtml().                                    ║
+   ║                                                                   ║
+   ║   Lazy-loaded: initProfitability() runs once, on first nav to     ║
+   ║   the section. After that, data is cached in PRF state. The user ║
+   ║   can manually refresh via the "Refresh" button in the header.    ║
+   ║                                                                   ║
+   ║   SharePoint lists used:                                          ║
+   ║     GeckoClients  — Title, Status, ContractStart, Notes,          ║
+   ║                     XeroActual (Phase 5 cols ignored here)        ║
+   ║     GeckoServices — Title, ClientName, Category, CostPerMonth,    ║
+   ║                     SellPerMonth, Notes                           ║
+   ║                                                                   ║
+   ╚═══════════════════════════════════════════════════════════════════╝ */
+
+// ─── State ────────────────────────────────────────────────────────────
+const PRF = {
+  initialised: false,
+  loading:     false,
+  siteId:      null,                            // resolved on first init
+  listIds:     { clients: null, services: null },
+  clients:     [],   // [{ id, name, status, contractStart, notes, xeroActual }]
+  services:    [],   // [{ id, clientName, name, category, cost, sell, notes }]
+  filterCat:   'all',
+  search:      '',
+  openCards:   new Set(),                        // client IDs of expanded cards (preserved across re-renders)
+  modalCb:     null                              // active modal confirm callback
+};
+
+// Categories — single source of truth for pill colours, filter buttons, dropdowns
+const PRF_CATS = [
+  { key: 'stack',    label: 'Stack',    desc: 'Atera / Acronis / WFH' },
+  { key: 'm365',     label: 'M365',     desc: 'Microsoft 365'         },
+  { key: 'hosting',  label: 'Hosting',  desc: 'Web / Domain'          },
+  { key: 'retainer', label: 'Retainer', desc: 'IT Support'            },
+  { key: 'other',    label: 'Other',    desc: 'Starlink etc.'         }
+];
+
+
+// ─── Formatting helpers ───────────────────────────────────────────────
+const prfFmt = v => {
+  const n = Number(v) || 0;
+  if (n === 0) return '—';
+  return '£' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+};
+const prfFmtForce = v => {
+  // Always shows £, even on zero (used in Xero comparisons)
+  const n = Number(v) || 0;
+  return '£' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+};
+const prfFmtPct = v => {
+  if (!isFinite(v) || v === 0) return '—';
+  return (v * 100).toFixed(1) + '%';
+};
+const prfInitials = name => {
+  if (!name) return '?';
+  return name.split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
+};
+const prfMpClass = pct => pct >= 0.7 ? 'prf-mp-hi' : pct >= 0.4 ? 'prf-mp-md' : 'prf-mp-lo';
+const prfCatClass = cat => 'prf-ct-' + (PRF_CATS.find(c => c.key === cat) ? cat : 'other');
+
+
+// ─── SharePoint helpers — resolve site + list IDs ─────────────────────
+async function prfResolveListIds() {
+  if (PRF.siteId && PRF.listIds.clients && PRF.listIds.services) return;
+
+  const sitePath = `/sites/${CONFIG.SP_HOST}:${CONFIG.SP_SITE}`;
+  const site = await graphFetch(sitePath);
+  PRF.siteId = site.id;
+
+  const lists = await graphFetch(`/sites/${PRF.siteId}/lists?$select=id,displayName,name`);
+  for (const l of (lists.value || [])) {
+    if (l.displayName === 'GeckoClients'  || l.name === 'GeckoClients')  PRF.listIds.clients  = l.id;
+    if (l.displayName === 'GeckoServices' || l.name === 'GeckoServices') PRF.listIds.services = l.id;
+  }
+  if (!PRF.listIds.clients)  throw new Error('GeckoClients list not found in SharePoint site');
+  if (!PRF.listIds.services) throw new Error('GeckoServices list not found in SharePoint site');
+}
+
+
+// ─── SharePoint helpers — load lists ──────────────────────────────────
+async function prfLoadClients() {
+  const url = `/sites/${PRF.siteId}/lists/${PRF.listIds.clients}/items?expand=fields&$top=500`;
+  const res = await graphFetch(url);
+  PRF.clients = (res.value || []).map(it => {
+    const f = it.fields || {};
+    return {
+      id:            it.id,
+      name:          f.Title || '',
+      status:        f.Status || 'Active',
+      contractStart: f.ContractStart ? f.ContractStart.split('T')[0] : '',
+      notes:         f.Notes || '',
+      xeroActual:    (f.XeroActual === null || f.XeroActual === undefined || f.XeroActual === '') ? null : Number(f.XeroActual)
+    };
+  })
+  .filter(c => c.name)
+  .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+async function prfLoadServices() {
+  const url = `/sites/${PRF.siteId}/lists/${PRF.listIds.services}/items?expand=fields&$top=2000`;
+  const res = await graphFetch(url);
+  PRF.services = (res.value || []).map(it => {
+    const f = it.fields || {};
+    return {
+      id:         it.id,
+      clientName: f.ClientName || '',
+      name:       f.Title || '',
+      category:   (f.Category || 'other').toLowerCase(),
+      cost:       Number(f.CostPerMonth) || 0,
+      sell:       Number(f.SellPerMonth) || 0,
+      notes:      f.Notes || ''
+    };
+  });
+}
+
+
+// ─── SharePoint helpers — CRUD ────────────────────────────────────────
+async function prfCreateClient(c) {
+  const fields = { Title: c.name, Status: c.status || 'Active' };
+  if (c.contractStart) fields.ContractStart = c.contractStart;
+  if (c.notes)         fields.Notes = c.notes;
+  return graphFetch(`/sites/${PRF.siteId}/lists/${PRF.listIds.clients}/items`, {
+    method: 'POST', body: JSON.stringify({ fields })
+  });
+}
+async function prfPatchClient(id, patch) {
+  return graphFetch(`/sites/${PRF.siteId}/lists/${PRF.listIds.clients}/items/${id}/fields`, {
+    method: 'PATCH', body: JSON.stringify(patch)
+  });
+}
+async function prfDeleteClient(id) {
+  return graphFetch(`/sites/${PRF.siteId}/lists/${PRF.listIds.clients}/items/${id}`, {
+    method: 'DELETE'
+  });
+}
+
+async function prfCreateService(s) {
+  const fields = {
+    Title:        s.name,
+    ClientName:   s.clientName,
+    Category:     s.category,
+    CostPerMonth: Number(s.cost) || 0,
+    SellPerMonth: Number(s.sell) || 0
+  };
+  if (s.notes) fields.Notes = s.notes;
+  return graphFetch(`/sites/${PRF.siteId}/lists/${PRF.listIds.services}/items`, {
+    method: 'POST', body: JSON.stringify({ fields })
+  });
+}
+async function prfPatchService(id, patch) {
+  return graphFetch(`/sites/${PRF.siteId}/lists/${PRF.listIds.services}/items/${id}/fields`, {
+    method: 'PATCH', body: JSON.stringify(patch)
+  });
+}
+async function prfDeleteService(id) {
+  return graphFetch(`/sites/${PRF.siteId}/lists/${PRF.listIds.services}/items/${id}`, {
+    method: 'DELETE'
+  });
+}
+
+
+// ─── Main refresh — load everything from SharePoint ───────────────────
+async function prfRefreshData(silent = false) {
+  if (PRF.loading) return;
+  PRF.loading = true;
+  const refreshBtn = document.getElementById('prfRefresh');
+  if (refreshBtn) { refreshBtn.classList.add('spinning'); refreshBtn.disabled = true; }
+  showLoading(true);
+  try {
+    await prfResolveListIds();
+    await Promise.all([prfLoadClients(), prfLoadServices()]);
+    prfRenderAll();
+    const last = document.getElementById('prfLastSync');
+    if (last) {
+      last.textContent = 'Synced ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    }
+    if (!silent) {
+      toast(`Refreshed — ${PRF.clients.length} clients, ${PRF.services.length} services`, 'success', 2500);
+    }
+  } catch (err) {
+    console.error('Profitability refresh failed:', err);
+    toast('Could not load profitability data: ' + (err.message || 'unknown error'), 'error', 6000);
+    // Render an error state inside the wrap so the section isn't blank
+    const wrap = document.getElementById('prfWrap');
+    if (wrap) {
+      wrap.innerHTML = `
+        <div class="prf-empty">
+          <h3>Could not load data</h3>
+          <p>${escapeHtml(err.message || 'Unknown error')}<br>Click Refresh to try again.</p>
+        </div>`;
+    }
+  } finally {
+    if (refreshBtn) { refreshBtn.classList.remove('spinning'); refreshBtn.disabled = false; }
+    showLoading(false);
+    PRF.loading = false;
+  }
+}
+
+
+// ─── Aggregation helpers (per-client + grand totals) ──────────────────
+function prfClientServices(clientName) {
+  return PRF.services.filter(s => s.clientName === clientName);
+}
+function prfClientTotals(clientName) {
+  const all = prfClientServices(clientName);
+  const sell    = all.reduce((a, s) => a + s.sell, 0);
+  const cost    = all.reduce((a, s) => a + s.cost, 0);
+  const sellRet = all.filter(s => s.category === 'retainer').reduce((a, s) => a + s.sell, 0);
+  const sellSt  = sell - sellRet;
+  const gp      = sell - cost;
+  const margin  = sell > 0 ? gp / sell : 0;
+  return { sell, cost, sellRet, sellSt, gp, margin, all };
+}
+function prfGrandTotals() {
+  let cost = 0, sell = 0, sellRet = 0, xero = 0, xeroCount = 0, activeClients = 0;
+  PRF.clients.forEach(c => {
+    if (c.status !== 'Winding') activeClients++;
+    if (c.xeroActual !== null && !isNaN(c.xeroActual)) { xero += c.xeroActual; xeroCount++; }
+    PRF.services.filter(s => s.clientName === c.name).forEach(s => {
+      cost += s.cost; sell += s.sell;
+      if (s.category === 'retainer') sellRet += s.sell;
+    });
+  });
+  const sellStack = sell - sellRet;
+  const gp        = sell - cost;
+  const margin    = sell > 0 ? gp / sell : 0;
+  return { cost, sell, sellStack, sellRet, gp, margin, xero, xeroCount, activeClients };
+}
+
+
+// ─── Master render ────────────────────────────────────────────────────
+function prfRenderAll() {
+  const wrap = document.getElementById('prfWrap');
+  if (!wrap) return;
+
+  // — Empty state: lists exist but both are empty → offer to seed —
+  if (PRF.clients.length === 0 && PRF.services.length === 0) {
+    wrap.innerHTML = prfRenderSeedBanner();
+    return;
+  }
+
+  // — Normal render: KPIs + filter bar + legend + cards + grand total —
+  wrap.innerHTML =
+    prfRenderSummary() +
+    prfRenderControls() +
+    prfRenderLegend() +
+    prfRenderCards() +
+    prfRenderGrandTotal();
+
+  // Apply current filter/search after re-render
+  prfApplyFilters();
+}
+
+function prfRenderSeedBanner() {
+  return `
+    <div class="prf-seed">
+      <div class="prf-seed-ic">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      </div>
+      <div class="prf-seed-text">
+        <h3>No Clients Yet</h3>
+        <p>Both SharePoint lists are empty. You can seed the dashboard with the existing client list (24 clients, ~60 service lines) from Philip's prototype, or start from scratch by adding clients manually.</p>
+      </div>
+      <div class="prf-seed-actions">
+        <button class="btn btn-ghost" type="button" onclick="prfOpenClientModal()">Add Manually</button>
+        <button class="btn btn-primary" type="button" onclick="prfConfirmSeed()">Seed Sample Data</button>
+      </div>
+    </div>`;
+}
+
+function prfRenderSummary() {
+  const t = prfGrandTotals();
+  return `
+    <div class="prf-sum-strip">
+      <div class="prf-sum-s"><div class="prf-sum-v">${t.activeClients}</div><div class="prf-sum-l">Active Clients</div></div>
+      <div class="prf-sum-s"><div class="prf-sum-v">${prfFmt(t.sellStack)}</div><div class="prf-sum-l">Stack Revenue</div></div>
+      <div class="prf-sum-s"><div class="prf-sum-v">${prfFmt(t.cost)}</div><div class="prf-sum-l">Stack Cost</div></div>
+      <div class="prf-sum-s"><div class="prf-sum-v" style="color:var(--green)">${prfFmt(t.gp)}</div><div class="prf-sum-l">Gross Profit</div></div>
+      <div class="prf-sum-s"><div class="prf-sum-v">${prfFmtPct(t.margin)}</div><div class="prf-sum-l">Margin %</div></div>
+      <div class="prf-sum-s"><div class="prf-sum-v" style="color:var(--purple)">${prfFmt(t.sellRet)}</div><div class="prf-sum-l">Retainer Revenue</div></div>
+      <div class="prf-sum-s"><div class="prf-sum-v" style="color:var(--amber)">${prfFmt(t.xero)}</div><div class="prf-sum-l">Xero Billing (${t.xeroCount})</div></div>
+    </div>`;
+}
+
+function prfRenderControls() {
+  const catBtns = ['all', ...PRF_CATS.map(c => c.key)].map(k => {
+    const label = k === 'all' ? 'All' : PRF_CATS.find(c => c.key === k).label + (k === 'retainer' ? 's' : '');
+    const cls = PRF.filterCat === k ? 'prf-fbtn on' : 'prf-fbtn';
+    return `<button class="${cls}" type="button" onclick="prfSetFilter('${k}')">${escapeHtml(label)}</button>`;
+  }).join('');
+  return `
+    <div class="prf-ctrl">
+      <span class="prf-cl">Filter:</span>
+      ${catBtns}
+      <div class="prf-cg"></div>
+      <button class="prf-abtn" type="button" onclick="prfExpandAll()">Expand All</button>
+      <button class="prf-abtn" type="button" onclick="prfCollapseAll()">Collapse All</button>
+      <div class="prf-srch">
+        <span class="prf-srch-ic">🔍</span>
+        <input type="text" id="prfSearch" placeholder="Search clients…" value="${escapeHtml(PRF.search)}" oninput="prfSetSearch(this.value)">
+      </div>
+    </div>`;
+}
+
+function prfRenderLegend() {
+  const items = PRF_CATS.map(c =>
+    `<span class="prf-li"><span class="prf-ct prf-ct-${c.key}">${escapeHtml(c.label)}</span>${escapeHtml(c.desc)}</span>`
+  ).join('');
+  return `
+    <div class="prf-leg">
+      ${items}
+      <div class="prf-leg-r">
+        <span>Margin:</span>
+        <span class="prf-m-hi">■ ≥70%</span>
+        <span class="prf-m-md">■ 40–70%</span>
+        <span class="prf-m-lo">■ &lt;40%</span>
+      </div>
+    </div>`;
+}
+
+function prfRenderCards() {
+  if (PRF.clients.length === 0) {
+    return `<div class="prf-empty"><h3>No Clients</h3><p>Add a client to start tracking profitability.</p></div>`;
+  }
+  return PRF.clients.map(prfRenderCard).join('');
+}
+
+function prfRenderCard(client) {
+  const t = prfClientTotals(client.name);
+  const cats = [...new Set(t.all.map(s => s.category))].join(',');
+  const isOpen = PRF.openCards.has(client.id);
+
+  // Status badge
+  let badge;
+  if (client.status === 'Winding')      badge = '<span class="prf-cbadge prf-b-win">Winding Down</span>';
+  else if (client.status === 'New')     badge = '<span class="prf-cbadge prf-b-new">New</span>';
+  else                                  badge = '<span class="prf-cbadge prf-b-act">Active</span>';
+
+  const cls = ['prf-cc'];
+  if (client.status === 'Winding') cls.push('winding');
+  if (client.status === 'New')     cls.push('isnew');
+  if (isOpen)                      cls.push('open');
+
+  // Service rows
+  const retainers = t.all.filter(s => s.category === 'retainer');
+  const stack     = t.all.filter(s => s.category !== 'retainer');
+  let rows = '';
+  retainers.forEach(s => { rows += prfRenderServiceRow(s); });
+  stack.forEach(s => { rows += prfRenderServiceRow(s); });
+
+  // Empty service prompt if no services yet
+  if (t.all.length === 0) {
+    rows = `<tr><td colspan="7" style="text-align:center;padding:18px;color:var(--muted);font-size:12px;font-style:italic">No services yet — click "Add service" below to start.</td></tr>`;
+  }
+
+  // Add-service trigger row
+  const addRow = `<tr class="prf-arow"><td colspan="7"><button type="button" onclick="event.stopPropagation();prfAddServiceInline('${client.id}')">+ Add service</button></td></tr>`;
+
+  // Retainer notice banner if any retainer services
+  const retNote = retainers.length > 0
+    ? `<div class="prf-ret-notice">⚡ Retainer revenue (${prfFmt(retainers.reduce((a, s) => a + s.sell, 0))}/mo) — product cost £0. Labour cost not allocated.</div>`
+    : '';
+
+  // Xero reconciliation row
+  const xeroVal = client.xeroActual !== null ? client.xeroActual : '';
+  const xeroStatus = prfXeroStatus(t.sell, client.xeroActual);
+
+  return `
+    <div class="${cls.join(' ')}" data-cats="${cats}" data-client-id="${client.id}" data-client-name="${escapeHtml(client.name).toLowerCase()}">
+
+      <!-- Header (collapsed view) -->
+      <div class="prf-ch" onclick="prfToggleCard('${client.id}')">
+        <div class="prf-cav">${escapeHtml(prfInitials(client.name))}</div>
+        <div class="prf-cn" title="${escapeHtml(client.name)}">${escapeHtml(client.name)}</div>
+        ${badge}
+        <div class="prf-cnums">
+          <div class="prf-cnum"><div class="v prf-vc">${prfFmt(t.cost)}</div><div class="l">Cost</div></div>
+          <div class="prf-cnum keep"><div class="v prf-vs">${prfFmt(t.sell)}</div><div class="l">Revenue</div></div>
+          <div class="prf-cnum keep"><div class="v prf-vg">${prfFmt(t.gp)}</div><div class="l">Profit</div></div>
+          <span class="prf-mpill ${prfMpClass(t.margin)} keep">${prfFmtPct(t.margin)}</span>
+        </div>
+        <button class="prf-iconbtn" type="button" title="Edit client" onclick="event.stopPropagation();prfOpenClientModal('${client.id}')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </button>
+        <button class="prf-iconbtn danger" type="button" title="Delete client" onclick="event.stopPropagation();prfConfirmDeleteClient('${client.id}')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 012-2h2a2 2 0 012 2v2"/></svg>
+        </button>
+        <div class="prf-chev">▼</div>
+      </div>
+
+      <!-- Service body (expanded) -->
+      <div class="prf-sbody">
+        ${retNote}
+        <table class="prf-stbl">
+          <thead><tr>
+            <th>Category</th><th>Service</th><th>Cost/mo</th><th>Sell/mo</th><th>Margin £</th><th>Margin %</th><th>Actions</th>
+          </tr></thead>
+          <tbody data-svc-body="${client.id}">${rows}${addRow}</tbody>
+          <tfoot>
+            <tr class="prf-trow">
+              <td colspan="2">CLIENT TOTAL — ${escapeHtml(client.name)}</td>
+              <td class="prf-nr">${prfFmt(t.cost)}</td>
+              <td class="prf-nr">${prfFmt(t.sell)}</td>
+              <td class="prf-nr" style="color:var(--green)">${prfFmt(t.gp)}</td>
+              <td class="prf-nr"><span class="prf-mpill ${prfMpClass(t.margin)}">${prfFmtPct(t.margin)}</span></td>
+              <td></td>
+            </tr>
+            <tr class="prf-xrow">
+              <td colspan="2"><span class="prf-xlbl">📊 Xero reconciliation — actual invoiced amount (ex VAT)</span></td>
+              <td colspan="4">
+                <div class="prf-xctrl">
+                  <span class="prf-xcalc">Calculated: <strong>${prfFmtForce(t.sell)}</strong></span>
+                  <span style="font-size:10px;color:var(--muted)">Xero actual:</span>
+                  <input class="prf-xinput" type="number" step="0.01" placeholder="0.00"
+                         value="${xeroVal}"
+                         data-client-id="${client.id}"
+                         oninput="prfUpdateXeroPreview(this)"
+                         onblur="prfSaveXero('${client.id}',this.value)">
+                  <span class="prf-xst ${xeroStatus.cls}" data-xst="${client.id}">${xeroStatus.text}</span>
+                </div>
+              </td>
+              <td class="prf-nr" data-xdelta="${client.id}">${xeroStatus.delta}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>`;
+}
+
+function prfRenderServiceRow(s) {
+  // Pending setup case (sell = 0 AND cost = 0)
+  if (s.sell === 0 && s.cost === 0) {
+    return `<tr data-svc-id="${s.id}">
+      <td><span class="prf-ct ${prfCatClass(s.category)}">${escapeHtml(s.category)}</span></td>
+      <td class="prf-sn"><div class="n">${escapeHtml(s.name)}</div><div class="d">${escapeHtml(s.notes || '')}</div></td>
+      <td colspan="4" class="prf-pend">Pending setup</td>
+      <td>${prfRenderRowActions(s.id)}</td>
+    </tr>`;
+  }
+  const sgm = s.sell - s.cost;
+  const sp  = s.sell > 0 ? sgm / s.sell : 0;
+  return `<tr data-svc-id="${s.id}">
+    <td><span class="prf-ct ${prfCatClass(s.category)}">${escapeHtml(s.category)}</span></td>
+    <td class="prf-sn"><div class="n">${escapeHtml(s.name)}</div><div class="d">${escapeHtml(s.notes || '')}</div></td>
+    <td class="prf-nr prf-nc">${prfFmt(s.cost)}</td>
+    <td class="prf-nr prf-ns">${prfFmt(s.sell)}</td>
+    <td class="prf-nr ${sgm >= 0 ? 'prf-ng' : 'prf-nc'}">${prfFmt(sgm)}</td>
+    <td class="prf-nr"><span class="prf-mpill ${prfMpClass(sp)}">${prfFmtPct(sp)}</span></td>
+    <td>${prfRenderRowActions(s.id)}</td>
+  </tr>`;
+}
+
+function prfRenderRowActions(svcId) {
+  return `<div style="display:flex;gap:4px;justify-content:flex-end">
+    <button class="prf-iconbtn" type="button" title="Edit service" onclick="event.stopPropagation();prfEditServiceInline('${svcId}')">
+      <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    </button>
+    <button class="prf-iconbtn danger" type="button" title="Delete service" onclick="event.stopPropagation();prfConfirmDeleteService('${svcId}')">
+      <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+    </button>
+  </div>`;
+}
+
+function prfRenderGrandTotal() {
+  const t = prfGrandTotals();
+  return `
+    <div class="prf-gtot">
+      <div class="prf-gtlbl">
+        <strong>GRAND TOTAL — <span>ALL CLIENTS</span></strong>
+        <p>All revenue streams included. Retainer cost = £0 (labour not allocated). Xero billing only counts clients where you've entered an actual figure.</p>
+      </div>
+      <div class="prf-gtstats">
+        <div class="prf-gtst"><span class="v" style="color:var(--red)">${prfFmt(t.cost)}</span><span class="l">Total Cost</span></div>
+        <div class="prf-gtst"><span class="v">${prfFmt(t.sell)}</span><span class="l">Total Revenue</span></div>
+        <div class="prf-gtst"><span class="v" style="color:var(--green)">${prfFmt(t.gp)}</span><span class="l">Gross Profit</span></div>
+        <div class="prf-gtst"><span class="v" style="color:var(--green)">${prfFmtPct(t.margin)}</span><span class="l">Margin %</span></div>
+        <div class="prf-gtst"><span class="v" style="color:var(--purple)">${prfFmt(t.sellRet)}</span><span class="l">Retainer Rev.</span></div>
+        <div class="prf-gtst"><span class="v" style="color:var(--amber)">${prfFmt(t.xero)}</span><span class="l">Xero Billing</span></div>
+      </div>
+    </div>`;
+}
+
+
+// ─── Xero reconciliation ──────────────────────────────────────────────
+function prfXeroStatus(calculated, actual) {
+  if (actual === null || actual === undefined || actual === '' || isNaN(actual)) {
+    return { cls: 'prf-xsp', text: 'Enter figure', delta: '' };
+  }
+  const a = Number(actual);
+  const d = a - calculated;
+  const ad = Math.abs(d);
+  if (ad <= 0.5)      return { cls: 'prf-xsm', text: '✓ Match',    delta: '' };
+  if (ad <= 5)        return { cls: 'prf-xsc', text: '~ Close',    delta: `<span class="prf-xdelta ${d > 0 ? 'prf-xdp' : 'prf-xdn'}">${d > 0 ? '+' : ''}${prfFmtForce(d)}</span>` };
+  return                     { cls: 'prf-xsd', text: '✕ Mismatch', delta: `<span class="prf-xdelta ${d > 0 ? 'prf-xdp' : 'prf-xdn'}">${d > 0 ? '+' : ''}${prfFmtForce(d)}</span>` };
+}
+
+// Live preview as user types — does NOT save to SharePoint until blur
+function prfUpdateXeroPreview(input) {
+  const id = input.dataset.clientId;
+  const client = PRF.clients.find(c => c.id === id);
+  if (!client) return;
+  const t = prfClientTotals(client.name);
+  const v = input.value === '' ? null : Number(input.value);
+  const status = prfXeroStatus(t.sell, v);
+  const stEl = document.querySelector(`[data-xst="${id}"]`);
+  const dlEl = document.querySelector(`[data-xdelta="${id}"]`);
+  if (stEl) { stEl.className = 'prf-xst ' + status.cls; stEl.textContent = status.text; }
+  if (dlEl) dlEl.innerHTML = status.delta;
+}
+
+// Persist on blur — only if changed
+async function prfSaveXero(id, raw) {
+  const client = PRF.clients.find(c => c.id === id);
+  if (!client) return;
+  let v;
+  if (raw === '' || raw === null) v = null;
+  else {
+    const n = Number(raw);
+    if (isNaN(n)) return;
+    v = n;
+  }
+  if (v === client.xeroActual) return; // no change
+  try {
+    await prfPatchClient(id, { XeroActual: v });
+    client.xeroActual = v;
+    // Re-render summary strip + grand total to reflect new Xero total
+    const t = prfGrandTotals();
+    const sum = document.querySelector('.prf-sum-strip');
+    const gt  = document.querySelector('.prf-gtot');
+    if (sum) sum.outerHTML = prfRenderSummary();
+    if (gt)  gt.outerHTML  = prfRenderGrandTotal();
+    toast(v === null ? 'Xero figure cleared' : 'Xero figure saved', 'success', 1800);
+  } catch (err) {
+    console.error('Save Xero failed:', err);
+    toast('Could not save Xero figure: ' + (err.message || 'unknown'), 'error', 5000);
+  }
+}
+
+
+// ─── Filtering / search ───────────────────────────────────────────────
+function prfSetFilter(cat) {
+  PRF.filterCat = cat;
+  // Update button on/off state without full re-render
+  document.querySelectorAll('.prf-fbtn').forEach(b => b.classList.remove('on'));
+  const btns = document.querySelectorAll('.prf-fbtn');
+  // Match by label
+  const target = cat === 'all' ? 'All' : (PRF_CATS.find(c => c.key === cat).label + (cat === 'retainer' ? 's' : ''));
+  btns.forEach(b => { if (b.textContent.trim() === target) b.classList.add('on'); });
+  prfApplyFilters();
+}
+function prfSetSearch(q) {
+  PRF.search = q.toLowerCase();
+  prfApplyFilters();
+}
+function prfApplyFilters() {
+  document.querySelectorAll('.prf-cc').forEach(card => {
+    const cats = card.dataset.cats || '';
+    const name = card.dataset.clientName || '';
+    const matchCat = PRF.filterCat === 'all' || cats.split(',').includes(PRF.filterCat);
+    const matchSrch = !PRF.search || name.includes(PRF.search);
+    card.style.display = (matchCat && matchSrch) ? '' : 'none';
+  });
+}
+
+
+// ─── Card expand/collapse ─────────────────────────────────────────────
+function prfToggleCard(id) {
+  if (PRF.openCards.has(id)) PRF.openCards.delete(id);
+  else                       PRF.openCards.add(id);
+  const card = document.querySelector(`.prf-cc[data-client-id="${id}"]`);
+  if (card) card.classList.toggle('open');
+}
+function prfExpandAll() {
+  PRF.clients.forEach(c => PRF.openCards.add(c.id));
+  document.querySelectorAll('.prf-cc').forEach(c => {
+    if (c.style.display !== 'none') c.classList.add('open');
+  });
+}
+function prfCollapseAll() {
+  PRF.openCards.clear();
+  document.querySelectorAll('.prf-cc').forEach(c => c.classList.remove('open'));
+}
+
+
+// ─── Modal helpers (shared by Add Client, Edit Client, Confirm dialogs) ─
+function prfOpenModal(title, bodyHtml) {
+  document.getElementById('prfModalTitle').textContent = title;
+  document.getElementById('prfModalBody').innerHTML = bodyHtml;
+  document.getElementById('prfModalBg').classList.add('show');
+}
+function prfCloseModal() {
+  document.getElementById('prfModalBg').classList.remove('show');
+  document.getElementById('prfModalBody').innerHTML = '';
+  PRF.modalCb = null;
+}
+// ESC-to-close + the close handler is wired up once in initProfitability
+
+
+// ─── Add / Edit Client (modal) ────────────────────────────────────────
+function prfOpenClientModal(id = null) {
+  const isEdit = !!id;
+  const client = isEdit ? PRF.clients.find(c => c.id === id) : { name: '', status: 'Active', contractStart: '', notes: '' };
+  if (isEdit && !client) { toast('Client not found', 'error'); return; }
+
+  const body = `
+    <div class="prf-form-grp">
+      <label>Client Name</label>
+      <input type="text" id="prfClName" value="${escapeHtml(client.name || '')}" placeholder="e.g. ALS Locksmiths" autocomplete="off">
+    </div>
+    <div class="prf-form-grp">
+      <label>Status</label>
+      <select id="prfClStatus">
+        <option value="Active"${client.status === 'Active' ? ' selected' : ''}>Active</option>
+        <option value="Winding"${client.status === 'Winding' ? ' selected' : ''}>Winding Down</option>
+        <option value="New"${client.status === 'New' ? ' selected' : ''}>New</option>
+      </select>
+    </div>
+    <div class="prf-form-grp">
+      <label>Contract Start (optional)</label>
+      <input type="date" id="prfClStart" value="${escapeHtml(client.contractStart || '')}">
+    </div>
+    <div class="prf-form-grp">
+      <label>Notes (optional)</label>
+      <textarea id="prfClNotes" rows="3">${escapeHtml(client.notes || '')}</textarea>
+    </div>
+    <div class="prf-mm-actions">
+      <button class="btn btn-ghost" type="button" onclick="prfCloseModal()">Cancel</button>
+      <button class="btn btn-primary" type="button" onclick="prfSaveClient(${isEdit ? `'${id}'` : 'null'})">${isEdit ? 'Save' : 'Add Client'}</button>
+    </div>`;
+  prfOpenModal(isEdit ? 'Edit Client' : 'Add Client', body);
+  setTimeout(() => document.getElementById('prfClName')?.focus(), 50);
+}
+
+async function prfSaveClient(id) {
+  const name   = document.getElementById('prfClName').value.trim();
+  const status = document.getElementById('prfClStatus').value;
+  const start  = document.getElementById('prfClStart').value;
+  const notes  = document.getElementById('prfClNotes').value.trim();
+  if (!name) { toast('Client name is required', 'warning'); return; }
+
+  // Detect rename — services link by ClientName plain text, so any rename
+  // requires us to also update every linked service row to keep the join intact.
+  const existing = id ? PRF.clients.find(c => c.id === id) : null;
+  const oldName  = existing?.name || null;
+  const renamed  = oldName && oldName !== name;
+
+  // Block duplicate names (other than the row being edited)
+  if (PRF.clients.some(c => c.name.toLowerCase() === name.toLowerCase() && c.id !== id)) {
+    toast(`A client named "${name}" already exists`, 'warning', 4000);
+    return;
+  }
+
+  showLoading(true);
+  try {
+    if (id) {
+      await prfPatchClient(id, { Title: name, Status: status, ContractStart: start || null, Notes: notes });
+      // If renamed, cascade ClientName update to every linked service row
+      if (renamed) {
+        const linked = PRF.services.filter(s => s.clientName === oldName);
+        await Promise.all(linked.map(s => prfPatchService(s.id, { ClientName: name })));
+        if (linked.length > 0) {
+          toast(`Renamed — ${linked.length} service${linked.length === 1 ? '' : 's'} re-linked`, 'info', 3500);
+        }
+      }
+      toast(`Updated "${name}"`, 'success');
+    } else {
+      await prfCreateClient({ name, status, contractStart: start, notes });
+      toast(`Added "${name}"`, 'success');
+    }
+    prfCloseModal();
+    await prfRefreshData(true);
+  } catch (err) {
+    console.error('Save client failed:', err);
+    toast('Could not save client: ' + (err.message || 'unknown'), 'error', 5000);
+  } finally {
+    showLoading(false);
+  }
+}
+
+
+// ─── Confirm Delete Client ────────────────────────────────────────────
+function prfConfirmDeleteClient(id) {
+  const client = PRF.clients.find(c => c.id === id);
+  if (!client) return;
+  const linked = prfClientServices(client.name);
+  const body = `
+    <p>Delete <strong>${escapeHtml(client.name)}</strong>${linked.length > 0 ? ` and all <strong>${linked.length} linked service${linked.length === 1 ? '' : 's'}</strong>` : ''}? This cannot be undone.</p>
+    <div class="prf-mm-actions">
+      <button class="btn btn-ghost" type="button" onclick="prfCloseModal()">Cancel</button>
+      <button class="btn btn-danger" type="button" onclick="prfDoDeleteClient('${id}')">Delete</button>
+    </div>`;
+  prfOpenModal('Confirm Delete', body);
+}
+async function prfDoDeleteClient(id) {
+  const client = PRF.clients.find(c => c.id === id);
+  if (!client) return;
+  const linked = prfClientServices(client.name);
+  showLoading(true);
+  try {
+    // Delete services first, then client (so an interrupted delete doesn't leave orphaned services)
+    for (const s of linked) {
+      try { await prfDeleteService(s.id); } catch (e) { console.warn('Delete service failed', e); }
+    }
+    await prfDeleteClient(id);
+    PRF.openCards.delete(id);
+    toast(`Deleted "${client.name}"`, 'success');
+    prfCloseModal();
+    await prfRefreshData(true);
+  } catch (err) {
+    console.error('Delete client failed:', err);
+    toast('Could not delete client: ' + (err.message || 'unknown'), 'error', 5000);
+  } finally {
+    showLoading(false);
+  }
+}
+
+
+// ─── Inline Add / Edit Service ────────────────────────────────────────
+function prfAddServiceInline(clientId) {
+  const client = PRF.clients.find(c => c.id === clientId);
+  if (!client) return;
+  // Make sure card is open so user can see the form
+  if (!PRF.openCards.has(clientId)) {
+    PRF.openCards.add(clientId);
+    document.querySelector(`.prf-cc[data-client-id="${clientId}"]`)?.classList.add('open');
+  }
+  const tbody = document.querySelector(`tbody[data-svc-body="${clientId}"]`);
+  if (!tbody) return;
+  // Replace add-row with edit-row, prepend before footer
+  const arow = tbody.querySelector('.prf-arow');
+  if (arow) arow.remove();
+  tbody.insertAdjacentHTML('beforeend', prfServiceFormRow({ clientId, mode: 'add' }));
+  setTimeout(() => tbody.querySelector('.prf-erow input[name="svcName"]')?.focus(), 50);
+}
+
+function prfEditServiceInline(svcId) {
+  const svc = PRF.services.find(s => s.id === svcId);
+  if (!svc) return;
+  const row = document.querySelector(`tr[data-svc-id="${svcId}"]`);
+  if (!row) return;
+  row.outerHTML = prfServiceFormRow({ mode: 'edit', svc });
+  setTimeout(() => document.querySelector(`.prf-erow[data-svc-id="${svcId}"] input[name="svcName"]`)?.focus(), 50);
+}
+
+function prfServiceFormRow({ clientId = null, mode, svc = null }) {
+  const editing = mode === 'edit';
+  const sid = editing ? svc.id : '';
+  const cid = editing ? null : clientId;
+  const catOpts = PRF_CATS.map(c =>
+    `<option value="${c.key}"${editing && svc.category === c.key ? ' selected' : ''}>${escapeHtml(c.label)}</option>`
+  ).join('');
+  return `
+    <tr class="prf-erow" ${editing ? `data-svc-id="${sid}"` : `data-new-for="${cid}"`}>
+      <td><select name="svcCat">${catOpts}</select></td>
+      <td><input type="text" name="svcName" placeholder="Service name" value="${escapeHtml(editing ? svc.name : '')}" autocomplete="off">
+        <input type="text" name="svcNotes" placeholder="Notes (optional)" value="${escapeHtml(editing ? (svc.notes || '') : '')}" autocomplete="off" style="margin-top:4px">
+      </td>
+      <td><input type="number" step="0.01" min="0" name="svcCost" placeholder="0.00" value="${editing ? svc.cost : ''}"></td>
+      <td><input type="number" step="0.01" min="0" name="svcSell" placeholder="0.00" value="${editing ? svc.sell : ''}"></td>
+      <td colspan="2" style="font-size:11px;color:var(--muted)">Margin auto-calculated</td>
+      <td>
+        <div class="prf-eactions">
+          <button class="prf-iconbtn" type="button" title="Save" onclick="prfSaveServiceRow(this,${editing ? `'${sid}'` : 'null'},${cid ? `'${cid}'` : 'null'})">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+          <button class="prf-iconbtn danger" type="button" title="Cancel" onclick="prfCancelServiceRow(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>`;
+}
+
+async function prfSaveServiceRow(btn, svcId, clientId) {
+  const row = btn.closest('.prf-erow');
+  if (!row) return;
+  const cat   = row.querySelector('[name="svcCat"]').value;
+  const name  = row.querySelector('[name="svcName"]').value.trim();
+  const notes = row.querySelector('[name="svcNotes"]').value.trim();
+  const cost  = parseFloat(row.querySelector('[name="svcCost"]').value) || 0;
+  const sell  = parseFloat(row.querySelector('[name="svcSell"]').value) || 0;
+  if (!name) { toast('Service name is required', 'warning'); return; }
+
+  showLoading(true);
+  try {
+    if (svcId) {
+      await prfPatchService(svcId, { Title: name, Category: cat, CostPerMonth: cost, SellPerMonth: sell, Notes: notes });
+      toast('Service updated', 'success', 2000);
+    } else {
+      const client = PRF.clients.find(c => c.id === clientId);
+      if (!client) throw new Error('Client not found');
+      await prfCreateService({ clientName: client.name, name, category: cat, cost, sell, notes });
+      toast('Service added', 'success', 2000);
+    }
+    await prfRefreshData(true);
+  } catch (err) {
+    console.error('Save service failed:', err);
+    toast('Could not save service: ' + (err.message || 'unknown'), 'error', 5000);
+  } finally {
+    showLoading(false);
+  }
+}
+
+function prfCancelServiceRow(btn) {
+  // Easiest path: re-render the section. State (open cards, filters, search) is preserved.
+  prfRenderAll();
+}
+
+
+// ─── Confirm Delete Service ───────────────────────────────────────────
+function prfConfirmDeleteService(svcId) {
+  const svc = PRF.services.find(s => s.id === svcId);
+  if (!svc) return;
+  const body = `
+    <p>Delete the service <strong>${escapeHtml(svc.name)}</strong> from <strong>${escapeHtml(svc.clientName)}</strong>?</p>
+    <div class="prf-mm-actions">
+      <button class="btn btn-ghost" type="button" onclick="prfCloseModal()">Cancel</button>
+      <button class="btn btn-danger" type="button" onclick="prfDoDeleteService('${svcId}')">Delete</button>
+    </div>`;
+  prfOpenModal('Confirm Delete', body);
+}
+async function prfDoDeleteService(svcId) {
+  showLoading(true);
+  try {
+    await prfDeleteService(svcId);
+    toast('Service deleted', 'success');
+    prfCloseModal();
+    await prfRefreshData(true);
+  } catch (err) {
+    console.error('Delete service failed:', err);
+    toast('Could not delete service: ' + (err.message || 'unknown'), 'error', 5000);
+  } finally {
+    showLoading(false);
+  }
+}
+
+
+// ─── Seed sample data (one-time, on user confirm) ─────────────────────
+const PRF_SEED_DATA = [
+  { client: { name: 'ALS Locksmiths', status: 'Active' }, services: [
+    { name: 'Internet Security',          cat: 'stack',   sell: 46.98,  cost: 3.49,   note: '1 workstation' },
+    { name: 'M365 Reselling',             cat: 'm365',    sell: 184.95, cost: 109.63, note: '11× Std + 1× Additional Mailbox' },
+    { name: 'Wix Platform',               cat: 'stack',   sell: 17.00,  cost: 0.00,   note: 'Pass-through' },
+    { name: 'Web Hosting',                cat: 'hosting', sell: 16.58,  cost: 0.67,   note: 'alslocksmiths.co.uk — £199/yr' }]},
+  { client: { name: 'Brazier Interiors', status: 'Active' }, services: [
+    { name: 'Internet Security',          cat: 'stack',   sell: 14.25,  cost: 6.00,   note: 'IS only' },
+    { name: 'Web Hosting — RAMHLTD',      cat: 'hosting', sell: 10.42,  cost: 0.67,   note: 'ramhltd.co.uk — £125/yr' },
+    { name: 'Web Hosting — purdeypups',   cat: 'hosting', sell: 8.25,   cost: 1.08,   note: 'purdeypups.com — £99/yr' }]},
+  { client: { name: 'Can Can Services', status: 'Active' }, services: [
+    { name: 'Internet Security',          cat: 'stack',   sell: 9.00,   cost: 3.49,   note: '2 seats @ £4.50 each' },
+    { name: 'M365 Reselling',             cat: 'm365',    sell: 52.50,  cost: 28.75,  note: '3× Std + 2× EX1' },
+    { name: 'Web Hosting',                cat: 'hosting', sell: 16.58,  cost: 1.58,   note: 'cancanservices.co.uk — £199/yr' }]},
+  { client: { name: 'CDA Ltd', status: 'Active' }, services: [
+    { name: 'Internet Security',          cat: 'stack',   sell: 75.12,  cost: 3.49,   note: '1 WS + Webroot' },
+    { name: 'Cloud Backup',               cat: 'stack',   sell: 35.00,  cost: 3.49,   note: '1 workstation' },
+    { name: 'M365 Reselling',             cat: 'm365',    sell: 122.69, cost: 73.99,  note: '7× Std + 1× EX2' },
+    { name: 'Password Keeper',            cat: 'stack',   sell: 25.00,  cost: 10.30,  note: '5 seats' },
+    { name: 'Web Hosting / Domain',       cat: 'hosting', sell: 14.50,  cost: 0.00,   note: 'cdaluminium.uk.com — £174/yr' }]},
+  { client: { name: 'Clarke Lane Engineering', status: 'Active' }, services: [
+    { name: 'IS + Backup + WFH',          cat: 'stack',   sell: 263.97, cost: 30.52,  note: 'Bundled — 1 WS + Backup + 2× WFH' },
+    { name: 'M365 Reselling',             cat: 'm365',    sell: 84.00,  cost: 47.99,  note: '4× Std + 2× Basic' },
+    { name: 'Web Hosting',                cat: 'hosting', sell: 18.67,  cost: 0.00,   note: 'clarke-is.co.uk — £224/yr' }]},
+  { client: { name: 'Connect Data Services', status: 'Winding' }, services: [
+    { name: 'M365 Reselling',             cat: 'm365',    sell: 20.00,  cost: 9.68,   note: '1 seat — reducing' },
+    { name: 'Web Hosting',                cat: 'hosting', sell: 26.25,  cost: 0.67,   note: 'Annual hosting £216/yr + domain £99/yr' }]},
+  { client: { name: 'Cowan Consultancy', status: 'Active' }, services: [
+    { name: 'IS + Backup + WFH + VirtualBox', cat: 'stack',   sell: 428.05, cost: 58.82,  note: 'Bundled — 1 WS + 5× WFH + VirtualBox £105' },
+    { name: 'M365 + Exclaimer',           cat: 'm365',    sell: 273.70, cost: 165.18, note: '13× Std + 2× OneDrive + 13× Exclaimer + 1× Basic' },
+    { name: 'Web Hosting / Domain',       cat: 'hosting', sell: 15.33,  cost: 0.67,   note: 'cowanconsult.co.uk — £163.88/yr + domain £20/yr' }]},
+  { client: { name: 'Daron Motors', status: 'Active' }, services: [
+    { name: 'IT Support Retainer',        cat: 'retainer',sell: 1000.00,cost: 0.00,   note: 'Monthly retainer — time cost only' },
+    { name: 'IS + Backup + WFH',          cat: 'stack',   sell: 381.45, cost: 38.42,  note: 'Bundled — IS + Backup + 2× WFH' },
+    { name: 'M365 + Exclaimer',           cat: 'm365',    sell: 258.00, cost: 119.07, note: '12× Std incl Plan 2 + 12× Exclaimer' },
+    { name: 'Web Hosting',                cat: 'hosting', sell: 10.42,  cost: 1.08,   note: 'rogate.com — £125/yr' }]},
+  { client: { name: 'Freeston Water Treatment', status: 'Active' }, services: [
+    { name: 'IS + Backup + M365 SCC',     cat: 'stack',   sell: 338.52, cost: 34.88,  note: 'Bundled — 2 WS + M365 SCC. Google Workspace user' },
+    { name: 'Web Hosting',                cat: 'hosting', sell: 33.17,  cost: 0.67,   note: '2 sites freeston.co.uk — £398/yr' }]},
+  { client: { name: 'H2O Homes', status: 'Active' }, services: [
+    { name: 'IS + Exclaimer',             cat: 'stack',   sell: 56.08,  cost: 6.00,   note: 'IS + Exclaimer bundled. M365 confirmed — sell price TBC' }]},
+  { client: { name: 'Hillcrest Engineering', status: 'Active' }, services: [
+    { name: 'IS + Backup',                cat: 'stack',   sell: 69.35,  cost: 9.69,   note: '1 WS + Backup (Sage PC). Google Workspace' }]},
+  { client: { name: 'J&T Building Maintenance', status: 'Active' }, services: [
+    { name: 'M365 Reselling',             cat: 'm365',    sell: 29.55,  cost: 10.09,  note: 'Hosted Exchange + OneDrive' }]},
+  { client: { name: 'Kingdom Products', status: 'Active' }, services: [
+    { name: 'Web Hosting',                cat: 'hosting', sell: 16.58,  cost: 0.67,   note: 'kingdomproducts.co.uk — £199/yr' }]},
+  { client: { name: 'LS Commercials', status: 'Active' }, services: [
+    { name: 'Web Hosting / Email',        cat: 'hosting', sell: 3.75,   cost: 0.00,   note: '£45/yr — below standard rate. Review at renewal' },
+    { name: 'Domain Renewals',            cat: 'hosting', sell: 2.50,   cost: 0.00,   note: '2× domains £15/yr each' }]},
+  { client: { name: 'MSA Safety', status: 'Active' }, services: [
+    { name: 'IS + Backup + Exclaimer + Keeper + M365', cat: 'stack', sell: 320.25, cost: 101.72, note: 'Full service — bundled monthly' },
+    { name: 'Web Hosting',                cat: 'hosting', sell: 16.58,  cost: 0.00,   note: 'msasafety.co.uk — £199/yr' }]},
+  { client: { name: 'Onsite Commercial Services', status: 'Active' }, services: [
+    { name: 'Cloud Backup + WFH',         cat: 'stack',   sell: 70.00,  cost: 48.95,  note: 'O365 & SharePoint backup + 1× WFH (Pam)' },
+    { name: 'M365 + Exclaimer',           cat: 'm365',    sell: 356.45, cost: 131.77, note: '16× Hosted Exchange + 10× Apps + 15× Exclaimer' },
+    { name: 'Web Hosting',                cat: 'hosting', sell: 22.91,  cost: 0.67,   note: '2 sites £250/yr + domain £25/yr' },
+    { name: 'Starlink Resale',            cat: 'other',   sell: 96.00,  cost: 80.00,  note: 'Roam Unlimited — cost £80/mo, sell £96/mo' }]},
+  { client: { name: 'PM Packing', status: 'Active' }, services: [
+    { name: 'IS + Backup',                cat: 'stack',   sell: 129.33, cost: 16.62,  note: 'IS £111.33 + Backup Sage PC £18.00' },
+    { name: 'M365 + Exclaimer',           cat: 'm365',    sell: 211.40, cost: 115.87, note: '9× Std + 1× Basic + 2× EX2 + 1× EX1 + 9× Exclaimer' },
+    { name: 'Web Hosting',                cat: 'hosting', sell: 31.58,  cost: 1.33,   note: '£199/yr hosting + £180/yr group domains' }]},
+  { client: { name: 'Quality Mouldings', status: 'Active' }, services: [
+    { name: 'Web Hosting + Domain',       cat: 'hosting', sell: 21.08,  cost: 1.08,   note: 'wibco.com £199/yr + domain £54/yr' }]},
+  { client: { name: 'Regal Autosport', status: 'Active' }, services: [
+    { name: 'IS + Backup',                cat: 'stack',   sell: 104.42, cost: 9.69,   note: '1 WS + Webroot + Backup' }]},
+  { client: { name: 'Solent Rewinds', status: 'Active' }, services: [
+    { name: 'Web Hosting',                cat: 'hosting', sell: 16.58,  cost: 0.00,   note: '£199/yr — active customer' }]},
+  { client: { name: 'Southern Glass Services', status: 'Active' }, services: [
+    { name: 'IS + Backup + Exclaimer',    cat: 'stack',   sell: 112.18, cost: 25.75,  note: '10 WS + 7 Exclaimer. M365 paid direct' },
+    { name: 'Web Hosting',                cat: 'hosting', sell: 20.00,  cost: 0.67,   note: 'sykesglasscompany.co.uk — £240/yr' }]},
+  { client: { name: 'Taurus Contractors', status: 'Active' }, services: [
+    { name: 'Internet Security (Annual)', cat: 'stack',   sell: 4.08,   cost: 0.50,   note: '£49/yr annual billing. M365 sits with Can Can' }]},
+  { client: { name: 'Technix Rubber & Plastics', status: 'Active' }, services: [
+    { name: 'IT Support Retainer',        cat: 'retainer',sell: 210.90, cost: 0.00,   note: 'Fixed monthly retainer — basic IT support. M365 opportunity pending' }]},
+  { client: { name: 'West Country Fires', status: 'Active' }, services: [
+    { name: 'IS + Backup',                cat: 'stack',   sell: 133.50, cost: 23.26,  note: '2 VMs + 1 WS. ESXi/RDP for Sage. DR removed Apr 2026' }]},
+  { client: { name: 'Wired Services', status: 'New' }, services: [
+    { name: 'Web Hosting',                cat: 'hosting', sell: 16.58,  cost: 0.00,   note: '£199/yr — new customer' }]}
+];
+
+function prfConfirmSeed() {
+  const totalClients  = PRF_SEED_DATA.length;
+  const totalServices = PRF_SEED_DATA.reduce((a, c) => a + c.services.length, 0);
+  const body = `
+    <p>This will create <strong>${totalClients} clients</strong> and <strong>${totalServices} services</strong> in your SharePoint lists. Existing data won't be touched, but the seed only runs when both lists are empty (which they are right now).</p>
+    <p style="color:var(--muted);font-size:12px">You can edit, add to, or delete any of this data afterwards. The seed runs once.</p>
+    <div class="prf-mm-actions">
+      <button class="btn btn-ghost" type="button" onclick="prfCloseModal()">Cancel</button>
+      <button class="btn btn-primary" type="button" onclick="prfDoSeed()">Seed Data</button>
+    </div>`;
+  prfOpenModal('Seed Sample Data', body);
+}
+
+async function prfDoSeed() {
+  prfCloseModal();
+  showLoading(true);
+  toast('Seeding clients and services — this may take a minute…', 'info', 4000);
+  let okClients = 0, okServices = 0, fails = 0;
+  try {
+    // Sequential by client to keep the SharePoint order stable + avoid throttling
+    for (const entry of PRF_SEED_DATA) {
+      try {
+        await prfCreateClient(entry.client);
+        okClients++;
+      } catch (e) {
+        console.warn('Seed client failed:', entry.client.name, e);
+        fails++;
+        continue; // skip its services if the client itself failed
+      }
+      // Services for this client: parallel within the client (5–6 max each), is fine
+      try {
+        await Promise.all(entry.services.map(s =>
+          prfCreateService({
+            clientName: entry.client.name,
+            name:       s.name,
+            category:   s.cat,
+            cost:       s.cost,
+            sell:       s.sell,
+            notes:      s.note
+          }).then(() => okServices++).catch(e => { console.warn('Seed service failed:', s.name, e); fails++; })
+        ));
+      } catch (e) {
+        console.warn('Seed services batch failed for', entry.client.name, e);
+      }
+    }
+    if (fails === 0) {
+      toast(`Seeded — ${okClients} clients, ${okServices} services`, 'success', 4000);
+    } else {
+      toast(`Seed completed with ${fails} failure${fails === 1 ? '' : 's'} — ${okClients} clients, ${okServices} services. Check console.`, 'warning', 6000);
+    }
+    await prfRefreshData(true);
+  } catch (err) {
+    console.error('Seed failed:', err);
+    toast('Seed failed: ' + (err.message || 'unknown'), 'error', 6000);
+  } finally {
+    showLoading(false);
+  }
+}
+
+
+// ─── Init ─────────────────────────────────────────────────────────────
+async function initProfitability() {
+  if (PRF.initialised) return;
+  PRF.initialised = true;
+
+  // Modal: close on ESC (only when this section's modal is open)
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.getElementById('prfModalBg')?.classList.contains('show')) {
+      prfCloseModal();
+    }
+  });
+
+  await prfRefreshData(true);
+}
+
 
 
 /* ╔═══════════════════════════════════════════════════════════════════╗
