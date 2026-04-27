@@ -3518,11 +3518,20 @@ async function milResolveListIds() {
 // Canonical driver names — must match the option values in the dropdown exactly.
 const MIL_DRIVER_CANONICAL = ['Philip Morris', 'Jack Morris'];
 function milNormaliseDriver(raw) {
-  const trimmed = (raw || '').trim();
+  // Collapse all internal whitespace (tabs, double-spaces, non-breaking spaces etc.)
+  // and trim outer whitespace, then match case-insensitively.
+  const trimmed = (raw || '').replace(/\s+/g, ' ').trim();
   if (MIL_DRIVER_CANONICAL.includes(trimmed)) return trimmed;
   const lower = trimmed.toLowerCase();
+  // Full name match (case-insensitive, whitespace-normalised)
   const match = MIL_DRIVER_CANONICAL.find(d => d.toLowerCase() === lower);
-  return match || trimmed;
+  if (match) return match;
+  // First-name fallback: if the stored value starts with the canonical first name,
+  // use the canonical full name. Handles 'Philip' or 'Philip M.' stored values.
+  const firstName = MIL_DRIVER_CANONICAL.find(d =>
+    lower.startsWith(d.split(' ')[0].toLowerCase())
+  );
+  return firstName || trimmed;
 }
 
 async function milLoadJourneys() {
@@ -3632,9 +3641,10 @@ async function milDeleteClient(id) {
 function milRenderKpis() {
   const totals = { 'Philip Morris': { miles: 0, amt: 0 }, 'Jack Morris': { miles: 0, amt: 0 } };
   for (const j of MIL.journeys) {
-    if (!totals[j.driver]) totals[j.driver] = { miles: 0, amt: 0 };
-    totals[j.driver].miles += Number(j.miles) || 0;
-    totals[j.driver].amt   += Number(j.amount) || 0;
+    const driverKey = milNormaliseDriver(j.driver);
+    if (!totals[driverKey]) totals[driverKey] = { miles: 0, amt: 0 };
+    totals[driverKey].miles += Number(j.miles) || 0;
+    totals[driverKey].amt   += Number(j.amount) || 0;
   }
   const p = totals['Philip Morris'];
   const k = totals['Jack Morris'];
@@ -3665,9 +3675,11 @@ function milRenderKpis() {
 // ─── UI: render journey log ───────────────────────────────────────────
 function milRenderLog() {
   const body = document.getElementById('milLogBody');
+  // Belt-and-braces: normalise driver at comparison time in case any journey
+  // slipped through milNormaliseDriver on load (non-printing chars, etc.).
   const filtered = MIL.filter === 'all'
     ? MIL.journeys
-    : MIL.journeys.filter(j => j.driver === MIL.filter);
+    : MIL.journeys.filter(j => milNormaliseDriver(j.driver) === MIL.filter);
 
   // Most-recent first
   const sorted = [...filtered].sort((a, b) => {
