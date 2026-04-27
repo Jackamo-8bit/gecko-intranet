@@ -3515,15 +3515,27 @@ async function milResolveListIds() {
   if (!MIL.listIds.clients)  throw new Error('MileageClients list not found in SharePoint site');
 }
 
+// Canonical driver names — must match the option values in the dropdown exactly.
+const MIL_DRIVER_CANONICAL = ['Philip Morris', 'Jack Morris'];
+function milNormaliseDriver(raw) {
+  const trimmed = (raw || '').trim();
+  if (MIL_DRIVER_CANONICAL.includes(trimmed)) return trimmed;
+  const lower = trimmed.toLowerCase();
+  const match = MIL_DRIVER_CANONICAL.find(d => d.toLowerCase() === lower);
+  return match || trimmed;
+}
+
 async function milLoadJourneys() {
   const url = `/sites/${MIL.siteId}/lists/${MIL.listIds.journeys}/items?expand=fields&$top=2000`;
   const res = await graphFetch(url);
+  // milNormaliseDriver trims + canonicalises casing so journeys created in the
+  // old standalone tracker always match the filter buttons.
   MIL.journeys = (res.value || []).map(it => {
     const f = it.fields || {};
     return {
       id:          it.id,
       destination: f.Title || '',
-      driver:      f.Driver || '',
+      driver:      milNormaliseDriver(f.Driver || ''),
       date:        f.JourneyDate ? f.JourneyDate.split('T')[0] : '',
       miles:       Number(f.Miles) || 0,
       purpose:     f.Purpose || '',
