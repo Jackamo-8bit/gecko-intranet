@@ -1212,9 +1212,9 @@ body {
             <div class="k-sub" id="milKpiLabel">Business expense (self-assessment)</div>
           </div>
           <div class="mil-kpi tax">
-            <div class="k-label">Income Tax Saving (est. 20%)</div>
+            <div class="k-label" id="milKpiTaxSaveLabel">Income Tax Saving (est. 20%)</div>
             <div class="k-value" id="milKpiTaxSave">£0.00</div>
-            <div class="k-sub">Effective tax saving</div>
+            <div class="k-sub" id="milKpiTaxSaveSub">Effective tax saving</div>
           </div>
         </div>
 
@@ -1380,7 +1380,7 @@ body {
               </button>
             </div>
             <p style="color:var(--muted);font-size:12px;" id="milExportSubtitle">
-              Full per-driver journey list for tax year <strong id="milExportYear" style="color:var(--white)">2026/27</strong> — company claims reimbursement as operating expense; driver receives tax-free reimbursement up to AMAP rates.
+              Full per-driver journey list for tax year <strong id="milExportYear" style="color:var(--white)">2026/27</strong>.
             </p>
 
             <div class="mil-export-grid" style="margin-top:16px;">
@@ -1406,7 +1406,7 @@ body {
               <div class="yt-cell"><div class="l">Philip Miles</div><div class="v" id="milYtPhilipMiles">0</div></div>
               <div class="yt-cell"><div class="l">Jack Miles</div><div class="v" id="milYtJackMiles">0</div></div>
               <div class="yt-cell acc"><div class="l">Combined Total</div><div class="v" id="milYtCombined">£0.00</div></div>
-              <div class="yt-cell tax"><div class="l">Tax Saving (20%)</div><div class="v" id="milYtTaxSave">£0.00</div></div>
+              <div class="yt-cell tax"><div class="l" id="milYtTaxSaveLabel">Tax Saving (20%)</div><div class="v" id="milYtTaxSave">£0.00</div></div>
             </div>
           </div>
 
@@ -1845,23 +1845,21 @@ const MIL = {
    ║                                                                   ║
    ║   ENTITY CONFIG — SOLE TRADER vs LIMITED COMPANY                 ║
    ║                                                                   ║
-   ║   When Gecko IT converts to a Limited Company, swap ENTITY_TYPE  ║
-   ║   from 'sole_trader' to 'ltd_company'. All text labels, driver   ║
-   ║   descriptions, and compliance notes will auto-update.           ║
+   ║   Gecko IT operates as a Limited Company. The sole_trader config ║
+   ║   is retained as a reference / fallback for any future client    ║
+   ║   deployments where the master template is reused.               ║
    ║                                                                   ║
-   ║   No data is lost — journeys, clients, amounts, rates all stay   ║
-   ║   identical. Only the UI labels and explanations change.         ║
-   ║                                                                   ║
-   ║   WHEN READY TO SWITCH:                                          ║
-   ║   1. Change ENTITY_TYPE = 'ltd_company' (line below)             ║
-   ║   2. Update driver descriptions (vehicles, roles — see CONFIG)   ║
-   ║   3. Test in dev                                                 ║
-   ║   4. Deploy                                                      ║
-   ║   5. SharePoint data untouched, all journeys preserved           ║
+   ║   To switch entity type:                                         ║
+   ║   1. Change ENTITY_TYPE below                                    ║
+   ║   2. Driver descriptions, tax-saving label, KPI text, export     ║
+   ║      copy and HMRC compliance note all update automatically      ║
+   ║   3. SharePoint data is untouched — journeys, clients, amounts,  ║
+   ║      rates all stay identical. Only the labels and explanations  ║
+   ║      change.                                                     ║
    ║                                                                   ║
    ╚═══════════════════════════════════════════════════════════════════╝ */
 
-const ENTITY_TYPE = 'sole_trader'; // Change to 'ltd_company' when ready (no data loss)
+const ENTITY_TYPE = 'ltd_company'; // 'sole_trader' | 'ltd_company'
 
 const ENTITY_CONFIG = {
   sole_trader: {
@@ -1872,13 +1870,19 @@ const ENTITY_CONFIG = {
     },
     // ─ Export tab heading and footer copy
     exportTitle: 'Tax Year Export',
-    exportSubtitle: 'Full per-driver journey list for tax year — give this to your accountant or attach to your Self Assessment.',
+    exportSubtitle: 'Full per-driver journey list for tax year {{year}} — give this to your accountant or attach to your Self Assessment.',
     // ─ HMRC compliance note (shown below export cards)
     hmrcNote: `<strong>HMRC Mileage Record Requirements</strong>
 This log captures every required field — date, destination, business purpose, miles, and reimbursement amount. Retain records for 6 years after the end of the tax year. As a sole trader, Philip claims mileage allowance as a business expense on his Self Assessment (SA103). Jack's mileage is reimbursed directly by the business — retain bank statements as evidence of payment.`,
     // ─ KPI label (shown in top cards)
     kpiLabel: 'Business expense (self-assessment)',
-    // ─ Comments for future reference
+    // ─ Tax saving — for sole traders, the deduction reduces personal income tax
+    taxSaving: {
+      rate: 0.20,
+      kpiTitle: 'Income Tax Saving (est. 20%)',
+      kpiSub:   'Effective tax saving',
+      cellLabel:'Tax Saving (20%)'
+    },
     _note: 'Sole trader entity: drivers claim expense on personal tax return, reimbursement is self-employment income'
   },
   ltd_company: {
@@ -1889,14 +1893,23 @@ This log captures every required field — date, destination, business purpose, 
     },
     // ─ Export tab heading and footer copy
     exportTitle: 'Tax Year Export',
-    exportSubtitle: 'Full per-driver journey list — company claims reimbursement as operating expense; driver receives tax-free reimbursement up to AMAP rates.',
+    exportSubtitle: 'Full per-driver journey list for tax year {{year}} — company claims the reimbursement as an operating expense (Corp. Tax deductible); driver receives tax-free payment up to AMAP rates.',
     // ─ HMRC compliance note (shown below export cards)
     hmrcNote: `<strong>HMRC Mileage Record Requirements</strong>
-This log captures every required field — date, destination, business purpose, miles, and reimbursement amount. Retain records for 6 years after the end of the tax year. The company reimburses mileage at AMAP rates (up to 45p/25p) — this is tax-free to the employee/director. The company claims the full reimbursement as an operating expense. Retain bank statements as evidence of payment.`,
+This log captures every required field — date, destination, business purpose, miles, and reimbursement amount. Retain records for 6 years after the end of the tax year. The company reimburses mileage at AMAP rates (45p/mile up to 10,000 miles per driver per tax year, 25p/mile thereafter) — this is a tax-free payment to the director/employee under HMRC rules. The company claims the full reimbursement as a deductible operating expense, reducing Corporation Tax liability. Retain bank statements or payroll records as evidence of payment.`,
     // ─ KPI label (shown in top cards)
-    kpiLabel: 'Operating expense (company)',
-    // ─ Comments for future reference
-    _note: 'Limited company entity: company claims expense, driver receives tax-free reimbursement (AMAP rates)'
+    kpiLabel: 'Operating expense (Corp. Tax deductible)',
+    // ─ Tax saving — for ltd cos, the reimbursement reduces Corporation Tax
+    //   25% main rate applies to profits over £250k; 19% small profits rate applies
+    //   below £50k. Marginal relief sits between. Using 25% as a conservative upper-
+    //   bound estimate — change to 0.19 for small-profits regime if more accurate.
+    taxSaving: {
+      rate: 0.25,
+      kpiTitle: 'Corp. Tax Saving (est. 25%)',
+      kpiSub:   'Estimated CT relief on reimbursement',
+      cellLabel:'CT Saving (25%)'
+    },
+    _note: 'Limited company entity: company claims expense (reduces CT), driver receives tax-free reimbursement (AMAP rates)'
   }
 };
 
@@ -2134,7 +2147,9 @@ function milRenderKpis() {
   const p = totals['Philip Morris'];
   const k = totals['Jack Morris'];
   const combined = p.amt + k.amt;
-  const taxSave  = combined * 0.20;
+  // Tax saving rate is entity-dependent: 20% (sole trader, income tax) or
+  // 25% (limited company, Corporation Tax main rate). See ENTITY_CONFIG.
+  const taxSave  = combined * (milConfig('taxSaving').rate);
 
   document.getElementById('milKpiPhilipAmt').textContent   = milFmt(p.amt);
   document.getElementById('milKpiPhilipMiles').textContent = `${milFmtMiles(p.miles)} miles recorded`;
@@ -2510,15 +2525,19 @@ async function milDoDeleteClient(id) {
 
 
 // ─── Confirm modal ────────────────────────────────────────────────────
+// IMPORTANT: capture the callback into a local before calling milCloseModal(),
+// because milCloseModal() nulls out MIL.modalConfirmFn as part of its cleanup.
+// (Earlier version closed the modal first, then checked MIL.modalConfirmFn —
+// which was already null — so the delete action never ran.)
 function milOpenModal(title, body, confirmFn) {
   document.getElementById('milModalTitle').textContent = title;
   document.getElementById('milModalBody').textContent  = body;
   MIL.modalConfirmFn = confirmFn;
   const btn = document.getElementById('milModalConfirm');
   btn.onclick = () => {
-    milCloseModal();
-    if (MIL.modalConfirmFn) MIL.modalConfirmFn();
-    MIL.modalConfirmFn = null;
+    const fn = MIL.modalConfirmFn;   // capture BEFORE close
+    milCloseModal();                  // (this clears MIL.modalConfirmFn)
+    if (typeof fn === 'function') fn();
   };
   document.getElementById('milModalBg').classList.add('show');
 }
@@ -2588,6 +2607,28 @@ async function milRefreshData(silent = false) {
     await milResolveListIds();
     await Promise.all([milLoadClients(), milLoadJourneys()]);
     if (MIL.clients.length === 0) await milSeedClientsIfEmpty();
+
+    // ─ Self-heal imported journeys ─────────────────────────────────────
+    // If journeys were created outside this app (e.g. typed into SharePoint
+    // directly, or imported via Power Automate / CSV), they may have a blank
+    // or wrong Amount/RateType. Recompute everything in date order and PATCH
+    // any rows that don't match. This also catches threshold-crossing edge
+    // cases where an old journey is later inserted out of order.
+    const drift = milRecomputeAll();
+    if (drift.length > 0) {
+      try {
+        await Promise.all(drift.map(c =>
+          milPatchJourneyAmount(c.id, c.newAmount, c.newRate)
+        ));
+        if (!silent) {
+          toast(`Recalculated ${drift.length} journey${drift.length === 1 ? '' : 's'} to match HMRC rates`, 'info', 4000);
+        }
+      } catch (e) {
+        console.warn('Auto-recompute patch failed (non-fatal):', e);
+        if (!silent) toast('Recalculated locally, but some rows could not sync — try Refresh again', 'warning', 5000);
+      }
+    }
+
     milRenderAll();
     document.getElementById('milLastSync').textContent =
       'Synced ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
@@ -2613,10 +2654,21 @@ async function initMileage() {
   document.getElementById('milExportYear').textContent = MIL.taxYear.label;
 
   // ─ Apply ENTITY_CONFIG labels ─
-  document.getElementById('milExportSubtitle').textContent = milConfig('exportSubtitle').replace('{{year}}', MIL.taxYear.label);
-  document.getElementById('milHmrcNote').innerHTML = milConfig('hmrcNote');
+  // Export subtitle: rebuild as innerHTML so the highlighted year span is preserved.
+  const subRaw  = milConfig('exportSubtitle');
+  const yearTag = `<strong id="milExportYear" style="color:var(--white)">${escapeHtml(MIL.taxYear.label)}</strong>`;
+  document.getElementById('milExportSubtitle').innerHTML =
+    escapeHtml(subRaw).replace('{{year}}', yearTag);
+
+  document.getElementById('milHmrcNote').innerHTML   = milConfig('hmrcNote');
   document.getElementById('milKpiLabel').textContent = milConfig('kpiLabel');
-  
+
+  // Tax-saving labels (entity-aware: 20% income tax for sole trader, 25% CT for ltd)
+  const ts = milConfig('taxSaving');
+  document.getElementById('milKpiTaxSaveLabel').textContent = ts.kpiTitle;
+  document.getElementById('milKpiTaxSaveSub').textContent   = ts.kpiSub;
+  document.getElementById('milYtTaxSaveLabel').textContent  = ts.cellLabel;
+
   // Driver descriptions
   const drvCfg = milConfig('drivers');
   const philip = drvCfg['Philip Morris'];
