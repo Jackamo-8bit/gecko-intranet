@@ -1704,10 +1704,303 @@ body {
   .mil-tabs { width: 100%; overflow-x: auto; }
   .mil-tab { flex: 1; white-space: nowrap; }
 }
-/* /* ═══ CLIENTS SECTION STYLES ═══ */
-/* /* ═══ TIMESHEETS SECTION STYLES ═══ */
-/* /* ═══ COMPLIANCE SECTION STYLES ═══ */
-/* /* ═══ SETTINGS SECTION STYLES ═══ */
+/* ╔═══════════════════════════════════════════════════════════════════╗
+   ║                                                                   ║
+   ║   CLIENT DIRECTORY SECTION (Phase 5)                              ║
+   ║                                                                   ║
+   ║   Scoped under `#section-clients .cli-*` to avoid bleed.          ║
+   ║   Reuses --green / --amber / --red / --blue / --purple tokens.    ║
+   ║   Hours-remaining pills (cli-hp-*) mirror the prf-mp-* pattern.   ║
+   ║                                                                   ║
+   ╚═══════════════════════════════════════════════════════════════════╝ */
+
+/* — Header actions row — */
+#section-clients .cli-head-actions {
+  margin-top: 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+#section-clients .cli-add-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 999px;
+  background: var(--green); color: var(--black);
+  border: 1px solid var(--green); font-family: 'Instrument Sans', sans-serif;
+  font-size: 12px; font-weight: 700; cursor: pointer; transition: all .15s;
+}
+#section-clients .cli-add-btn:hover { background: var(--green-dark); border-color: var(--green-dark); color: var(--white); }
+
+#section-clients .cli-refresh {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 12px; border-radius: 999px;
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--border-dim); font-family: 'Instrument Sans', sans-serif;
+  font-size: 12px; cursor: pointer; transition: all .15s;
+}
+#section-clients .cli-refresh:hover:not(:disabled) { color: var(--green); border-color: var(--green); }
+#section-clients .cli-refresh:disabled { opacity: .5; cursor: not-allowed; }
+#section-clients .cli-refresh svg { transition: transform .4s ease; }
+#section-clients .cli-refresh.spinning svg { animation: cliSpin 1s linear infinite; }
+@keyframes cliSpin { to { transform: rotate(360deg); } }
+
+#section-clients .cli-last-sync { font-size: 11px; color: var(--muted); margin-left: auto; }
+
+/* — View toggle (Table | Cards) — */
+#section-clients .cli-view-toggle {
+  display: inline-flex; gap: 0; border: 1px solid var(--border-dim);
+  border-radius: 999px; overflow: hidden;
+}
+#section-clients .cli-vt-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 12px; background: transparent; border: none;
+  color: var(--muted); font-family: 'Instrument Sans', sans-serif;
+  font-size: 11px; font-weight: 600; cursor: pointer; transition: all .15s;
+  border-right: 1px solid var(--border-dim);
+}
+#section-clients .cli-vt-btn:last-child { border-right: none; }
+#section-clients .cli-vt-btn:hover { color: var(--white); }
+#section-clients .cli-vt-btn.active {
+  background: var(--green-glow); color: var(--green);
+}
+
+/* — Search toolbar — */
+#section-clients .cli-toolbar {
+  margin-bottom: 16px; display: flex; align-items: center; gap: 12px;
+  background: var(--card); border: 1px solid var(--border-dim);
+  border-radius: var(--radius); padding: 10px 14px; flex-wrap: wrap;
+}
+#section-clients .cli-srch { position: relative; flex: 1; min-width: 220px; max-width: 380px; }
+#section-clients .cli-srch input {
+  width: 100%; padding: 7px 12px 7px 32px;
+  background: var(--dark); color: var(--white);
+  border: 1px solid var(--border-dim); border-radius: 999px;
+  font-family: 'Instrument Sans', sans-serif; font-size: 12px;
+  outline: none; transition: border-color .15s;
+}
+#section-clients .cli-srch input::placeholder { color: var(--muted); }
+#section-clients .cli-srch input:focus { border-color: var(--green); }
+#section-clients .cli-srch-ic {
+  position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+  color: var(--muted); pointer-events: none; display: flex;
+}
+#section-clients .cli-toolbar-meta { font-size: 11px; color: var(--muted); margin-left: auto; }
+
+/* — Wrap (holds either table or cards) — */
+#section-clients .cli-wrap { display: flex; flex-direction: column; gap: 14px; }
+
+/* — Status pills (matches Profitability) — */
+#section-clients .cli-st {
+  display: inline-block; padding: 2px 8px; border-radius: 999px;
+  font-size: 9px; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; white-space: nowrap;
+}
+#section-clients .cli-st-active  { background: var(--green-glow); color: var(--green);  border: 1px solid var(--border); }
+#section-clients .cli-st-winding { background: var(--amber-dim);  color: var(--amber);  border: 1px solid rgba(224,154,46,0.3); }
+#section-clients .cli-st-new     { background: var(--blue-dim);   color: var(--blue);   border: 1px solid rgba(74,158,221,0.3); }
+
+/* — Hours-remaining pills (green ≥2 / amber 1–1.99 / red <1) — */
+#section-clients .cli-hp {
+  display: inline-block; padding: 3px 10px; border-radius: 999px;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 13px;
+  font-weight: 700; letter-spacing: .03em; min-width: 50px; text-align: center;
+}
+#section-clients .cli-hp-hi   { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
+#section-clients .cli-hp-md   { background: var(--amber-dim);  color: var(--amber); border: 1px solid rgba(224,154,46,0.3); }
+#section-clients .cli-hp-lo   { background: var(--red-dim);    color: var(--red);   border: 1px solid rgba(224,82,82,0.3); }
+#section-clients .cli-hp-none { color: var(--muted); font-family: 'Instrument Sans', sans-serif; font-size: 11px; font-weight: 500; }
+
+/* — Avatar (matches prf-cav) — */
+#section-clients .cli-cav {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--green-glow); border: 1px solid var(--border);
+  color: var(--green); font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800; font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* — Icon buttons (edit / delete / view-in-profitability) — */
+#section-clients .cli-iconbtn {
+  width: 28px; height: 28px; padding: 0;
+  background: transparent; border: 1px solid var(--border-dim); border-radius: 7px;
+  color: var(--muted); cursor: pointer; transition: all .15s;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+#section-clients .cli-iconbtn:hover { color: var(--green); border-color: var(--green); background: var(--green-glow); }
+#section-clients .cli-iconbtn.danger:hover { color: var(--red); border-color: var(--red); background: var(--red-dim); }
+
+/* ─── TABLE VIEW ─── */
+#section-clients .cli-tbl-wrap {
+  background: var(--card); border: 1px solid var(--border-dim);
+  border-radius: var(--radius); overflow: hidden;
+}
+#section-clients .cli-tbl { width: 100%; border-collapse: collapse; }
+#section-clients .cli-tbl thead th {
+  padding: 10px 14px; font-size: 9px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+  background: rgba(0,0,0,0.25); border-bottom: 1px solid var(--border-dim);
+  text-align: left; white-space: nowrap; user-select: none;
+}
+#section-clients .cli-tbl thead th.sortable { cursor: pointer; transition: color .15s; }
+#section-clients .cli-tbl thead th.sortable:hover { color: var(--green); }
+#section-clients .cli-tbl thead th.num { text-align: right; }
+#section-clients .cli-tbl thead th .sort-ic {
+  display: inline-block; margin-left: 4px; opacity: .4; vertical-align: middle;
+}
+#section-clients .cli-tbl thead th.sorted .sort-ic { opacity: 1; color: var(--green); }
+#section-clients .cli-tbl tbody td {
+  padding: 10px 14px; border-bottom: 1px solid var(--border-dim);
+  font-size: 13px; vertical-align: middle;
+}
+#section-clients .cli-tbl tbody tr:last-child td { border-bottom: none; }
+#section-clients .cli-tbl tbody tr:hover td { background: rgba(255,255,255,0.015); }
+#section-clients .cli-tbl tbody td.num {
+  text-align: right; font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px; font-weight: 600;
+}
+#section-clients .cli-tbl tbody td.num.muted { color: var(--muted); font-weight: 500; font-size: 12px; }
+#section-clients .cli-tbl tbody td.actions { white-space: nowrap; text-align: right; }
+#section-clients .cli-tbl tbody td.actions .cli-iconbtn { margin-left: 4px; }
+#section-clients .cli-tbl tbody td .cli-name-cell {
+  display: flex; align-items: center; gap: 10px;
+}
+#section-clients .cli-tbl tbody td .cli-name-cell .cli-cav {
+  width: 26px; height: 26px; font-size: 10px;
+}
+#section-clients .cli-tbl tbody td .cli-name-cell .cli-name {
+  font-weight: 600; color: var(--white);
+}
+#section-clients .cli-tbl tbody td .cli-contact-name {
+  color: var(--white); font-size: 12px;
+}
+#section-clients .cli-tbl tbody td .cli-contact-email {
+  color: var(--muted); font-size: 11px; word-break: break-all;
+}
+#section-clients .cli-tbl tbody td .cli-contact-email a {
+  color: var(--muted); text-decoration: none;
+}
+#section-clients .cli-tbl tbody td .cli-contact-email a:hover { color: var(--green); }
+
+/* ─── CARD VIEW ─── */
+#section-clients .cli-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+}
+@media (max-width: 1080px) { #section-clients .cli-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 720px)  { #section-clients .cli-grid { grid-template-columns: 1fr; } }
+#section-clients .cli-card {
+  background: var(--card); border: 1px solid var(--border-dim);
+  border-radius: var(--radius); padding: 16px; transition: border-color .2s;
+  display: flex; flex-direction: column; gap: 12px;
+}
+#section-clients .cli-card:hover { border-color: var(--border); }
+#section-clients .cli-card-head {
+  display: flex; align-items: center; gap: 10px;
+}
+#section-clients .cli-card-head .cli-name {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-size: 15px; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--white); flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+#section-clients .cli-card-rows {
+  display: flex; flex-direction: column; gap: 8px;
+  border-top: 1px solid var(--border-dim); padding-top: 12px;
+}
+#section-clients .cli-card-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  font-size: 12px;
+}
+#section-clients .cli-card-row .cli-rl {
+  font-size: 9px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .08em; font-weight: 600;
+}
+#section-clients .cli-card-row .cli-rv { color: var(--white); text-align: right; min-width: 0; }
+#section-clients .cli-card-row .cli-rv.muted { color: var(--muted); }
+#section-clients .cli-card-row .cli-rv.num {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 600;
+}
+#section-clients .cli-card-row .cli-rv a { color: var(--white); text-decoration: none; word-break: break-all; }
+#section-clients .cli-card-row .cli-rv a:hover { color: var(--green); }
+#section-clients .cli-card-actions {
+  display: flex; gap: 6px; justify-content: flex-end;
+  border-top: 1px solid var(--border-dim); padding-top: 12px;
+}
+
+/* — Empty / error / loading states — */
+#section-clients .cli-empty,
+#section-clients .cli-error {
+  background: var(--card); border: 1px solid var(--border-dim);
+  border-radius: var(--radius); padding: 40px 24px; text-align: center;
+}
+#section-clients .cli-empty h3,
+#section-clients .cli-error h3 {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-size: 16px; letter-spacing: .06em; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+#section-clients .cli-empty p,
+#section-clients .cli-error p { color: var(--muted); font-size: 13px; }
+
+/* — Modal (mirrors prf-modal pattern; separate ID so modules stay independent) — */
+#section-clients .cli-modal-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+  display: none; align-items: center; justify-content: center;
+  z-index: 1500; animation: fadeIn .15s ease;
+}
+#section-clients .cli-modal-bg.show { display: flex; }
+#section-clients .cli-modal {
+  width: 100%; max-width: 480px; margin: 20px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+  max-height: 90vh; overflow-y: auto;
+}
+#section-clients .cli-modal h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 17px;
+  letter-spacing: .06em; text-transform: uppercase; margin-bottom: 14px;
+}
+#section-clients .cli-modal p { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+#section-clients .cli-form-grp { margin-bottom: 14px; }
+#section-clients .cli-form-grp label {
+  display: block; font-size: 10px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .07em;
+  margin-bottom: 6px; font-weight: 600;
+}
+#section-clients .cli-form-grp input,
+#section-clients .cli-form-grp select,
+#section-clients .cli-form-grp textarea {
+  width: 100%; padding: 8px 12px;
+  background: var(--dark); color: var(--white);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-family: 'Instrument Sans', sans-serif; font-size: 13px;
+  outline: none; transition: border-color .15s;
+}
+#section-clients .cli-form-grp input:focus,
+#section-clients .cli-form-grp select:focus,
+#section-clients .cli-form-grp textarea:focus { border-color: var(--green); }
+#section-clients .cli-form-grp textarea { resize: vertical; min-height: 70px; }
+#section-clients .cli-mm-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+
+/* — Profitability section: "Manage in Directory" link (Phase 5 surgery) — */
+.prf-manage-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 999px;
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--border-dim); font-family: 'Instrument Sans', sans-serif;
+  font-size: 12px; cursor: pointer; transition: all .15s;
+}
+.prf-manage-link:hover { color: var(--green); border-color: var(--green); background: var(--green-glow); }
+
+/* — Mobile/tablet adjustments — */
+@media (max-width: 760px) {
+  #section-clients .cli-tbl thead th.col-contact,
+  #section-clients .cli-tbl tbody td.col-contact { display: none; }
+  #section-clients .cli-tbl thead th.col-revenue,
+  #section-clients .cli-tbl tbody td.col-revenue { display: none; }
+}
+@media (max-width: 520px) {
+  #section-clients .cli-tbl thead th.col-status,
+  #section-clients .cli-tbl tbody td.col-status { display: none; }
+  #section-clients .cli-head-actions .cli-last-sync { display: none; }
+}
 
 </style>
 </head>
@@ -1861,9 +2154,13 @@ body {
         <h1>CLIENT <span>PROFITABILITY</span></h1>
         <p>Service-by-service cost &amp; margin analysis — reconciled to Xero.</p>
         <div class="prf-head-actions">
-          <button class="prf-add-btn" type="button" onclick="prfOpenClientModal()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Add Client
+          <!-- Phase 5: client CRUD moved to Directory. The underlying functions
+               (prfOpenClientModal, prfSaveClient, prfDoDeleteClient) remain in
+               the JS below in case of rollback, but their UI hooks are gone. -->
+          <button class="prf-manage-link" type="button" onclick="navTo('clients')" title="Add, edit or delete clients in the Directory">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+            Manage clients in Directory
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </button>
           <button class="prf-refresh" id="prfRefresh" type="button" onclick="prfRefreshData()" title="Reload from SharePoint">
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
@@ -2151,17 +2448,68 @@ body {
     </section>
 
 
-    <!-- ═══ CLIENTS SECTION ════════════════════════════════════════ -->
+    <!-- ═══════════════════════════════════════════════════════════════
+         CLIENT DIRECTORY SECTION (Phase 5)
+         — Unified, searchable view of every Gecko client.
+         — Joins GeckoClients (profitability metadata) + Clients (SSA/timesheets)
+           by Title, case-insensitive whitespace-collapsed.
+         — Owns client CRUD: writes Add/Edit/Delete to GeckoClients ONLY.
+         — The `Clients` list is read-only from this portal (it has external
+           timesheet workflows hanging off it — do NOT modify its structure).
+         — Lazy-loaded on first nav (see initClients).
+         ═══════════════════════════════════════════════════════════════ -->
     <section class="section" id="section-clients">
+
       <div class="section-head">
         <h1>CLIENT <span>DIRECTORY</span></h1>
-        <p>Searchable client list — contacts, contracts, renewal dates.</p>
+        <p>Unified contact, contract &amp; SSA view — single source of truth for client metadata.</p>
+        <div class="cli-head-actions">
+          <button class="cli-add-btn" type="button" onclick="cliOpenClientModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Client
+          </button>
+          <div class="cli-view-toggle" role="tablist" aria-label="View mode">
+            <button class="cli-vt-btn active" type="button" data-view="table" onclick="cliSetView('table')" title="Table view">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+              Table
+            </button>
+            <button class="cli-vt-btn" type="button" data-view="cards" onclick="cliSetView('cards')" title="Card view">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+              Cards
+            </button>
+          </div>
+          <button class="cli-refresh" id="cliRefresh" type="button" onclick="cliRefreshData()" title="Reload from SharePoint">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+            Refresh
+          </button>
+          <span class="cli-last-sync" id="cliLastSync"></span>
+        </div>
       </div>
-      <div class="placeholder">
-        <div class="ph-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" ><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
-        <h3>Coming Soon — Phase 5</h3>
-        <p>Reads from the same GeckoClients SharePoint list as the Profitability section. One source of truth — update a client here and it updates everywhere.</p>
+
+      <!-- Search toolbar (mirrors Profitability filter row pattern) -->
+      <div class="cli-toolbar" id="cliToolbar" style="display:none">
+        <div class="cli-srch">
+          <span class="cli-srch-ic">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </span>
+          <input type="text" id="cliSrchInput" placeholder="Search by name, contact or email…" oninput="cliOnSearch(this.value)" autocomplete="off">
+        </div>
+        <span class="cli-toolbar-meta" id="cliToolbarMeta"></span>
       </div>
+
+      <div class="cli-wrap" id="cliWrap">
+        <!-- All content rendered by cliRenderAll() -->
+      </div>
+
+      <!-- ═══ DIRECTORY MODAL ═══ -->
+      <!-- Used for: Add Client, Edit Client, and confirm Delete dialogs. -->
+      <div class="cli-modal-bg" id="cliModalBg" onclick="if(event.target===this)cliCloseModal()">
+        <div class="cli-modal" id="cliModal">
+          <h3 id="cliModalTitle">—</h3>
+          <div id="cliModalBody"></div>
+        </div>
+      </div>
+
     </section>
 
 
@@ -2405,7 +2753,10 @@ function navTo(sectionKey) {
   if (sectionKey === 'profitability' && typeof initProfitability === 'function') {
     initProfitability();
   }
-  // Future phases: clients hooks in here too.
+  if (sectionKey === 'clients' && typeof initClients === 'function') {
+    initClients();
+  }
+  // Future phases: timesheets / compliance hooks in here too.
 }
 
 function openSidebar() {
@@ -3255,7 +3606,8 @@ function prfRenderSeedBanner() {
         <p>Both SharePoint lists are empty. You can seed the dashboard with the existing client list (24 clients, ~60 service lines) from Philip's prototype, or start from scratch by adding clients manually.</p>
       </div>
       <div class="prf-seed-actions">
-        <button class="btn btn-ghost" type="button" onclick="prfOpenClientModal()">Add Manually</button>
+        <!-- Phase 5: "Add Manually" now navigates to the Directory, which owns client CRUD. -->
+        <button class="btn btn-ghost" type="button" onclick="navTo('clients')">Add Manually</button>
         <button class="btn btn-primary" type="button" onclick="prfConfirmSeed()">Seed Sample Data</button>
       </div>
     </div>`;
@@ -3372,12 +3724,9 @@ function prfRenderCard(client) {
           <div class="prf-cnum keep"><div class="v prf-vg">${prfFmt(t.gp)}</div><div class="l">Profit</div></div>
           <span class="prf-mpill ${prfMpClass(t.margin)} keep">${prfFmtPct(t.margin)}</span>
         </div>
-        <button class="prf-iconbtn" type="button" title="Edit client" onclick="event.stopPropagation();prfOpenClientModal('${client.id}')">
-          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-        </button>
-        <button class="prf-iconbtn danger" type="button" title="Delete client" onclick="event.stopPropagation();prfConfirmDeleteClient('${client.id}')">
-          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 012-2h2a2 2 0 012 2v2"/></svg>
-        </button>
+        <!-- Phase 5: per-card Edit/Delete client buttons removed.
+             Client metadata is now managed in the Directory section.
+             Service-level Add/Edit/Delete (in the table below) is unchanged. -->
         <div class="prf-chev">▼</div>
       </div>
 
@@ -4908,8 +5257,853 @@ async function initMileage() {
   await milRefreshData(true);
 }
 
-// /* ═══ CLIENTS INIT ═══ */
-// async function initClients() { /* Phase 5 */ }
+/* ╔═══════════════════════════════════════════════════════════════════╗
+   ║                                                                   ║
+   ║   CLIENT DIRECTORY MODULE (Phase 5)                               ║
+   ║                                                                   ║
+   ║   Self-contained module for the Client Directory section. Uses    ║
+   ║   the portal's shared getToken(), graphFetch(), toast(),          ║
+   ║   showLoading(), escapeHtml(), navTo().                           ║
+   ║                                                                   ║
+   ║   Lazy-loaded: initClients() runs once, on first nav to the       ║
+   ║   section. After that, data is cached in CLI state. The user can  ║
+   ║   manually refresh via the "Refresh" button in the header.        ║
+   ║                                                                   ║
+   ║   ┌─────────────────────────────────────────────────────────────┐ ║
+   ║   │ KEY ARCHITECTURAL NOTE — TWO-LIST JOIN                      │ ║
+   ║   │                                                             │ ║
+   ║   │ This module reads from TWO SharePoint lists:                │ ║
+   ║   │                                                             │ ║
+   ║   │   GeckoClients — Phase 3 list, OWNED by this portal:        │ ║
+   ║   │     Title, Status, ContractStart, Notes, XeroActual         │ ║
+   ║   │     Read AND write (Add/Edit/Delete client metadata).       │ ║
+   ║   │                                                             │ ║
+   ║   │   Clients      — pre-existing list, READ-ONLY from here:    │ ║
+   ║   │     Title, PrimaryContact, Email, HoursPurchased,           │ ║
+   ║   │     HoursUsed, Hours_x0020_Remaining2, ClientFolder         │ ║
+   ║   │     Has external SharePoint workflows (SendTimesheets) that │ ║
+   ║   │     reference rows by ID — DO NOT modify or delete.         │ ║
+   ║   │                                                             │ ║
+   ║   │ Plus a third for the Monthly Revenue column:                │ ║
+   ║   │   GeckoServices — used by Profitability already.            │ ║
+   ║   │                                                             │ ║
+   ║   │ The two client lists are joined CLIENT-SIDE by Title,       │ ║
+   ║   │ case-insensitive, whitespace-collapsed. Names were tidied   │ ║
+   ║   │ pre-flight so a clean join is possible without a mapping    │ ║
+   ║   │ table. Clients in only ONE list still appear in the         │ ║
+   ║   │ directory — the missing side just renders as "—" / "No SSA".│ ║
+   ║   └─────────────────────────────────────────────────────────────┘ ║
+   ║                                                                   ║
+   ╚═══════════════════════════════════════════════════════════════════╝ */
+
+// ─── State ────────────────────────────────────────────────────────────
+const CLI = {
+  initialised: false,
+  loading:     false,
+  siteId:      null,
+  listIds:     { geckoClients: null, ssaClients: null, services: null },
+  geckoClients: [],   // [{ id, name, status, contractStart, notes }]
+  ssaClients:   [],   // [{ id, name, primaryContact, email, hoursPurchased, hoursUsed, hoursRemaining, clientFolder }]
+  services:     [],   // [{ clientName, sell }]
+  joined:       [],   // computed: union by canonical name (see cliJoin)
+  view:         'table',  // 'table' | 'cards' — session-only, not persisted
+  search:       '',
+  searchTimer:  null,
+  sortBy:       'name',   // 'name' | 'status' | 'hours' | 'revenue'
+  sortDir:      'asc',
+  lastSync:     null
+};
+
+// ─── Formatting / utility helpers ─────────────────────────────────────
+const cliFmt = v => {
+  const n = Number(v) || 0;
+  if (n === 0) return '—';
+  return '£' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+};
+const cliFmtHours = v => {
+  if (v === null || v === undefined || v === '' || !isFinite(v)) return '—';
+  const n = Number(v);
+  // One decimal, but trim trailing .0 for cleaner display (e.g. "5h" not "5.0h")
+  return n.toFixed(1).replace(/\.0$/, '') + 'h';
+};
+const cliInitials = name => {
+  if (!name) return '?';
+  return name.split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
+};
+
+/** Canonical key for joining: lower-case, whitespace collapsed. */
+const cliKey = name => (name || '').replace(/\s+/g, ' ').trim().toLowerCase();
+
+/**
+ * Escape a string so it's safe to embed inside a single-quoted JS string
+ * inside an HTML attribute, e.g. `onclick="fn('${cliJsAttr(name)}')"`.
+ * Order matters: escape backslashes first, then quotes, then the
+ * HTML-attribute-breaking characters. We avoid escapeHtml() here because
+ * its `&#39;` for apostrophes would be decoded back to `'` by the browser
+ * and break the JS string literal.
+ */
+function cliJsAttr(s) {
+  return String(s)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/** Hours-remaining pill class. Trust the source value; don't recompute. */
+function cliHoursClass(h) {
+  if (h === null || h === undefined || h === '' || !isFinite(h)) return null;
+  const n = Number(h);
+  if (n >= 2)   return 'cli-hp-hi';
+  if (n >= 1)   return 'cli-hp-md';
+  return 'cli-hp-lo';
+}
+
+/** Status pill class — matches Profitability conventions. */
+function cliStatusClass(status) {
+  const s = (status || 'Active').toLowerCase();
+  if (s === 'winding') return 'cli-st-winding';
+  if (s === 'new')     return 'cli-st-new';
+  return 'cli-st-active';
+}
+function cliStatusLabel(status) {
+  const s = (status || 'Active').toLowerCase();
+  if (s === 'winding') return 'Winding Down';
+  if (s === 'new')     return 'New';
+  return 'Active';
+}
+
+
+// ─── SharePoint helpers — resolve site + list IDs ─────────────────────
+async function cliResolveListIds() {
+  if (CLI.siteId && CLI.listIds.geckoClients && CLI.listIds.ssaClients && CLI.listIds.services) return;
+
+  const sitePath = `/sites/${CONFIG.SP_HOST}:${CONFIG.SP_SITE}`;
+  const site = await graphFetch(sitePath);
+  CLI.siteId = site.id;
+
+  const lists = await graphFetch(`/sites/${CLI.siteId}/lists?$select=id,displayName,name`);
+  for (const l of (lists.value || [])) {
+    // GeckoClients — Phase 3 list (writable)
+    if (l.displayName === 'GeckoClients'  || l.name === 'GeckoClients')  CLI.listIds.geckoClients = l.id;
+    // Clients — pre-existing list (read-only). Match by displayName 'Clients'
+    // exactly, NOT 'GeckoClients'.
+    if (l.displayName === 'Clients'       || l.name === 'Clients')       CLI.listIds.ssaClients   = l.id;
+    if (l.displayName === 'GeckoServices' || l.name === 'GeckoServices') CLI.listIds.services     = l.id;
+  }
+  if (!CLI.listIds.geckoClients) throw new Error('GeckoClients list not found in SharePoint site');
+  if (!CLI.listIds.ssaClients)   throw new Error('Clients list not found in SharePoint site');
+  if (!CLI.listIds.services)     throw new Error('GeckoServices list not found in SharePoint site');
+}
+
+
+// ─── SharePoint helpers — load each list ──────────────────────────────
+async function cliLoadGeckoClients() {
+  const url = `/sites/${CLI.siteId}/lists/${CLI.listIds.geckoClients}/items?expand=fields&$top=500`;
+  const res = await graphFetch(url);
+  CLI.geckoClients = (res.value || []).map(it => {
+    const f = it.fields || {};
+    return {
+      id:            it.id,
+      name:          f.Title || '',
+      status:        f.Status || 'Active',
+      contractStart: f.ContractStart ? f.ContractStart.split('T')[0] : '',
+      notes:         f.Notes || ''
+    };
+  }).filter(c => c.name);
+}
+
+async function cliLoadSsaClients() {
+  const url = `/sites/${CLI.siteId}/lists/${CLI.listIds.ssaClients}/items?expand=fields&$top=500`;
+  const res = await graphFetch(url);
+  CLI.ssaClients = (res.value || []).map(it => {
+    const f = it.fields || {};
+    // ── HoursRemaining ─────────────────────────────────────────────────
+    // The internal name is `Hours_x0020_Remaining2` — _x0020_ is encoded
+    // whitespace, the trailing `2` is from a column rename done some time
+    // ago. Trust the SharePoint value directly: it may include adjustments
+    // beyond a simple HoursPurchased − HoursUsed calc, and SharePoint's
+    // own conditional formatting reads from this exact column.
+    // Defensive fallback: if the column ever vanishes/renames, recompute.
+    let hoursRemaining = f.Hours_x0020_Remaining2;
+    if (hoursRemaining === undefined || hoursRemaining === null || hoursRemaining === '') {
+      const purchased = Number(f.HoursPurchased);
+      const used      = Number(f.HoursUsed);
+      hoursRemaining = (isFinite(purchased) && isFinite(used)) ? (purchased - used) : null;
+    } else {
+      hoursRemaining = Number(hoursRemaining);
+      if (!isFinite(hoursRemaining)) hoursRemaining = null;
+    }
+    return {
+      id:              it.id,
+      name:            f.Title || '',
+      primaryContact:  f.PrimaryContact || '',
+      email:           f.Email || '',
+      hoursPurchased:  Number(f.HoursPurchased) || 0,
+      hoursUsed:       Number(f.HoursUsed) || 0,
+      hoursRemaining:  hoursRemaining,
+      clientFolder:    f.ClientFolder || ''
+    };
+  }).filter(c => c.name);
+}
+
+async function cliLoadServices() {
+  // We only need ClientName + SellPerMonth for the revenue column.
+  // Same list Profitability uses; not deduped because lazy-load timing
+  // means PRF may not have loaded yet when Directory is opened first.
+  const url = `/sites/${CLI.siteId}/lists/${CLI.listIds.services}/items?expand=fields&$top=2000`;
+  const res = await graphFetch(url);
+  CLI.services = (res.value || []).map(it => {
+    const f = it.fields || {};
+    return {
+      clientName: f.ClientName || '',
+      sell:       Number(f.SellPerMonth) || 0
+    };
+  });
+}
+
+
+// ─── SharePoint helpers — CRUD (GeckoClients ONLY) ────────────────────
+// We deliberately do NOT write to the `Clients` list — its workflows
+// (SendTimesheets) and downstream dashboards depend on its current shape.
+async function cliCreateClient(c) {
+  const fields = { Title: c.name, Status: c.status || 'Active' };
+  if (c.contractStart) fields.ContractStart = c.contractStart;
+  if (c.notes)         fields.Notes = c.notes;
+  return graphFetch(`/sites/${CLI.siteId}/lists/${CLI.listIds.geckoClients}/items`, {
+    method: 'POST', body: JSON.stringify({ fields })
+  });
+}
+async function cliPatchClient(id, patch) {
+  return graphFetch(`/sites/${CLI.siteId}/lists/${CLI.listIds.geckoClients}/items/${id}/fields`, {
+    method: 'PATCH', body: JSON.stringify(patch)
+  });
+}
+async function cliDeleteClientApi(id) {
+  return graphFetch(`/sites/${CLI.siteId}/lists/${CLI.listIds.geckoClients}/items/${id}`, {
+    method: 'DELETE'
+  });
+}
+// Cascade rename: when a GeckoClient's name changes, every linked
+// GeckoServices row's ClientName must update to keep the join intact.
+// (Mirrors the cascade in prfSaveClient.) Uses CLI's own service list
+// for ID lookup, which we'll then refresh from SharePoint.
+async function cliCascadeServiceRename(oldName, newName) {
+  // We need actual service IDs, which we have on PRF.services if loaded;
+  // otherwise re-fetch fresh. Safer to always re-fetch here — small list.
+  const url = `/sites/${CLI.siteId}/lists/${CLI.listIds.services}/items?expand=fields&$top=2000`;
+  const res = await graphFetch(url);
+  const linked = (res.value || []).filter(it => (it.fields?.ClientName || '') === oldName);
+  await Promise.all(linked.map(it =>
+    graphFetch(`/sites/${CLI.siteId}/lists/${CLI.listIds.services}/items/${it.id}/fields`, {
+      method: 'PATCH', body: JSON.stringify({ ClientName: newName })
+    })
+  ));
+  return linked.length;
+}
+
+
+// ─── Join — union of GeckoClients + Clients lists ─────────────────────
+/**
+ * Build CLI.joined: one row per unique client name across both lists.
+ * Each row has both `gecko` and `ssa` fields populated where available
+ * and `null` where not, plus a `monthlyRevenue` from CLI.services.
+ *
+ * Match key: case-insensitive, whitespace-collapsed Title. Names were
+ * tidied pre-flight so this works without a manual mapping table.
+ */
+function cliJoin() {
+  const byKey = new Map();
+
+  // Index gecko clients first (canonical source of metadata)
+  for (const g of CLI.geckoClients) {
+    const k = cliKey(g.name);
+    if (!k) continue;
+    byKey.set(k, {
+      key:            k,
+      name:           g.name,             // display name comes from gecko if present
+      gecko:          g,
+      ssa:            null,
+      monthlyRevenue: 0
+    });
+  }
+  // Merge SSA clients
+  for (const s of CLI.ssaClients) {
+    const k = cliKey(s.name);
+    if (!k) continue;
+    if (byKey.has(k)) {
+      byKey.get(k).ssa = s;
+    } else {
+      // Client exists in Clients list but not GeckoClients —
+      // include them; they have an SSA but no profitability stack yet.
+      byKey.set(k, {
+        key:            k,
+        name:           s.name,           // fall back to ssa name
+        gecko:          null,
+        ssa:            s,
+        monthlyRevenue: 0
+      });
+    }
+  }
+  // Sum monthly revenue per joined row from services (match by canonical key)
+  for (const sv of CLI.services) {
+    const k = cliKey(sv.clientName);
+    if (k && byKey.has(k)) {
+      byKey.get(k).monthlyRevenue += (sv.sell || 0);
+    }
+  }
+
+  CLI.joined = Array.from(byKey.values());
+}
+
+
+// ─── Refresh — main data load ─────────────────────────────────────────
+async function cliRefreshData(silent = false) {
+  if (CLI.loading) return;
+  CLI.loading = true;
+  const refreshBtn = document.getElementById('cliRefresh');
+  if (refreshBtn) { refreshBtn.classList.add('spinning'); refreshBtn.disabled = true; }
+  showLoading(true);
+  try {
+    await cliResolveListIds();
+    await Promise.all([cliLoadGeckoClients(), cliLoadSsaClients(), cliLoadServices()]);
+    cliJoin();
+    CLI.lastSync = new Date();
+    cliRenderAll();
+    const last = document.getElementById('cliLastSync');
+    if (last) {
+      last.textContent = 'Synced ' + CLI.lastSync.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    }
+    if (!silent) {
+      const ssaCount = CLI.joined.filter(r => r.ssa).length;
+      toast(`Refreshed — ${CLI.joined.length} clients, ${ssaCount} on SSA`, 'success', 2500);
+    }
+  } catch (err) {
+    console.error('Directory refresh failed:', err);
+    toast('Could not load directory: ' + (err.message || 'unknown error'), 'error', 6000);
+    const wrap = document.getElementById('cliWrap');
+    if (wrap) {
+      wrap.innerHTML = `
+        <div class="cli-error">
+          <h3>Could not load data</h3>
+          <p>${escapeHtml(err.message || 'Unknown error')}<br>Click Refresh to try again.</p>
+        </div>`;
+    }
+  } finally {
+    if (refreshBtn) { refreshBtn.classList.remove('spinning'); refreshBtn.disabled = false; }
+    showLoading(false);
+    CLI.loading = false;
+  }
+}
+
+
+// ─── Sort + filter helpers ────────────────────────────────────────────
+function cliSortedFiltered() {
+  const term = (CLI.search || '').toLowerCase().trim();
+  let rows = CLI.joined.slice();
+
+  // Filter — name, primaryContact, OR email (case-insensitive substring)
+  if (term) {
+    rows = rows.filter(r => {
+      const name    = (r.name || '').toLowerCase();
+      const contact = (r.ssa?.primaryContact || '').toLowerCase();
+      const email   = (r.ssa?.email || '').toLowerCase();
+      return name.includes(term) || contact.includes(term) || email.includes(term);
+    });
+  }
+
+  // Sort
+  const dir = CLI.sortDir === 'desc' ? -1 : 1;
+  const statusOrder = { 'Active': 0, 'New': 1, 'Winding': 2 };
+  rows.sort((a, b) => {
+    let av, bv;
+    switch (CLI.sortBy) {
+      case 'status': {
+        const sa = (a.gecko?.status || 'Active');
+        const sb = (b.gecko?.status || 'Active');
+        av = statusOrder[sa] ?? 99;
+        bv = statusOrder[sb] ?? 99;
+        if (av === bv) return a.name.localeCompare(b.name);
+        return (av - bv) * dir;
+      }
+      case 'hours': {
+        // Nulls (no SSA) sort to the end regardless of direction
+        const ah = a.ssa?.hoursRemaining;
+        const bh = b.ssa?.hoursRemaining;
+        const aNull = ah === null || ah === undefined || !isFinite(ah);
+        const bNull = bh === null || bh === undefined || !isFinite(bh);
+        if (aNull && bNull) return a.name.localeCompare(b.name);
+        if (aNull) return 1;
+        if (bNull) return -1;
+        if (ah === bh) return a.name.localeCompare(b.name);
+        return (ah - bh) * dir;
+      }
+      case 'revenue': {
+        av = a.monthlyRevenue || 0;
+        bv = b.monthlyRevenue || 0;
+        if (av === bv) return a.name.localeCompare(b.name);
+        return (av - bv) * dir;
+      }
+      case 'name':
+      default:
+        return a.name.localeCompare(b.name) * dir;
+    }
+  });
+
+  return rows;
+}
+
+
+// ─── Rendering — entry point ──────────────────────────────────────────
+function cliRenderAll() {
+  const wrap    = document.getElementById('cliWrap');
+  const toolbar = document.getElementById('cliToolbar');
+  if (!wrap) return;
+
+  // Empty case (both lists empty)
+  if (CLI.joined.length === 0) {
+    if (toolbar) toolbar.style.display = 'none';
+    wrap.innerHTML = `
+      <div class="cli-empty">
+        <h3>No Clients Yet</h3>
+        <p>Add a client to get started, or check that the GeckoClients and Clients SharePoint lists are populated.</p>
+      </div>`;
+    return;
+  }
+
+  // Show toolbar once we have data
+  if (toolbar) toolbar.style.display = 'flex';
+
+  // Update toolbar meta + view-toggle active state
+  cliRenderToolbarMeta();
+  document.querySelectorAll('#section-clients .cli-vt-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === CLI.view);
+  });
+
+  const rows = cliSortedFiltered();
+
+  // Empty AFTER filter
+  if (rows.length === 0) {
+    wrap.innerHTML = `
+      <div class="cli-empty">
+        <h3>No matches</h3>
+        <p>No clients match "${escapeHtml(CLI.search)}". Try a different search term.</p>
+      </div>`;
+    return;
+  }
+
+  wrap.innerHTML = CLI.view === 'cards' ? cliRenderCards(rows) : cliRenderTable(rows);
+}
+
+function cliRenderToolbarMeta() {
+  const meta = document.getElementById('cliToolbarMeta');
+  if (!meta) return;
+  const total    = CLI.joined.length;
+  const ssaCount = CLI.joined.filter(r => r.ssa).length;
+  meta.textContent = `${total} client${total === 1 ? '' : 's'} · ${ssaCount} on SSA`;
+}
+
+
+// ─── Rendering — table view ───────────────────────────────────────────
+function cliRenderTable(rows) {
+  const sortIc = '<svg class="sort-ic" xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+  const sortIcUp = '<svg class="sort-ic" xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>';
+  const head = (key, label, extraCls = '') => {
+    const sorted = CLI.sortBy === key;
+    const ic = sorted ? (CLI.sortDir === 'asc' ? sortIcUp : sortIc) : sortIc;
+    const cls = `sortable ${sorted ? 'sorted' : ''} ${extraCls}`.trim();
+    return `<th class="${cls}" onclick="cliSetSort('${key}')">${label}${ic}</th>`;
+  };
+
+  const body = rows.map(cliRenderTableRow).join('');
+
+  return `
+    <div class="cli-tbl-wrap">
+      <table class="cli-tbl">
+        <thead>
+          <tr>
+            ${head('name',    'Client')}
+            ${head('status',  'Status', 'col-status')}
+            <th class="col-contact">Primary Contact</th>
+            <th class="col-contact">Email</th>
+            ${head('hours',   'Hours Remaining', 'num')}
+            ${head('revenue', 'Monthly Revenue', 'num col-revenue')}
+            <th style="text-align:right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>${body}</tbody>
+      </table>
+    </div>`;
+}
+
+function cliRenderTableRow(r) {
+  const status   = r.gecko?.status || 'Active';
+  const stCls    = cliStatusClass(status);
+  const stLabel  = cliStatusLabel(status);
+  const hp       = r.ssa?.hoursRemaining;
+  const hpCls    = cliHoursClass(hp);
+  const hpHtml   = hpCls
+    ? `<span class="cli-hp ${hpCls}">${cliFmtHours(hp)}</span>`
+    : `<span class="cli-hp-none">No SSA</span>`;
+  const contactRaw = r.ssa?.primaryContact || '';
+  const contactHtml = contactRaw
+    ? `<span class="cli-contact-name">${escapeHtml(contactRaw)}</span>`
+    : '<span class="cli-hp-none">—</span>';
+  const emailRaw = r.ssa?.email || '';
+  const emailHtml = emailRaw
+    ? `<a href="mailto:${escapeHtml(emailRaw)}">${escapeHtml(emailRaw)}</a>`
+    : '<span class="cli-hp-none">—</span>';
+  const revenue  = r.monthlyRevenue > 0 ? cliFmt(r.monthlyRevenue) : '—';
+  const inGecko  = !!r.gecko;
+
+  return `
+    <tr data-key="${escapeHtml(r.key)}">
+      <td>
+        <div class="cli-name-cell">
+          <div class="cli-cav">${escapeHtml(cliInitials(r.name))}</div>
+          <span class="cli-name" title="${escapeHtml(r.name)}">${escapeHtml(r.name)}</span>
+        </div>
+      </td>
+      <td class="col-status">
+        ${inGecko ? `<span class="cli-st ${stCls}">${stLabel}</span>` : '<span class="cli-hp-none">No profitability</span>'}
+      </td>
+      <td class="col-contact">${contactHtml}</td>
+      <td class="col-contact"><span class="cli-contact-email">${emailHtml}</span></td>
+      <td class="num">${hpHtml}</td>
+      <td class="num col-revenue ${revenue === '—' ? 'muted' : ''}">${revenue}</td>
+      <td class="actions">
+        ${inGecko ? `
+          <button class="cli-iconbtn" type="button" title="View in Profitability" onclick="cliJumpToProfitability('${r.gecko.id}')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-7"/></svg>
+          </button>
+          <button class="cli-iconbtn" type="button" title="Edit client" onclick="cliOpenClientModal('${r.gecko.id}')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </button>
+          <button class="cli-iconbtn danger" type="button" title="Delete client" onclick="cliConfirmDeleteClient('${r.gecko.id}')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 012-2h2a2 2 0 012 2v2"/></svg>
+          </button>
+        ` : `
+          <button class="cli-iconbtn" type="button" title="Add to profitability (creates a GeckoClients row)" onclick="cliOpenClientModalFromName('${cliJsAttr(r.name)}')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        `}
+      </td>
+    </tr>`;
+}
+
+
+// ─── Rendering — card view ────────────────────────────────────────────
+function cliRenderCards(rows) {
+  return `<div class="cli-grid">${rows.map(cliRenderCard).join('')}</div>`;
+}
+
+function cliRenderCard(r) {
+  const status  = r.gecko?.status || 'Active';
+  const stCls   = cliStatusClass(status);
+  const stLabel = cliStatusLabel(status);
+  const hp      = r.ssa?.hoursRemaining;
+  const hpCls   = cliHoursClass(hp);
+  const hpHtml  = hpCls
+    ? `<span class="cli-hp ${hpCls}">${cliFmtHours(hp)}</span>`
+    : `<span class="cli-hp-none">No SSA</span>`;
+  const contact = r.ssa?.primaryContact || '—';
+  const emailRaw = r.ssa?.email || '';
+  const emailHtml = emailRaw
+    ? `<a href="mailto:${escapeHtml(emailRaw)}">${escapeHtml(emailRaw)}</a>`
+    : '—';
+  const revenue = r.monthlyRevenue > 0 ? cliFmt(r.monthlyRevenue) : '—';
+  const inGecko = !!r.gecko;
+
+  return `
+    <div class="cli-card" data-key="${escapeHtml(r.key)}">
+      <div class="cli-card-head">
+        <div class="cli-cav">${escapeHtml(cliInitials(r.name))}</div>
+        <div class="cli-name" title="${escapeHtml(r.name)}">${escapeHtml(r.name)}</div>
+        ${inGecko ? `<span class="cli-st ${stCls}">${stLabel}</span>` : ''}
+      </div>
+      <div class="cli-card-rows">
+        <div class="cli-card-row">
+          <span class="cli-rl">Contact</span>
+          <span class="cli-rv ${contact === '—' ? 'muted' : ''}">${contact === '—' ? '—' : escapeHtml(contact)}</span>
+        </div>
+        <div class="cli-card-row">
+          <span class="cli-rl">Email</span>
+          <span class="cli-rv ${emailRaw ? '' : 'muted'}">${emailHtml}</span>
+        </div>
+        <div class="cli-card-row">
+          <span class="cli-rl">Hours Remaining</span>
+          <span class="cli-rv">${hpHtml}</span>
+        </div>
+        <div class="cli-card-row">
+          <span class="cli-rl">Monthly Revenue</span>
+          <span class="cli-rv num ${revenue === '—' ? 'muted' : ''}">${revenue}</span>
+        </div>
+      </div>
+      <div class="cli-card-actions">
+        ${inGecko ? `
+          <button class="cli-iconbtn" type="button" title="View in Profitability" onclick="cliJumpToProfitability('${r.gecko.id}')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-7"/></svg>
+          </button>
+          <button class="cli-iconbtn" type="button" title="Edit client" onclick="cliOpenClientModal('${r.gecko.id}')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </button>
+          <button class="cli-iconbtn danger" type="button" title="Delete client" onclick="cliConfirmDeleteClient('${r.gecko.id}')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 012-2h2a2 2 0 012 2v2"/></svg>
+          </button>
+        ` : `
+          <button class="cli-iconbtn" type="button" title="Add to profitability" onclick="cliOpenClientModalFromName('${cliJsAttr(r.name)}')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        `}
+      </div>
+    </div>`;
+}
+
+
+// ─── UI event handlers — search / sort / view toggle ──────────────────
+function cliOnSearch(value) {
+  // Debounce ~150ms — prevents re-render on every keystroke
+  clearTimeout(CLI.searchTimer);
+  CLI.searchTimer = setTimeout(() => {
+    CLI.search = value || '';
+    cliRenderAll();
+  }, 150);
+}
+
+function cliSetSort(key) {
+  if (CLI.sortBy === key) {
+    CLI.sortDir = CLI.sortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    CLI.sortBy  = key;
+    CLI.sortDir = 'asc';
+  }
+  cliRenderAll();
+}
+
+function cliSetView(view) {
+  if (view !== 'table' && view !== 'cards') return;
+  if (CLI.view === view) return;
+  CLI.view = view;
+  cliRenderAll();
+}
+
+
+// ─── Cross-link to Profitability ──────────────────────────────────────
+/**
+ * Navigate to the Profitability section and ensure the named client's
+ * card is expanded. Uses PRF.openCards (a Set of client IDs) which the
+ * Profitability render reads on every refresh — same mechanism the
+ * Profitability section uses internally for its expand-all action.
+ */
+function cliJumpToProfitability(geckoClientId) {
+  if (!geckoClientId) return;
+  // PRF may not have initialised yet; if so, navTo will trigger initProfitability,
+  // which fetches and renders. We add to the open set BEFORE navigation so the
+  // first render already shows the card expanded.
+  if (typeof PRF !== 'undefined' && PRF.openCards) {
+    PRF.openCards.add(geckoClientId);
+  }
+  navTo('profitability');
+  // After render settles, scroll the card into view
+  setTimeout(() => {
+    const el = document.querySelector(`#section-profitability [data-client-id="${geckoClientId}"]`);
+    if (el && el.scrollIntoView) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, 350);
+}
+
+
+// ─── Modal helpers ────────────────────────────────────────────────────
+function cliOpenModal(title, bodyHtml) {
+  document.getElementById('cliModalTitle').textContent = title;
+  document.getElementById('cliModalBody').innerHTML = bodyHtml;
+  document.getElementById('cliModalBg').classList.add('show');
+}
+function cliCloseModal() {
+  document.getElementById('cliModalBg').classList.remove('show');
+  document.getElementById('cliModalBody').innerHTML = '';
+}
+
+
+// ─── Add / Edit client (modal) ────────────────────────────────────────
+function cliOpenClientModal(id = null) {
+  const isEdit = !!id;
+  const client = isEdit ? CLI.geckoClients.find(c => c.id === id) : { name: '', status: 'Active', contractStart: '', notes: '' };
+  if (isEdit && !client) { toast('Client not found', 'error'); return; }
+
+  const body = `
+    <div class="cli-form-grp">
+      <label>Client Name</label>
+      <input type="text" id="cliClName" value="${escapeHtml(client.name || '')}" placeholder="e.g. ALS Locksmiths" autocomplete="off">
+    </div>
+    <div class="cli-form-grp">
+      <label>Status</label>
+      <select id="cliClStatus">
+        <option value="Active"${client.status === 'Active' ? ' selected' : ''}>Active</option>
+        <option value="Winding"${client.status === 'Winding' ? ' selected' : ''}>Winding Down</option>
+        <option value="New"${client.status === 'New' ? ' selected' : ''}>New</option>
+      </select>
+    </div>
+    <div class="cli-form-grp">
+      <label>Contract Start (optional)</label>
+      <input type="date" id="cliClStart" value="${escapeHtml(client.contractStart || '')}">
+    </div>
+    <div class="cli-form-grp">
+      <label>Notes (optional)</label>
+      <textarea id="cliClNotes" rows="3">${escapeHtml(client.notes || '')}</textarea>
+    </div>
+    <p style="font-size:11px;color:var(--muted);margin-top:-4px">
+      Contact details (Primary Contact, Email) and SSA hours live on the
+      <strong>Clients</strong> SharePoint list, which is managed there directly.
+    </p>
+    <div class="cli-mm-actions">
+      <button class="btn btn-ghost" type="button" onclick="cliCloseModal()">Cancel</button>
+      <button class="btn btn-primary" type="button" onclick="cliSaveClient(${isEdit ? `'${id}'` : 'null'})">${isEdit ? 'Save' : 'Add Client'}</button>
+    </div>`;
+  cliOpenModal(isEdit ? 'Edit Client' : 'Add Client', body);
+  setTimeout(() => document.getElementById('cliClName')?.focus(), 50);
+}
+
+/**
+ * Pre-fills the Add Client modal with a name from a row that exists in
+ * the Clients (SSA) list but not yet in GeckoClients — used by the
+ * "Add to profitability" action on those rows.
+ */
+function cliOpenClientModalFromName(name) {
+  // Open a fresh "add" modal then patch the name input
+  cliOpenClientModal();
+  setTimeout(() => {
+    const el = document.getElementById('cliClName');
+    if (el) { el.value = name; el.focus(); el.select(); }
+  }, 60);
+}
+
+async function cliSaveClient(id) {
+  const name   = document.getElementById('cliClName').value.trim();
+  const status = document.getElementById('cliClStatus').value;
+  const start  = document.getElementById('cliClStart').value;
+  const notes  = document.getElementById('cliClNotes').value.trim();
+  if (!name) { toast('Client name is required', 'warning'); return; }
+
+  // Detect rename — services link by ClientName plain text, so any rename
+  // requires us to also update every linked service row to keep the join intact.
+  // (Same logic as prfSaveClient — we own the same write path.)
+  const existing = id ? CLI.geckoClients.find(c => c.id === id) : null;
+  const oldName  = existing?.name || null;
+  const renamed  = oldName && oldName !== name;
+
+  // Block duplicate names within GeckoClients (other than the row being edited)
+  if (CLI.geckoClients.some(c => c.name.toLowerCase() === name.toLowerCase() && c.id !== id)) {
+    toast(`A client named "${name}" already exists`, 'warning', 4000);
+    return;
+  }
+
+  showLoading(true);
+  try {
+    if (id) {
+      await cliPatchClient(id, { Title: name, Status: status, ContractStart: start || null, Notes: notes });
+      // Cascade rename to GeckoServices — the Clients SSA list is left alone
+      // (pre-flight tidy already aligned its names; it's read-only from here).
+      if (renamed) {
+        const cnt = await cliCascadeServiceRename(oldName, name);
+        if (cnt > 0) {
+          toast(`Renamed — ${cnt} service${cnt === 1 ? '' : 's'} re-linked`, 'info', 3500);
+        }
+      }
+      toast(`Updated "${name}"`, 'success');
+    } else {
+      await cliCreateClient({ name, status, contractStart: start, notes });
+      toast(`Added "${name}"`, 'success');
+    }
+    cliCloseModal();
+    // Invalidate Profitability cache so it refetches next visit (renames matter there too)
+    if (typeof PRF !== 'undefined' && renamed) {
+      PRF.initialised = false;
+    }
+    await cliRefreshData(true);
+  } catch (err) {
+    console.error('Save client failed:', err);
+    toast('Could not save client: ' + (err.message || 'unknown'), 'error', 5000);
+  } finally {
+    showLoading(false);
+  }
+}
+
+
+// ─── Delete client ────────────────────────────────────────────────────
+function cliConfirmDeleteClient(id) {
+  const client = CLI.geckoClients.find(c => c.id === id);
+  if (!client) return;
+  // Count linked services (for the warning copy)
+  const linkedCount = CLI.services.filter(s => s.clientName === client.name).length;
+  const ssaRow = CLI.ssaClients.find(s => cliKey(s.name) === cliKey(client.name));
+
+  const body = `
+    <p>Delete <strong>${escapeHtml(client.name)}</strong>${linkedCount > 0 ? ` and all <strong>${linkedCount} linked service line${linkedCount === 1 ? '' : 's'}</strong>` : ''}?</p>
+    ${ssaRow ? `<p style="font-size:11px;color:var(--amber)">⚠ This client also has an SSA row in the <strong>Clients</strong> list, which will <strong>not</strong> be touched (it's read-only from this portal). Remove it directly in SharePoint if needed.</p>` : ''}
+    <p>This cannot be undone.</p>
+    <div class="cli-mm-actions">
+      <button class="btn btn-ghost" type="button" onclick="cliCloseModal()">Cancel</button>
+      <button class="btn btn-danger" type="button" onclick="cliDoDeleteClient('${id}')">Delete</button>
+    </div>`;
+  cliOpenModal('Confirm Delete', body);
+}
+
+async function cliDoDeleteClient(id) {
+  const client = CLI.geckoClients.find(c => c.id === id);
+  if (!client) return;
+
+  // Collect linked service IDs by re-fetching fresh (simpler + safer than
+  // caching). Same pattern as cliCascadeServiceRename.
+  showLoading(true);
+  try {
+    const url = `/sites/${CLI.siteId}/lists/${CLI.listIds.services}/items?expand=fields&$top=2000`;
+    const res = await graphFetch(url);
+    const linked = (res.value || []).filter(it => (it.fields?.ClientName || '') === client.name);
+
+    // Delete services first so an interrupted delete doesn't leave orphans
+    for (const it of linked) {
+      try {
+        await graphFetch(`/sites/${CLI.siteId}/lists/${CLI.listIds.services}/items/${it.id}`, { method: 'DELETE' });
+      } catch (e) {
+        console.warn('Delete service failed (continuing):', e);
+      }
+    }
+    await cliDeleteClientApi(id);
+    toast(`Deleted "${client.name}"`, 'success');
+    cliCloseModal();
+
+    // Invalidate Profitability cache so it picks up the deletion next visit
+    if (typeof PRF !== 'undefined') {
+      PRF.initialised = false;
+      if (PRF.openCards) PRF.openCards.delete(id);
+    }
+    await cliRefreshData(true);
+  } catch (err) {
+    console.error('Delete client failed:', err);
+    toast('Could not delete client: ' + (err.message || 'unknown'), 'error', 5000);
+  } finally {
+    showLoading(false);
+  }
+}
+
+
+// ─── Init ─────────────────────────────────────────────────────────────
+async function initClients() {
+  if (CLI.initialised) return;
+  CLI.initialised = true;
+
+  // Modal: close on ESC (only when this section's modal is open)
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.getElementById('cliModalBg')?.classList.contains('show')) {
+      cliCloseModal();
+    }
+  });
+
+  await cliRefreshData(true);
+}
 
 
 /* ╔═══════════════════════════════════════════════════════════════════╗
