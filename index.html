@@ -511,7 +511,236 @@ body {
    SECTION-SPECIFIC STYLES — added in later phases
    ═══════════════════════════════════════════════════════════════════ */
 
-/* /* ═══ HOME / OVERVIEW SECTION STYLES ═══ */
+/* ╔═══════════════════════════════════════════════════════════════════╗
+   ║                                                                   ║
+   ║   HOME / OVERVIEW SECTION                                         ║
+   ║                                                                   ║
+   ║   Landing dashboard. Live read-only summary pulled from           ║
+   ║   MileageJourneys, GeckoServices, GeckoClients. No writes.        ║
+   ║   Scoped under `#section-overview .ovw-*` to avoid bleed.         ║
+   ║                                                                   ║
+   ╚═══════════════════════════════════════════════════════════════════╝ */
+
+/* — Section head actions (refresh + last sync) — mirrors profitability — */
+#section-overview .ovw-head-actions {
+  display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap;
+}
+#section-overview .ovw-refresh {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: var(--radius-sm);
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--muted); font-size: 12px; cursor: pointer;
+  font-family: 'Instrument Sans', sans-serif;
+  transition: all .15s ease;
+}
+#section-overview .ovw-refresh:hover:not(:disabled) { color: var(--green); border-color: var(--green); }
+#section-overview .ovw-refresh:disabled { opacity: .5; cursor: not-allowed; }
+#section-overview .ovw-refresh svg { transition: transform .4s ease; }
+#section-overview .ovw-refresh.spinning svg { animation: ovwSpin 1s linear infinite; }
+@keyframes ovwSpin { to { transform: rotate(360deg); } }
+#section-overview .ovw-last-sync { font-size: 11px; color: var(--muted); margin-left: 4px; }
+
+/* — Wrapper layout (vertical stack, gap matches profitability) — */
+#section-overview .ovw-wrap { display: flex; flex-direction: column; gap: 14px; }
+
+/* — KPI strip (4 tiles across the top) — */
+#section-overview .ovw-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+#section-overview .ovw-kpi {
+  background: var(--card);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  transition: border-color .2s ease;
+  position: relative;
+}
+#section-overview .ovw-kpi:hover { border-color: var(--border); }
+#section-overview .ovw-kpi .k-label {
+  font-size: 9px; color: var(--muted);
+  letter-spacing: .12em; text-transform: uppercase;
+  margin-bottom: 4px;
+  display: flex; align-items: center; gap: 6px;
+}
+#section-overview .ovw-kpi .k-label svg { opacity: .7; }
+#section-overview .ovw-kpi .k-value {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800; font-size: 28px;
+  letter-spacing: .02em;
+  color: var(--green);
+  line-height: 1.1;
+}
+#section-overview .ovw-kpi .k-sub {
+  font-size: 11px; color: var(--muted);
+  margin-top: 4px; line-height: 1.4;
+}
+#section-overview .ovw-kpi .k-sub strong { color: var(--white); font-weight: 600; }
+/* KPI value colour variants */
+#section-overview .ovw-kpi.neutral .k-value { color: var(--white); }
+#section-overview .ovw-kpi.profit  .k-value { color: var(--green); }
+#section-overview .ovw-kpi.miles   .k-value { color: var(--green); }
+#section-overview .ovw-kpi.revenue .k-value { color: var(--green); }
+#section-overview .ovw-kpi.clients .k-value { color: var(--white); }
+
+/* — Two-column detail row (mileage breakdown + revenue breakdown) — */
+#section-overview .ovw-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+#section-overview .ovw-card {
+  background: var(--card);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color .2s ease;
+}
+#section-overview .ovw-card:hover { border-color: var(--border); }
+#section-overview .ovw-card-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-dim);
+  display: flex; align-items: center; gap: 10px;
+}
+#section-overview .ovw-card-head h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 14px;
+  letter-spacing: .07em; text-transform: uppercase;
+  color: var(--white);
+  flex: 1;
+}
+#section-overview .ovw-card-head .ovw-month-tag {
+  font-size: 10px; color: var(--green);
+  background: var(--green-glow);
+  border: 1px solid var(--border);
+  padding: 2px 8px; border-radius: 999px;
+  letter-spacing: .05em; font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* — Breakdown tables (mileage by driver + revenue P&L) — */
+#section-overview .ovw-tbl {
+  width: 100%; border-collapse: collapse;
+}
+#section-overview .ovw-tbl th,
+#section-overview .ovw-tbl td {
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--border-dim);
+  text-align: left;
+  font-size: 13px;
+}
+#section-overview .ovw-tbl tbody tr:last-child th,
+#section-overview .ovw-tbl tbody tr:last-child td { border-bottom: none; }
+#section-overview .ovw-tbl th {
+  font-size: 9px; color: var(--muted);
+  letter-spacing: .1em; text-transform: uppercase;
+  font-weight: 700;
+  background: rgba(0,0,0,0.2);
+}
+#section-overview .ovw-tbl td.num,
+#section-overview .ovw-tbl th.num {
+  text-align: right;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px; font-weight: 700;
+  letter-spacing: .02em;
+}
+#section-overview .ovw-tbl td.num { color: var(--white); }
+#section-overview .ovw-tbl td.num.muted   { color: var(--muted); font-weight: 600; font-size: 14px; }
+#section-overview .ovw-tbl td.num.green   { color: var(--green); }
+#section-overview .ovw-tbl td.num.red     { color: var(--red); }
+#section-overview .ovw-tbl td.num.amber   { color: var(--amber); }
+#section-overview .ovw-tbl td .driver-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-weight: 500; color: var(--white);
+}
+#section-overview .ovw-tbl td .driver-pill .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green); flex-shrink: 0;
+}
+#section-overview .ovw-tbl td .driver-pill.jack .dot { background: var(--blue); }
+#section-overview .ovw-tbl tr.ovw-trow td {
+  background: rgba(82,176,46,0.06);
+  border-top: 1px solid var(--green-line);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 13px;
+  letter-spacing: .05em; text-transform: uppercase;
+}
+#section-overview .ovw-tbl tr.ovw-trow td.num { font-size: 16px; }
+
+/* — Empty state inside breakdown cards — */
+#section-overview .ovw-empty {
+  padding: 24px 18px; text-align: center;
+  color: var(--muted); font-size: 12px;
+  font-style: italic;
+}
+
+/* — Quick actions card — */
+#section-overview .ovw-actions {
+  background: var(--card);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  display: flex; align-items: center; gap: 16px;
+  flex-wrap: wrap;
+}
+#section-overview .ovw-actions-text { flex: 1; min-width: 180px; }
+#section-overview .ovw-actions-text h4 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 14px;
+  letter-spacing: .07em; text-transform: uppercase;
+  margin-bottom: 3px;
+}
+#section-overview .ovw-actions-text p { color: var(--muted); font-size: 12px; }
+#section-overview .ovw-actions-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+#section-overview .ovw-act-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 16px; border-radius: var(--radius-sm);
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all .15s ease;
+  border: 1px solid var(--border);
+  background: var(--green); color: var(--black);
+  border-color: var(--green);
+}
+#section-overview .ovw-act-btn:hover {
+  background: var(--green-dark); border-color: var(--green-dark); color: var(--white);
+}
+#section-overview .ovw-act-btn.ghost {
+  background: transparent; color: var(--white);
+  border-color: var(--border-dim);
+}
+#section-overview .ovw-act-btn.ghost:hover {
+  background: var(--green-glow); color: var(--green); border-color: var(--green);
+}
+
+/* — Error / empty state for the whole section — */
+#section-overview .ovw-error {
+  background: var(--card);
+  border: 1px solid var(--red);
+  border-left-width: 3px;
+  border-radius: var(--radius);
+  padding: 24px 22px;
+  text-align: center;
+}
+#section-overview .ovw-error h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 16px;
+  letter-spacing: .06em; text-transform: uppercase;
+  margin-bottom: 6px;
+  color: var(--red);
+}
+#section-overview .ovw-error p { color: var(--muted); font-size: 13px; }
+
+/* — Responsive — */
+@media (max-width: 1100px) {
+  #section-overview .ovw-kpis { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 720px) {
+  #section-overview .ovw-kpis { grid-template-columns: 1fr; }
+  #section-overview .ovw-row  { grid-template-columns: 1fr; }
+}
+
 
 /* ╔═══════════════════════════════════════════════════════════════════╗
    ║                                                                   ║
@@ -1595,17 +1824,31 @@ body {
     <div id="loadingBar"></div>
 
 
-    <!-- ═══ OVERVIEW SECTION ═══════════════════════════════════════ -->
+    <!-- ═══════════════════════════════════════════════════════════════
+         OVERVIEW SECTION
+         — Default landing section after sign-in.
+         — Read-only summary of MileageJourneys + GeckoServices + GeckoClients.
+         — Lazy-loaded by initOverview() (called from onSignedIn + navTo).
+         — All content rendered into #ovwWrap by ovwRenderAll().
+         ═══════════════════════════════════════════════════════════════ -->
     <section class="section active" id="section-overview">
+
       <div class="section-head">
         <h1>OVERVIEW <span>DASHBOARD</span></h1>
-        <p>Live summary across all Gecko IT operations — mileage, profitability, clients.</p>
+        <p>Live summary across mileage, profitability and clients · <span id="ovwHeadMonth">—</span></p>
+        <div class="ovw-head-actions">
+          <button class="ovw-refresh" id="ovwRefresh" type="button" onclick="ovwRefreshData()" title="Reload from SharePoint">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+            Refresh
+          </button>
+          <span class="ovw-last-sync" id="ovwLastSync"></span>
+        </div>
       </div>
-      <div class="placeholder">
-        <div class="ph-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" ><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></div>
-        <h3>Coming Soon</h3>
-        <p>This section will aggregate live data from your other sections — month-to-date mileage, monthly recurring revenue, active client count, and quick action shortcuts.</p>
+
+      <div class="ovw-wrap" id="ovwWrap">
+        <!-- All content rendered by ovwRenderAll() on first load + after refresh. -->
       </div>
+
     </section>
 
 
@@ -2153,13 +2396,16 @@ function navTo(sectionKey) {
   // — Lazy-load section data on first visit —
   // Each section's init runs once on first nav. Subsequent navs use cached
   // data; the user can refresh manually via the section's refresh control.
+  if (sectionKey === 'overview' && typeof initOverview === 'function') {
+    initOverview();
+  }
   if (sectionKey === 'mileage' && typeof initMileage === 'function') {
     initMileage();
   }
   if (sectionKey === 'profitability' && typeof initProfitability === 'function') {
     initProfitability();
   }
-  // Future phases: overview, clients hook in here too.
+  // Future phases: clients hooks in here too.
 }
 
 function openSidebar() {
@@ -2249,6 +2495,14 @@ function onSignedIn() {
   document.getElementById('userAvatar').textContent = initialsFor(name);
   showPortal();
   toast(`Welcome back, ${name.split(' ')[0]}`, 'success', 2500);
+
+  // — Auto-load Overview on landing —
+  // Overview is the default section (HTML has `class="section active"` on it),
+  // so navTo() never fires for it on first sign-in. Trigger init manually here
+  // so the dashboard populates immediately. Safe no-op if already initialised.
+  if (typeof initOverview === 'function') {
+    initOverview();
+  }
 }
 
 
@@ -2262,10 +2516,473 @@ function onSignedIn() {
    ╚═══════════════════════════════════════════════════════════════════╝ */
 
 // /* ═══ HOME / OVERVIEW INIT ═══ */
-// async function initOverview() { /* Phase 4 */ }
+// (Full Phase 4 module follows further down — search for "OVERVIEW MODULE")
 
 // /* ═══ PROFITABILITY INIT ═══ */
 // (Full Phase 3 module follows further down — search for "PROFITABILITY MODULE")
+
+
+/* ╔═══════════════════════════════════════════════════════════════════╗
+   ║                                                                   ║
+   ║   OVERVIEW MODULE                                                 ║
+   ║                                                                   ║
+   ║   Self-contained module for the Home / Overview section.          ║
+   ║   Read-only — pulls live summary data from three SharePoint       ║
+   ║   lists in parallel and renders KPI tiles + breakdown cards +     ║
+   ║   quick action buttons. No writes happen from here.               ║
+   ║                                                                   ║
+   ║   Uses the portal's shared getToken(), graphFetch(), toast(),     ║
+   ║   showLoading(), escapeHtml(), navTo().                           ║
+   ║                                                                   ║
+   ║   Lazy-loaded: initOverview() is called from onSignedIn (since    ║
+   ║   Overview is the default landing section) and also from navTo    ║
+   ║   as a safety net. Subsequent visits use cached data; the user    ║
+   ║   refreshes manually via the Refresh button.                      ║
+   ║                                                                   ║
+   ║   SharePoint lists used (read-only):                              ║
+   ║     MileageJourneys — for this month's miles + reimbursement      ║
+   ║     GeckoServices   — for monthly recurring revenue + cost        ║
+   ║     GeckoClients    — for active client count                     ║
+   ║                                                                   ║
+   ║   Designed to be self-contained: does NOT depend on the Mileage   ║
+   ║   or Profitability modules being loaded. Resolves its own siteId  ║
+   ║   and list IDs (cheap on subsequent loads — same Graph endpoint   ║
+   ║   that PRF and MIL hit, just deduped via OVW state cache).        ║
+   ║                                                                   ║
+   ╚═══════════════════════════════════════════════════════════════════╝ */
+
+// ─── State ────────────────────────────────────────────────────────────
+const OVW = {
+  initialised: false,
+  loading:     false,
+  siteId:      null,
+  listIds:     { journeys: null, services: null, clients: null },
+  journeys:    [],   // [{ driver, date, miles, amount }]
+  services:    [],   // [{ category, cost, sell }]
+  clients:     [],   // [{ status }]
+  lastSync:    null
+};
+
+// Canonical drivers — matches the mileage module so Philip/Jack split is consistent
+// even if mileage section hasn't been visited yet (no dependency on MIL).
+const OVW_DRIVERS = ['Philip Morris', 'Jack Morris'];
+
+
+// ─── Formatting helpers ───────────────────────────────────────────────
+const ovwFmt = v => {
+  const n = Number(v) || 0;
+  return '£' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+};
+const ovwFmtMiles = v => {
+  const n = Number(v) || 0;
+  return n.toFixed(1).replace(/\.0$/, '') + ' mi';
+};
+const ovwFmtPct = v => {
+  if (!isFinite(v)) return '—';
+  return (v * 100).toFixed(1) + '%';
+};
+const ovwFmtMonth = d => {
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return months[d.getMonth()] + ' ' + d.getFullYear();
+};
+
+/**
+ * Normalise a driver name from SharePoint to one of the canonical drivers.
+ * Mirrors milNormaliseDriver but stands alone so OVW doesn't depend on the
+ * mileage module being loaded. Same logic: collapse whitespace, match
+ * canonically, fall back to first-name match.
+ */
+function ovwNormaliseDriver(raw) {
+  const trimmed = (raw || '').replace(/\s+/g, ' ').trim();
+  if (!trimmed) return '';
+  if (OVW_DRIVERS.includes(trimmed)) return trimmed;
+  const lower = trimmed.toLowerCase();
+  const exact = OVW_DRIVERS.find(d => d.toLowerCase() === lower);
+  if (exact) return exact;
+  const firstName = OVW_DRIVERS.find(d =>
+    lower.startsWith(d.split(' ')[0].toLowerCase())
+  );
+  return firstName || trimmed;
+}
+
+
+// ─── SharePoint helpers — resolve site + list IDs ─────────────────────
+async function ovwResolveListIds() {
+  if (OVW.siteId && OVW.listIds.journeys && OVW.listIds.services && OVW.listIds.clients) return;
+
+  const sitePath = `/sites/${CONFIG.SP_HOST}:${CONFIG.SP_SITE}`;
+  const site = await graphFetch(sitePath);
+  OVW.siteId = site.id;
+
+  const lists = await graphFetch(`/sites/${OVW.siteId}/lists?$select=id,displayName,name`);
+  for (const l of (lists.value || [])) {
+    if (l.displayName === 'MileageJourneys' || l.name === 'MileageJourneys') OVW.listIds.journeys = l.id;
+    if (l.displayName === 'GeckoServices'   || l.name === 'GeckoServices')   OVW.listIds.services = l.id;
+    if (l.displayName === 'GeckoClients'    || l.name === 'GeckoClients')    OVW.listIds.clients  = l.id;
+  }
+  if (!OVW.listIds.journeys) throw new Error('MileageJourneys list not found in SharePoint site');
+  if (!OVW.listIds.services) throw new Error('GeckoServices list not found in SharePoint site');
+  if (!OVW.listIds.clients)  throw new Error('GeckoClients list not found in SharePoint site');
+}
+
+
+// ─── SharePoint helpers — load lists (parallel) ───────────────────────
+// All three loaders are minimal: they pull only the fields Overview needs.
+// Date filtering is done client-side per the project lesson (OData $filter
+// on SharePoint dates is unreliable).
+
+async function ovwLoadJourneys() {
+  const url = `/sites/${OVW.siteId}/lists/${OVW.listIds.journeys}/items?expand=fields&$top=2000`;
+  const res = await graphFetch(url);
+  OVW.journeys = (res.value || []).map(it => {
+    const f = it.fields || {};
+    return {
+      driver: ovwNormaliseDriver(f.Driver || ''),
+      date:   f.JourneyDate ? f.JourneyDate.split('T')[0] : '',
+      miles:  Number(f.Miles)  || 0,
+      amount: Number(f.Amount) || 0
+    };
+  });
+}
+
+async function ovwLoadServices() {
+  const url = `/sites/${OVW.siteId}/lists/${OVW.listIds.services}/items?expand=fields&$top=2000`;
+  const res = await graphFetch(url);
+  OVW.services = (res.value || []).map(it => {
+    const f = it.fields || {};
+    return {
+      category: (f.Category || 'other').toLowerCase(),
+      cost:     Number(f.CostPerMonth) || 0,
+      sell:     Number(f.SellPerMonth) || 0
+    };
+  });
+}
+
+async function ovwLoadClients() {
+  const url = `/sites/${OVW.siteId}/lists/${OVW.listIds.clients}/items?expand=fields&$top=500`;
+  const res = await graphFetch(url);
+  OVW.clients = (res.value || []).map(it => {
+    const f = it.fields || {};
+    return {
+      status: f.Status || 'Active'
+    };
+  });
+}
+
+
+// ─── Aggregations ─────────────────────────────────────────────────────
+/**
+ * Compute the current calendar month's mileage totals, split by driver.
+ * Returns { philip:{miles,amount,count}, jack:{miles,amount,count}, total:{...} }.
+ */
+function ovwComputeMileage() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth(); // 0-indexed
+
+  const empty = { miles: 0, amount: 0, count: 0 };
+  const totals = {
+    'Philip Morris': { ...empty },
+    'Jack Morris':   { ...empty },
+    combined:        { ...empty }
+  };
+
+  for (const j of OVW.journeys) {
+    if (!j.date) continue;
+    // Parse 'YYYY-MM-DD' as a local date (no timezone surprises)
+    const parts = j.date.split('-');
+    if (parts.length !== 3) continue;
+    const jy = Number(parts[0]);
+    const jm = Number(parts[1]) - 1;
+    if (jy !== y || jm !== m) continue;
+
+    const driver = j.driver;
+    const slot = totals[driver];
+    if (slot) {
+      slot.miles  += j.miles;
+      slot.amount += j.amount;
+      slot.count  += 1;
+    }
+    totals.combined.miles  += j.miles;
+    totals.combined.amount += j.amount;
+    totals.combined.count  += 1;
+  }
+  return totals;
+}
+
+/**
+ * Sum monthly revenue / cost across all services. Static figures — every
+ * service row contributes its monthly sell + cost. No per-client breakdown
+ * (that's the Profitability section's job).
+ */
+function ovwComputeRevenue() {
+  let sell = 0, cost = 0;
+  for (const s of OVW.services) {
+    sell += s.sell;
+    cost += s.cost;
+  }
+  const profit = sell - cost;
+  const margin = sell > 0 ? profit / sell : 0;
+  return { sell, cost, profit, margin };
+}
+
+/**
+ * Client counts by status. "Active" KPI = Active + New (non-Winding); Winding
+ * shown as a secondary line so it's still visible without inflating the count.
+ */
+function ovwComputeClients() {
+  let active = 0, winding = 0, isNew = 0, total = 0;
+  for (const c of OVW.clients) {
+    total += 1;
+    const status = (c.status || '').toLowerCase();
+    if (status === 'winding') winding += 1;
+    else if (status === 'new') isNew += 1;
+    else active += 1; // 'Active' or anything unrecognised
+  }
+  // Headline "active" = Active + New (everything except Winding)
+  const headline = active + isNew;
+  return { headline, active, isNew, winding, total };
+}
+
+
+// ─── Rendering ────────────────────────────────────────────────────────
+function ovwRenderAll() {
+  const wrap = document.getElementById('ovwWrap');
+  if (!wrap) return;
+
+  const mileage  = ovwComputeMileage();
+  const revenue  = ovwComputeRevenue();
+  const clients  = ovwComputeClients();
+  const philip   = mileage['Philip Morris'];
+  const jack     = mileage['Jack Morris'];
+  const combined = mileage.combined;
+
+  // Update the head subtitle with the current month
+  const headMonth = document.getElementById('ovwHeadMonth');
+  if (headMonth) headMonth.textContent = ovwFmtMonth(new Date());
+
+  // ── KPI row ──
+  const kpiHTML = `
+    <div class="ovw-kpis">
+      <div class="ovw-kpi miles">
+        <div class="k-label">
+          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 00-.84-.99L16 11l-2.7-3.6a1 1 0 00-.8-.4H5.24a2 2 0 00-1.8 1.1l-.8 1.63A6 6 0 002 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>
+          Mileage This Month
+        </div>
+        <div class="k-value">${ovwFmtMiles(combined.miles)}</div>
+        <div class="k-sub">
+          ${combined.count > 0
+            ? `${combined.count} journey${combined.count === 1 ? '' : 's'} · <strong>${ovwFmt(combined.amount)}</strong> due`
+            : 'No journeys recorded yet this month'}
+        </div>
+      </div>
+
+      <div class="ovw-kpi revenue">
+        <div class="k-label">
+          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          Monthly Revenue
+        </div>
+        <div class="k-value">${ovwFmt(revenue.sell)}</div>
+        <div class="k-sub">
+          Across <strong>${OVW.services.length}</strong> service line${OVW.services.length === 1 ? '' : 's'}
+        </div>
+      </div>
+
+      <div class="ovw-kpi profit">
+        <div class="k-label">
+          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Gross Profit
+        </div>
+        <div class="k-value">${ovwFmt(revenue.profit)}</div>
+        <div class="k-sub">
+          <strong>${ovwFmtPct(revenue.margin)}</strong> margin · cost <strong>${ovwFmt(revenue.cost)}</strong>
+        </div>
+      </div>
+
+      <div class="ovw-kpi clients">
+        <div class="k-label">
+          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          Active Clients
+        </div>
+        <div class="k-value">${clients.headline}</div>
+        <div class="k-sub">
+          ${clients.isNew > 0 ? `<strong>${clients.isNew}</strong> new · ` : ''}<strong>${clients.total}</strong> total${clients.winding > 0 ? ` · ${clients.winding} winding down` : ''}
+        </div>
+      </div>
+    </div>`;
+
+  // ── Breakdown row (mileage by driver + revenue P&L) ──
+  const monthLabel = ovwFmtMonth(new Date()).split(' ')[0]; // just the month name, e.g. "May"
+
+  let mileageRows = '';
+  if (combined.count === 0) {
+    mileageRows = `<tr><td colspan="4" class="ovw-empty">No journeys recorded for ${escapeHtml(monthLabel)} yet.</td></tr>`;
+  } else {
+    const rowFor = (driverName, label, slotKey, dotClass) => {
+      const slot = mileage[driverName];
+      return `
+        <tr>
+          <td><div class="driver-pill ${dotClass}"><span class="dot"></span>${escapeHtml(label)}</div></td>
+          <td class="num ${slot.count === 0 ? 'muted' : ''}">${slot.count}</td>
+          <td class="num ${slot.count === 0 ? 'muted' : ''}">${ovwFmtMiles(slot.miles)}</td>
+          <td class="num ${slot.count === 0 ? 'muted' : 'green'}">${ovwFmt(slot.amount)}</td>
+        </tr>`;
+    };
+    mileageRows  = rowFor('Philip Morris', 'Philip Morris', 'philip', 'philip');
+    mileageRows += rowFor('Jack Morris',   'Jack Morris',   'jack',   'jack');
+    mileageRows += `
+      <tr class="ovw-trow">
+        <td>Total — ${escapeHtml(monthLabel)}</td>
+        <td class="num">${combined.count}</td>
+        <td class="num">${ovwFmtMiles(combined.miles)}</td>
+        <td class="num green">${ovwFmt(combined.amount)}</td>
+      </tr>`;
+  }
+
+  const breakdownHTML = `
+    <div class="ovw-row">
+
+      <div class="ovw-card">
+        <div class="ovw-card-head">
+          <h3>Mileage Breakdown</h3>
+          <span class="ovw-month-tag">${escapeHtml(monthLabel)}</span>
+        </div>
+        <table class="ovw-tbl">
+          <thead>
+            <tr>
+              <th>Driver</th>
+              <th class="num">Journeys</th>
+              <th class="num">Miles</th>
+              <th class="num">Reimbursement</th>
+            </tr>
+          </thead>
+          <tbody>${mileageRows}</tbody>
+        </table>
+      </div>
+
+      <div class="ovw-card">
+        <div class="ovw-card-head">
+          <h3>Revenue Summary</h3>
+          <span class="ovw-month-tag">Monthly</span>
+        </div>
+        <table class="ovw-tbl">
+          <tbody>
+            <tr>
+              <td>Revenue</td>
+              <td class="num green">${ovwFmt(revenue.sell)}</td>
+            </tr>
+            <tr>
+              <td>Cost</td>
+              <td class="num red">${ovwFmt(revenue.cost)}</td>
+            </tr>
+            <tr>
+              <td>Gross Profit</td>
+              <td class="num green">${ovwFmt(revenue.profit)}</td>
+            </tr>
+            <tr class="ovw-trow">
+              <td>Margin</td>
+              <td class="num ${revenue.margin >= 0.5 ? 'green' : revenue.margin >= 0.3 ? 'amber' : 'red'}">${ovwFmtPct(revenue.margin)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>`;
+
+  // ── Quick actions ──
+  const actionsHTML = `
+    <div class="ovw-actions">
+      <div class="ovw-actions-text">
+        <h4>Quick Actions</h4>
+        <p>Jump straight to the most common tasks.</p>
+      </div>
+      <div class="ovw-actions-btns">
+        <button class="ovw-act-btn" type="button" onclick="ovwGoAddJourney()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Journey
+        </button>
+        <button class="ovw-act-btn ghost" type="button" onclick="ovwGoProfitability()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          View Profitability
+        </button>
+      </div>
+    </div>`;
+
+  wrap.innerHTML = kpiHTML + breakdownHTML + actionsHTML;
+}
+
+
+// ─── Quick action navigators ──────────────────────────────────────────
+/**
+ * Switch to Mileage section, scroll the journey form into view, and focus
+ * the client dropdown so the user can start typing immediately.
+ */
+function ovwGoAddJourney() {
+  navTo('mileage');
+  // Small delay so the section transition + lazy-load completes before we
+  // try to scroll/focus. initMileage is async (loads SharePoint data) but
+  // the form itself is in the static HTML so it exists immediately.
+  setTimeout(() => {
+    const form = document.getElementById('milForm');
+    if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const clientSelect = document.getElementById('milClient');
+    if (clientSelect) {
+      // Focus after scroll has begun — feels more natural than instant focus
+      setTimeout(() => clientSelect.focus(), 350);
+    }
+  }, 80);
+}
+
+function ovwGoProfitability() {
+  navTo('profitability');
+}
+
+
+// ─── Main refresh — load everything from SharePoint ───────────────────
+async function ovwRefreshData(silent = false) {
+  if (OVW.loading) return;
+  OVW.loading = true;
+  const refreshBtn = document.getElementById('ovwRefresh');
+  if (refreshBtn) { refreshBtn.classList.add('spinning'); refreshBtn.disabled = true; }
+  showLoading(true);
+  try {
+    await ovwResolveListIds();
+    await Promise.all([ovwLoadJourneys(), ovwLoadServices(), ovwLoadClients()]);
+    OVW.lastSync = new Date();
+    ovwRenderAll();
+
+    const last = document.getElementById('ovwLastSync');
+    if (last) {
+      last.textContent = 'Synced ' + OVW.lastSync.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    }
+    if (!silent) {
+      toast('Overview refreshed', 'success', 2000);
+    }
+  } catch (err) {
+    console.error('Overview refresh failed:', err);
+    toast('Could not load overview data: ' + (err.message || 'unknown error'), 'error', 6000);
+    const wrap = document.getElementById('ovwWrap');
+    if (wrap) {
+      wrap.innerHTML = `
+        <div class="ovw-error">
+          <h3>Could not load data</h3>
+          <p>${escapeHtml(err.message || 'Unknown error')}<br>Click Refresh to try again.</p>
+        </div>`;
+    }
+  } finally {
+    if (refreshBtn) { refreshBtn.classList.remove('spinning'); refreshBtn.disabled = false; }
+    showLoading(false);
+    OVW.loading = false;
+  }
+}
+
+
+// ─── Init ─────────────────────────────────────────────────────────────
+async function initOverview() {
+  if (OVW.initialised) return;
+  OVW.initialised = true;
+  await ovwRefreshData(true);
+}
 
 
 /* ╔═══════════════════════════════════════════════════════════════════╗
