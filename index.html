@@ -1465,6 +1465,118 @@ body {
 .mil-icon-btn:hover { color: var(--white); border-color: var(--border); }
 .mil-icon-btn.danger:hover { color: var(--red); border-color: var(--red); }
 
+/* ── Phase 5.5: Claimed status — pills, checkboxes, claim mode tools ── */
+
+/* Filter row: separator + label for the new status filter group */
+.mil-filter-sep {
+  width: 1px; height: 18px; background: var(--border-dim);
+  display: inline-block; margin: 0 6px;
+}
+.mil-filter-label {
+  font-size: 10px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .08em; font-weight: 600;
+  align-self: center; margin-right: 2px;
+}
+
+/* Claimed pill — sits in the new "Claimed" column */
+.mil-claimed-pill {
+  display: inline-block; padding: 3px 8px; border-radius: 999px;
+  font-size: 10px; font-weight: 700; letter-spacing: .04em;
+  white-space: nowrap;
+}
+.mil-claimed-pill.yes { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
+.mil-claimed-link {
+  background: none; border: none; padding: 0;
+  color: var(--muted); font-size: 11px; font-family: inherit;
+  cursor: pointer; text-decoration: underline; text-decoration-color: var(--border-dim);
+  transition: color .15s ease;
+}
+.mil-claimed-link:hover { color: var(--green); text-decoration-color: var(--green); }
+
+/* Indicator on rows that ARE claimed — subtle muted look */
+.mil-tbl tbody tr.is-claimed td { opacity: .72; }
+.mil-tbl tbody tr.is-claimed td.amt { color: var(--muted); }
+
+/* Checkbox column — hidden by default, revealed only in claim mode */
+.mil-tbl-check { width: 36px; padding: 0 0 0 14px !important; }
+.mil-tbl thead th.mil-tbl-check,
+.mil-tbl tbody td.mil-tbl-check { display: none; }
+#section-mileage.claim-mode .mil-tbl thead th.mil-tbl-check,
+#section-mileage.claim-mode .mil-tbl tbody td.mil-tbl-check { display: table-cell; }
+#section-mileage.claim-mode .mil-tbl tbody tr.is-claimed td.mil-tbl-check { visibility: hidden; }
+.mil-tbl input[type="checkbox"] {
+  width: 16px; height: 16px; accent-color: var(--green);
+  cursor: pointer; vertical-align: middle;
+}
+
+/* Selected row highlight */
+.mil-tbl tbody tr.row-selected td {
+  background: rgba(82, 176, 46, 0.06) !important;
+}
+.mil-tbl tbody tr.row-selected td:first-child {
+  box-shadow: inset 3px 0 0 0 var(--green);
+}
+
+/* Claim tools group in the card head */
+.mil-claim-tools {
+  display: flex; align-items: center; gap: 8px;
+  margin-left: auto; flex-wrap: wrap;
+}
+.mil-claim-tools .btn { padding: 5px 12px; font-size: 12px; }
+.mil-claim-tools .mil-claim-enter {
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.mil-claim-counter {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px; font-weight: 700; letter-spacing: .04em;
+  color: var(--green); text-transform: uppercase;
+}
+.mil-claim-tools .mil-claim-do:disabled {
+  opacity: .45; cursor: not-allowed;
+}
+
+/* Unclaimed KPI pill — spans the full row underneath the four KPIs */
+.mil-kpi.unclaimed {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; gap: 16px;
+  background: var(--amber-dim);
+  border-color: rgba(224, 154, 46, 0.3);
+  padding: 12px 18px;
+}
+.mil-kpi.unclaimed .k-label {
+  font-size: 10px; color: var(--amber); margin: 0;
+  text-transform: uppercase; letter-spacing: .08em; font-weight: 700;
+}
+.mil-kpi.unclaimed .k-value {
+  font-size: 22px; color: var(--amber); margin: 0;
+  flex-shrink: 0;
+}
+.mil-kpi.unclaimed .k-sub {
+  font-size: 12px; color: var(--muted); margin: 0;
+  flex: 1; text-align: right;
+}
+
+/* Monthly Summary — claimed split */
+.mil-month-claim {
+  display: flex; gap: 14px; justify-content: flex-end;
+  padding: 10px 16px; border-top: 1px solid var(--border-dim);
+  font-size: 11px;
+}
+.mil-month-claim .mc-item {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--muted);
+}
+.mil-month-claim .mc-item .mc-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+}
+.mil-month-claim .mc-item.claimed .mc-dot { background: var(--green); }
+.mil-month-claim .mc-item.unclaimed .mc-dot { background: var(--amber); }
+.mil-month-claim .mc-item strong {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px; color: var(--white); font-weight: 700;
+  margin-left: 2px;
+}
+
 /* — Empty-state row — */
 .mil-empty {
   text-align: center;
@@ -2231,6 +2343,13 @@ body {
             <div class="k-value" id="milKpiTaxSave">£0.00</div>
             <div class="k-sub" id="milKpiTaxSaveSub">Effective tax saving</div>
           </div>
+          <!-- Unclaimed pill (Phase 5.5) — spans full width on its own row so
+               it sits under the four main KPI tiles without disturbing them. -->
+          <div class="mil-kpi unclaimed" id="milKpiUnclaimed" style="display:none;">
+            <div class="k-label">Unclaimed</div>
+            <div class="k-value" id="milKpiUnclaimedAmt">£0.00</div>
+            <div class="k-sub" id="milKpiUnclaimedSub">0 journeys awaiting claim</div>
+          </div>
         </div>
 
         <!-- — Tab strip — -->
@@ -2309,18 +2428,42 @@ body {
             <div class="mil-card-head">
               <h3>All Journeys</h3>
               <span class="count" id="milLogCount">0 recorded</span>
+              <!-- Claim-mode toolbar (Phase 5.5) — sits in the card head so it
+                   doesn't shove the table down. Two visual states:
+                     - Idle:        "Mark Claimed…" button visible.
+                     - Claim mode:  Counter + "Claim N selected" + "Cancel". -->
+              <div class="mil-claim-tools" id="milClaimTools">
+                <button class="btn btn-ghost mil-claim-enter" id="milClaimEnterBtn" type="button" onclick="milEnterClaimMode()" title="Bulk-claim multiple journeys at once">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  Mark Claimed…
+                </button>
+                <span class="mil-claim-counter" id="milClaimCounter" style="display:none;">0 selected</span>
+                <button class="mil-chip mil-claim-selectall" id="milClaimSelectAll" type="button" onclick="milSelectAllVisible()" style="display:none;">Select all visible</button>
+                <button class="btn btn-primary mil-claim-do" id="milClaimDoBtn" type="button" onclick="milOpenBulkClaimModal()" style="display:none;" disabled>
+                  Claim 0 selected
+                </button>
+                <button class="btn btn-ghost mil-claim-cancel" id="milClaimCancelBtn" type="button" onclick="milExitClaimMode()" style="display:none;">Cancel</button>
+              </div>
             </div>
 
+            <!-- Filters: driver (existing) + claimed status (new) -->
             <div class="mil-filter">
-              <button class="mil-chip active" data-filter="all"    onclick="milFilter('all',this)"    type="button">All</button>
+              <button class="mil-chip active" data-filter="all"          onclick="milFilter('all',this)"          type="button">All</button>
               <button class="mil-chip"        data-filter="Philip Morris" onclick="milFilter('Philip Morris',this)" type="button">Philip</button>
               <button class="mil-chip"        data-filter="Jack Morris"   onclick="milFilter('Jack Morris',this)"   type="button">Jack</button>
+              <span class="mil-filter-sep" aria-hidden="true"></span>
+              <span class="mil-filter-label">Show:</span>
+              <button class="mil-chip active" data-status="all"        onclick="milStatusFilter('all',this)"        type="button">All</button>
+              <button class="mil-chip"        data-status="unclaimed"  onclick="milStatusFilter('unclaimed',this)"  type="button">Unclaimed</button>
+              <button class="mil-chip"        data-status="claimed"    onclick="milStatusFilter('claimed',this)"    type="button">Claimed</button>
             </div>
 
             <div class="mil-tbl-wrap">
               <table class="mil-tbl">
                 <thead>
                   <tr>
+                    <!-- Checkbox column header (only visible in claim mode; see CSS) -->
+                    <th class="mil-tbl-check"><input type="checkbox" id="milHeadCheck" onchange="milToggleAllVisible(this.checked)" title="Select all visible unclaimed"></th>
                     <th>Date</th>
                     <th>Driver</th>
                     <th>Destination</th>
@@ -2328,11 +2471,12 @@ body {
                     <th class="num">Miles</th>
                     <th>Rate</th>
                     <th class="num">Amount</th>
+                    <th>Claimed</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody id="milLogBody">
-                  <tr><td colspan="8" class="mil-empty">Loading journeys…</td></tr>
+                  <tr><td colspan="10" class="mil-empty">Loading journeys…</td></tr>
                 </tbody>
               </table>
             </div>
@@ -2441,6 +2585,25 @@ body {
           <div class="mm-actions">
             <button class="btn btn-ghost" type="button" onclick="milCloseModal()">Cancel</button>
             <button class="btn btn-danger" type="button" id="milModalConfirm">Delete</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ CLAIM MODAL (Phase 5.5) ═══════════════════════════════
+           Richer than the delete-confirm modal: it carries a date picker
+           and a dynamic summary line. Kept separate so the simple confirm
+           pattern (text-only body, single confirm callback) stays clean. -->
+      <div class="mil-modal-bg" id="milClaimModalBg" onclick="if(event.target===this)milCloseClaimModal()">
+        <div class="mil-modal">
+          <h3 id="milClaimModalTitle">Mark as Claimed</h3>
+          <p id="milClaimModalBody">—</p>
+          <div class="mil-field" style="margin-bottom:18px;">
+            <label for="milClaimDate" style="display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:600;">Claimed on</label>
+            <input class="mil-input" id="milClaimDate" type="date" style="width:100%;">
+          </div>
+          <div class="mm-actions">
+            <button class="btn btn-ghost"   type="button" onclick="milCloseClaimModal()">Cancel</button>
+            <button class="btn btn-primary" type="button" id="milClaimModalConfirm">Mark Claimed</button>
           </div>
         </div>
       </div>
@@ -4358,9 +4521,16 @@ async function initProfitability() {
 const MIL = {
   initialised: false,
   loading:     false,
-  journeys:    [],   // [{ id, destination, driver, date, miles, purpose, amount, rate }]
+  journeys:    [],   // [{ id, destination, driver, date, miles, purpose, amount, rate, claimedDate }]
   clients:     [],   // [{ id, name, miles }]
   filter:      'all',
+  // ── Claimed-status filter (Phase 5.5): 'all' | 'unclaimed' | 'claimed' ──
+  statusFilter:    'all',
+  // ── Claim mode (Phase 5.5): when true, checkboxes appear on each row and
+  // the toolbar swaps to a "Claim N selected" button. Cleared on tab change
+  // and on successful claim. selected = Set of journey IDs awaiting claim.
+  claimMode:       false,
+  selected:        new Set(),
   activeTab:   'log',
   siteId:      null, // resolved on first init
   listIds:     { journeys: null, clients: null },
@@ -4607,6 +4777,10 @@ async function milLoadJourneys() {
   // old standalone tracker always match the filter buttons.
   MIL.journeys = (res.value || []).map(it => {
     const f = it.fields || {};
+    // ClaimedDate (Phase 5.5): empty/null = unclaimed. Store as YYYY-MM-DD
+    // (no time component) so it can drop straight into <input type="date">
+    // and CSV exports without further parsing.
+    const claimedDate = f.ClaimedDate ? String(f.ClaimedDate).split('T')[0] : '';
     return {
       id:          it.id,
       destination: f.Title || '',
@@ -4615,7 +4789,8 @@ async function milLoadJourneys() {
       miles:       Number(f.Miles) || 0,
       purpose:     f.Purpose || '',
       amount:      Number(f.Amount) || 0,
-      rate:        f.RateType || ''
+      rate:        f.RateType || '',
+      claimedDate: claimedDate
     };
   });
 }
@@ -4674,6 +4849,18 @@ async function milPatchJourneyAmount(id, amount, rate) {
   );
 }
 
+/**
+ * Patch a journey's ClaimedDate (Phase 5.5).
+ * Pass an ISO YYYY-MM-DD string to mark claimed, or `null` to clear it
+ * (un-claim). SharePoint accepts ISO dates directly; null clears the field.
+ */
+async function milPatchJourneyClaimed(id, claimedDate) {
+  return graphFetch(
+    `/sites/${MIL.siteId}/lists/${MIL.listIds.journeys}/items/${id}/fields`,
+    { method: 'PATCH', body: JSON.stringify({ ClaimedDate: claimedDate || null }) }
+  );
+}
+
 async function milDeleteJourney(id) {
   return graphFetch(
     `/sites/${MIL.siteId}/lists/${MIL.listIds.journeys}/items/${id}`,
@@ -4706,11 +4893,17 @@ async function milDeleteClient(id) {
 // ─── UI: render KPIs ──────────────────────────────────────────────────
 function milRenderKpis() {
   const totals = { 'Philip Morris': { miles: 0, amt: 0 }, 'Jack Morris': { miles: 0, amt: 0 } };
+  let unclaimedAmt = 0;
+  let unclaimedCount = 0;
   for (const j of MIL.journeys) {
     const driverKey = milNormaliseDriver(j.driver);
     if (!totals[driverKey]) totals[driverKey] = { miles: 0, amt: 0 };
     totals[driverKey].miles += Number(j.miles) || 0;
     totals[driverKey].amt   += Number(j.amount) || 0;
+    if (!j.claimedDate) {
+      unclaimedAmt   += Number(j.amount) || 0;
+      unclaimedCount += 1;
+    }
   }
   const p = totals['Philip Morris'];
   const k = totals['Jack Morris'];
@@ -4725,6 +4918,20 @@ function milRenderKpis() {
   document.getElementById('milKpiJackMiles').textContent   = `${milFmtMiles(k.miles)} miles recorded`;
   document.getElementById('milKpiCombined').textContent    = milFmt(combined);
   document.getElementById('milKpiTaxSave').textContent     = milFmt(taxSave);
+
+  // Phase 5.5: Unclaimed pill — shown only when there's something unclaimed.
+  // Sits on its own row beneath the main KPI strip; gracefully hides at zero.
+  const unclaimedTile = document.getElementById('milKpiUnclaimed');
+  if (unclaimedTile) {
+    if (unclaimedCount > 0) {
+      unclaimedTile.style.display = '';
+      document.getElementById('milKpiUnclaimedAmt').textContent = milFmt(unclaimedAmt);
+      document.getElementById('milKpiUnclaimedSub').textContent =
+        `${unclaimedCount} journey${unclaimedCount === 1 ? '' : 's'} awaiting claim`;
+    } else {
+      unclaimedTile.style.display = 'none';
+    }
+  }
 
   // Export tab mirrors
   document.getElementById('milExpPhilipAmt').textContent   = milFmt(p.amt);
@@ -4743,9 +4950,16 @@ function milRenderLog() {
   const body = document.getElementById('milLogBody');
   // Belt-and-braces: normalise driver at comparison time in case any journey
   // slipped through milNormaliseDriver on load (non-printing chars, etc.).
-  const filtered = MIL.filter === 'all'
+  let filtered = MIL.filter === 'all'
     ? MIL.journeys
     : MIL.journeys.filter(j => milNormaliseDriver(j.driver) === MIL.filter);
+
+  // Phase 5.5: layer the status filter (unclaimed/claimed) on top of driver
+  if (MIL.statusFilter === 'unclaimed') {
+    filtered = filtered.filter(j => !j.claimedDate);
+  } else if (MIL.statusFilter === 'claimed') {
+    filtered = filtered.filter(j =>  j.claimedDate);
+  }
 
   // Most-recent first
   const sorted = [...filtered].sort((a, b) => {
@@ -4755,25 +4969,42 @@ function milRenderLog() {
     return (Number(b.id) || 0) - (Number(a.id) || 0);
   });
 
+  // Count line — reflects whichever filters are active
+  const filterParts = [];
+  if (MIL.filter !== 'all') filterParts.push(MIL.filter.split(' ')[0]);
+  if (MIL.statusFilter !== 'all') filterParts.push(MIL.statusFilter);
+  const filterTag = filterParts.length ? ` (${filterParts.join(' · ')})` : ' recorded';
   document.getElementById('milLogCount').textContent =
-    `${sorted.length} ${sorted.length === 1 ? 'journey' : 'journeys'}` +
-    (MIL.filter === 'all' ? ' recorded' : ` (${MIL.filter.split(' ')[0]})`);
+    `${sorted.length} ${sorted.length === 1 ? 'journey' : 'journeys'}` + filterTag;
 
   if (sorted.length === 0) {
     body.innerHTML = `
-      <tr><td colspan="8">
+      <tr><td colspan="10">
         <div class="mil-empty">
           <div class="e-ic"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
-          <div>No journeys recorded yet${MIL.filter !== 'all' ? ' for ' + MIL.filter.split(' ')[0] : ''}.</div>
+          <div>No journeys to show${filterParts.length ? ` — try adjusting the filters` : ''}.</div>
         </div>
       </td></tr>`;
+    // Reset head check + selection counters so they don't lie about an empty list
+    milUpdateClaimToolsState();
     return;
   }
 
   body.innerHTML = sorted.map(j => {
     const dr = j.driver === 'Philip Morris' ? 'philip' : j.driver === 'Jack Morris' ? 'jack' : '';
     const rateClass = j.rate === '45p/mi' ? 'r45' : j.rate === '25p/mi' ? 'r25' : j.rate === 'Mixed' ? 'rm' : '';
-    return `<tr>
+    const isClaimed = !!j.claimedDate;
+    const isSelected = MIL.selected.has(j.id);
+    // Claimed cell — pill with date if claimed, inline "Mark claimed" link if not
+    const claimedCell = isClaimed
+      ? `<span class="mil-claimed-pill yes" title="Marked claimed on ${escapeHtml(milFmtDate(j.claimedDate))}">✓ ${escapeHtml(milFmtDate(j.claimedDate))}</span>`
+      : `<button class="mil-claimed-link" type="button" onclick="milOpenClaimModal('${j.id}')" title="Mark this journey as claimed">Mark claimed</button>`;
+    // Checkbox cell — disabled for already-claimed rows (no point selecting them)
+    const checkCell = isClaimed
+      ? `<td class="mil-tbl-check"></td>`
+      : `<td class="mil-tbl-check"><input type="checkbox" data-jid="${j.id}" ${isSelected ? 'checked' : ''} onchange="milToggleSelect('${j.id}', this.checked)"></td>`;
+    return `<tr data-jid="${j.id}" class="${isClaimed ? 'is-claimed' : ''} ${isSelected ? 'row-selected' : ''}">
+      ${checkCell}
       <td>${escapeHtml(milFmtDate(j.date))}</td>
       <td><span class="mil-driver-pill ${dr}">${escapeHtml(j.driver.split(' ')[0])}</span></td>
       <td>${escapeHtml(j.destination)}</td>
@@ -4781,6 +5012,7 @@ function milRenderLog() {
       <td class="num">${milFmtMiles(j.miles)}</td>
       <td><span class="mil-rate-pill ${rateClass}">${escapeHtml(j.rate || '—')}</span></td>
       <td class="num amt">${milFmt(j.amount)}</td>
+      <td>${claimedCell}</td>
       <td class="actions">
         <button class="mil-icon-btn danger" type="button" title="Delete journey" onclick="milConfirmDeleteJourney('${j.id}')">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 01-2 2H9a2 2 0 01-2-2L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
@@ -4788,6 +5020,9 @@ function milRenderLog() {
       </td>
     </tr>`;
   }).join('');
+
+  // Sync claim-mode tool state (counter, head check)
+  milUpdateClaimToolsState();
 }
 
 
@@ -4855,13 +5090,26 @@ function milRenderMonth() {
     const label = new Date(yr, mo - 1, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
 
     let pMi = 0, pAmt = 0, jMi = 0, jAmt = 0, count = items.length;
+    let claimedAmt = 0, unclaimedAmt = 0;
+    let claimedCt = 0, unclaimedCt = 0;
     for (const j of items) {
       const m = Number(j.miles) || 0, a = Number(j.amount) || 0;
       if (j.driver === 'Philip Morris') { pMi += m; pAmt += a; }
       else if (j.driver === 'Jack Morris') { jMi += m; jAmt += a; }
+      if (j.claimedDate) { claimedAmt += a; claimedCt++; }
+      else               { unclaimedAmt += a; unclaimedCt++; }
     }
     const total = pAmt + jAmt;
     const totalMi = pMi + jMi;
+
+    // Claimed/unclaimed split footer — only render when there's actually
+    // something to split, otherwise it's just noise on a fully-unclaimed month.
+    const claimRow = (claimedCt > 0)
+      ? `<div class="mil-month-claim">
+           <span class="mc-item claimed"><span class="mc-dot"></span>Claimed <strong>${milFmt(claimedAmt)}</strong> · ${claimedCt}</span>
+           <span class="mc-item unclaimed"><span class="mc-dot"></span>Unclaimed <strong>${milFmt(unclaimedAmt)}</strong> · ${unclaimedCt}</span>
+         </div>`
+      : '';
 
     return `
       <div class="mil-month">
@@ -4882,6 +5130,7 @@ function milRenderMonth() {
             <div class="ms-val amt">${milFmt(jAmt)} <span class="miles">· ${milFmtMiles(jMi)} mi</span></div>
           </div>
         </div>
+        ${claimRow}
       </div>`;
   }).join('');
 }
@@ -4898,6 +5147,9 @@ function milRenderAll() {
 
 // ─── User actions ─────────────────────────────────────────────────────
 function milTab(name) {
+  // Leaving claim mode when navigating away from the journey log keeps the
+  // toolbar honest — easy to forget you're in select-mode otherwise.
+  if (MIL.claimMode && name !== 'log') milExitClaimMode();
   MIL.activeTab = name;
   document.querySelectorAll('#section-mileage .mil-tab').forEach(b =>
     b.classList.toggle('active', b.dataset.tab === name));
@@ -4907,7 +5159,9 @@ function milTab(name) {
 
 function milFilter(driver, btn) {
   MIL.filter = driver;
-  document.querySelectorAll('#section-mileage .mil-chip').forEach(c => c.classList.remove('active'));
+  // Scope to the DRIVER chip group only — the status chips (data-status) use
+  // their own active state managed by milStatusFilter().
+  document.querySelectorAll('#section-mileage .mil-chip[data-filter]').forEach(c => c.classList.remove('active'));
   if (btn) btn.classList.add('active');
   milRenderLog();
 }
@@ -4955,7 +5209,8 @@ async function milAddJourney(ev) {
       miles:       data.miles,
       purpose:     data.purpose,
       amount:      data.amount,
-      rate:        data.rate
+      rate:        data.rate,
+      claimedDate: ''  // new journeys start unclaimed
     });
 
     // Recompute everything (this journey may push prior-or-later journeys into a different bracket)
@@ -4989,9 +5244,14 @@ async function milAddJourney(ev) {
 function milConfirmDeleteJourney(id) {
   const j = MIL.journeys.find(x => x.id === id);
   if (!j) return;
+  // Phase 5.5: extra-warn when deleting a CLAIMED journey, since records that
+  // have been submitted for reimbursement shouldn't be edited carelessly.
+  const claimedNote = j.claimedDate
+    ? ` ⚠ This journey was marked CLAIMED on ${milFmtDate(j.claimedDate)} — deleting it may affect your records.`
+    : '';
   milOpenModal(
     'Delete journey?',
-    `${milFmtDate(j.date)} · ${j.destination} · ${milFmtMiles(j.miles)} mi (${milFmt(j.amount)}). This cannot be undone.`,
+    `${milFmtDate(j.date)} · ${j.destination} · ${milFmtMiles(j.miles)} mi (${milFmt(j.amount)}).${claimedNote} This cannot be undone.`,
     () => milDoDeleteJourney(id)
   );
 }
@@ -5001,6 +5261,8 @@ async function milDoDeleteJourney(id) {
   try {
     await milDeleteJourney(id);
     MIL.journeys = MIL.journeys.filter(j => j.id !== id);
+    // Drop the deleted ID from any pending selection so it doesn't ghost-haunt claim mode
+    MIL.selected.delete(id);
     const changes = milRecomputeAll();
     if (changes.length > 0) {
       try {
@@ -5016,6 +5278,229 @@ async function milDoDeleteJourney(id) {
     showLoading(false);
   }
 }
+
+
+/* ╔═══════════════════════════════════════════════════════════════════╗
+   ║                                                                   ║
+   ║   CLAIMED STATUS (Phase 5.5)                                      ║
+   ║                                                                   ║
+   ║   - Status filter (all / unclaimed / claimed)                     ║
+   ║   - Per-row "Mark claimed" inline link → claim modal              ║
+   ║   - Bulk claim mode (checkboxes + "Claim N selected")             ║
+   ║   - All writes go to MileageJourneys.ClaimedDate                  ║
+   ║                                                                   ║
+   ║   Date format on the wire: YYYY-MM-DD. SharePoint accepts ISO     ║
+   ║   strings directly for "Date Only" columns; null clears.          ║
+   ║                                                                   ║
+   ╚═══════════════════════════════════════════════════════════════════╝ */
+
+// ── Status filter handler ─────────────────────────────────────────────
+function milStatusFilter(status, btn) {
+  if (status !== 'all' && status !== 'unclaimed' && status !== 'claimed') return;
+  MIL.statusFilter = status;
+  // Toggle active state on the status chips only — leave driver chips alone
+  document.querySelectorAll('#section-mileage .mil-chip[data-status]').forEach(c => c.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  milRenderLog();
+}
+
+
+// ── Claim mode: enter / exit / selection helpers ──────────────────────
+function milEnterClaimMode() {
+  MIL.claimMode = true;
+  MIL.selected.clear();
+  document.getElementById('section-mileage').classList.add('claim-mode');
+  // Swap toolbar visibility
+  document.getElementById('milClaimEnterBtn').style.display    = 'none';
+  document.getElementById('milClaimCounter').style.display     = '';
+  document.getElementById('milClaimSelectAll').style.display   = '';
+  document.getElementById('milClaimDoBtn').style.display       = '';
+  document.getElementById('milClaimCancelBtn').style.display   = '';
+  milRenderLog();
+}
+
+function milExitClaimMode() {
+  MIL.claimMode = false;
+  MIL.selected.clear();
+  document.getElementById('section-mileage').classList.remove('claim-mode');
+  document.getElementById('milClaimEnterBtn').style.display    = '';
+  document.getElementById('milClaimCounter').style.display     = 'none';
+  document.getElementById('milClaimSelectAll').style.display   = 'none';
+  document.getElementById('milClaimDoBtn').style.display       = 'none';
+  document.getElementById('milClaimCancelBtn').style.display   = 'none';
+  const headCheck = document.getElementById('milHeadCheck');
+  if (headCheck) headCheck.checked = false;
+  milRenderLog();
+}
+
+function milToggleSelect(id, checked) {
+  if (checked) MIL.selected.add(id);
+  else         MIL.selected.delete(id);
+  // Toggle row highlight in place without a full re-render
+  const row = document.querySelector(`#milLogBody tr[data-jid="${id}"]`);
+  if (row) row.classList.toggle('row-selected', checked);
+  milUpdateClaimToolsState();
+}
+
+/**
+ * Tick every visible unclaimed journey (respects the current driver + status
+ * filters). Bound to the "Select all visible" button.
+ */
+function milSelectAllVisible() {
+  document.querySelectorAll('#milLogBody tr[data-jid]:not(.is-claimed) input[type="checkbox"][data-jid]').forEach(cb => {
+    const id = cb.dataset.jid;
+    cb.checked = true;
+    MIL.selected.add(id);
+    cb.closest('tr')?.classList.add('row-selected');
+  });
+  const headCheck = document.getElementById('milHeadCheck');
+  if (headCheck) headCheck.checked = true;
+  milUpdateClaimToolsState();
+}
+
+/** Bound to the header-row checkbox — convenience toggle. */
+function milToggleAllVisible(checked) {
+  if (checked) {
+    milSelectAllVisible();
+  } else {
+    document.querySelectorAll('#milLogBody tr[data-jid] input[type="checkbox"][data-jid]').forEach(cb => {
+      const id = cb.dataset.jid;
+      cb.checked = false;
+      MIL.selected.delete(id);
+      cb.closest('tr')?.classList.remove('row-selected');
+    });
+    milUpdateClaimToolsState();
+  }
+}
+
+/**
+ * Keep the bulk-claim button label/disabled-state and the counter pill in
+ * sync with the selection. Called from every selection-changing path so the
+ * UI never lies about how many are selected.
+ */
+function milUpdateClaimToolsState() {
+  const n = MIL.selected.size;
+  const counter = document.getElementById('milClaimCounter');
+  const btn     = document.getElementById('milClaimDoBtn');
+  if (counter) counter.textContent = `${n} selected`;
+  if (btn) {
+    btn.disabled    = (n === 0);
+    btn.textContent = `Claim ${n} selected`;
+  }
+}
+
+
+// ── Date helper for default-to-today on claim modal ───────────────────
+function milTodayIso() {
+  const t = new Date();
+  return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+}
+
+
+// ── Claim modal: open / close / confirm ───────────────────────────────
+/**
+ * Per-row claim — passed the journey ID by the inline "Mark claimed" link.
+ * Opens the claim modal with the date pre-filled to today and the confirm
+ * button wired to claim that single ID.
+ */
+function milOpenClaimModal(id) {
+  const j = MIL.journeys.find(x => x.id === id);
+  if (!j) return;
+  const body = `Mark this journey as claimed: ${milFmtDate(j.date)} · ${j.destination} · ${milFmtMiles(j.miles)} mi (${milFmt(j.amount)}).`;
+  milShowClaimModal(body, [id]);
+}
+
+/**
+ * Bulk claim — wired to the "Claim N selected" button. Snapshots
+ * MIL.selected at open time so any later checkbox change doesn't change the
+ * batch under us.
+ */
+function milOpenBulkClaimModal() {
+  const ids = Array.from(MIL.selected);
+  if (ids.length === 0) {
+    toast('Select at least one journey first', 'warning');
+    return;
+  }
+  // Defensive: exclude any IDs that have since been claimed elsewhere
+  const eligible = ids.filter(id => {
+    const j = MIL.journeys.find(x => x.id === id);
+    return j && !j.claimedDate;
+  });
+  if (eligible.length === 0) {
+    toast('Selected journeys are already claimed', 'info');
+    return;
+  }
+  const totalAmt = eligible.reduce((s, id) => {
+    const j = MIL.journeys.find(x => x.id === id);
+    return s + (j ? Number(j.amount) || 0 : 0);
+  }, 0);
+  const body = `Mark ${eligible.length} journey${eligible.length === 1 ? '' : 's'} as claimed — total ${milFmt(totalAmt)}.`;
+  milShowClaimModal(body, eligible);
+}
+
+function milShowClaimModal(bodyText, ids) {
+  document.getElementById('milClaimModalTitle').textContent = ids.length > 1 ? 'Mark Claimed' : 'Mark as Claimed';
+  document.getElementById('milClaimModalBody').textContent  = bodyText;
+  document.getElementById('milClaimDate').value = milTodayIso();
+  const btn = document.getElementById('milClaimModalConfirm');
+  btn.textContent = ids.length > 1 ? `Mark ${ids.length} Claimed` : 'Mark Claimed';
+  btn.onclick = () => {
+    const claimedOn = document.getElementById('milClaimDate').value || milTodayIso();
+    milCloseClaimModal();
+    milDoClaim(ids, claimedOn);
+  };
+  document.getElementById('milClaimModalBg').classList.add('show');
+}
+
+function milCloseClaimModal() {
+  document.getElementById('milClaimModalBg').classList.remove('show');
+}
+
+
+// ── The actual write: patches one-or-many ClaimedDate values ──────────
+async function milDoClaim(ids, claimedOn) {
+  if (!ids || ids.length === 0) return;
+  showLoading(true);
+  let success = 0, failed = 0;
+  try {
+    // Patches go in parallel — the writes are independent (no rate recompute
+    // needed because claiming is purely administrative; the 10K threshold
+    // calc is unaffected).
+    const results = await Promise.allSettled(
+      ids.map(id => milPatchJourneyClaimed(id, claimedOn))
+    );
+    results.forEach((r, i) => {
+      if (r.status === 'fulfilled') {
+        success++;
+        // Update local cache so the UI reflects the change without a full reload
+        const j = MIL.journeys.find(x => x.id === ids[i]);
+        if (j) j.claimedDate = claimedOn;
+        MIL.selected.delete(ids[i]);
+      } else {
+        failed++;
+        console.warn('Claim failed for', ids[i], r.reason);
+      }
+    });
+
+    // Exit claim mode after a successful batch (only if we were in it)
+    if (MIL.claimMode && failed === 0) milExitClaimMode();
+    else milRenderAll();
+
+    if (failed === 0) {
+      toast(`Marked ${success} journey${success === 1 ? '' : 's'} as claimed`, 'success');
+    } else if (success > 0) {
+      toast(`Claimed ${success}, ${failed} failed — refresh to retry`, 'warning', 5000);
+    } else {
+      toast(`Could not mark journeys as claimed`, 'error', 5000);
+    }
+  } catch (err) {
+    console.error('Bulk claim failed:', err);
+    toast('Could not mark journeys as claimed: ' + (err.message || 'unknown'), 'error', 5000);
+  } finally {
+    showLoading(false);
+  }
+}
+
 
 async function milAddClient(ev) {
   ev.preventDefault();
@@ -5134,10 +5619,12 @@ function milDownloadCsv() {
     return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
   };
 
-  const headers = ['Date', 'Driver', 'Destination', 'Purpose', 'Miles', 'Rate', 'Amount (£)'];
+  const headers = ['Date', 'Driver', 'Destination', 'Purpose', 'Miles', 'Rate', 'Amount (£)', 'Claimed', 'Claimed Date'];
   const rows = sorted.map(j => [
     j.date, j.driver, j.destination, j.purpose,
-    Number(j.miles).toFixed(1), j.rate, Number(j.amount).toFixed(2)
+    Number(j.miles).toFixed(1), j.rate, Number(j.amount).toFixed(2),
+    j.claimedDate ? 'Yes' : 'No',
+    j.claimedDate || ''
   ].map(esc).join(','));
 
   const csv = [headers.join(','), ...rows].join('\r\n');
@@ -5248,9 +5735,14 @@ async function initMileage() {
 
   milSetDefaultDate();
 
-  // Modal: close on ESC
+  // Modal: close on ESC (covers both the delete-confirm and claim modals)
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') milCloseModal();
+    if (e.key !== 'Escape') return;
+    if (document.getElementById('milClaimModalBg')?.classList.contains('show')) {
+      milCloseClaimModal();
+    } else {
+      milCloseModal();
+    }
   });
 
   // First data load
