@@ -4892,30 +4892,51 @@ async function milDeleteClient(id) {
 
 // ─── UI: render KPIs ──────────────────────────────────────────────────
 function milRenderKpis() {
-  const totals = { 'Philip Morris': { miles: 0, amt: 0 }, 'Jack Morris': { miles: 0, amt: 0 } };
+  // Two accumulators per driver:
+  //   all  — total miles + amount across all journeys (for Combined, Export, HMRC)
+  //   due  — only unclaimed journeys (for the "Total Due" KPI per driver)
+  const all = { 'Philip Morris': { miles: 0, amt: 0 }, 'Jack Morris': { miles: 0, amt: 0 } };
+  const due = { 'Philip Morris': { miles: 0, amt: 0 }, 'Jack Morris': { miles: 0, amt: 0 } };
   let unclaimedAmt = 0;
   let unclaimedCount = 0;
   for (const j of MIL.journeys) {
     const driverKey = milNormaliseDriver(j.driver);
-    if (!totals[driverKey]) totals[driverKey] = { miles: 0, amt: 0 };
-    totals[driverKey].miles += Number(j.miles) || 0;
-    totals[driverKey].amt   += Number(j.amount) || 0;
+    if (!all[driverKey]) all[driverKey] = { miles: 0, amt: 0 };
+    if (!due[driverKey]) due[driverKey] = { miles: 0, amt: 0 };
+    const mi = Number(j.miles) || 0;
+    const am = Number(j.amount) || 0;
+    all[driverKey].miles += mi;
+    all[driverKey].amt   += am;
     if (!j.claimedDate) {
-      unclaimedAmt   += Number(j.amount) || 0;
+      due[driverKey].miles += mi;
+      due[driverKey].amt   += am;
+      unclaimedAmt   += am;
       unclaimedCount += 1;
     }
   }
-  const p = totals['Philip Morris'];
-  const k = totals['Jack Morris'];
-  const combined = p.amt + k.amt;
+  const pAll = all['Philip Morris'];
+  const kAll = all['Jack Morris'];
+  const pDue = due['Philip Morris'];
+  const kDue = due['Jack Morris'];
+  const combined = pAll.amt + kAll.amt;
   // Tax saving rate is entity-dependent: 20% (sole trader, income tax) or
   // 25% (limited company, Corporation Tax main rate). See ENTITY_CONFIG.
   const taxSave  = combined * (milConfig('taxSaving').rate);
 
-  document.getElementById('milKpiPhilipAmt').textContent   = milFmt(p.amt);
-  document.getElementById('milKpiPhilipMiles').textContent = `${milFmtMiles(p.miles)} miles recorded`;
-  document.getElementById('milKpiJackAmt').textContent     = milFmt(k.amt);
-  document.getElementById('milKpiJackMiles').textContent   = `${milFmtMiles(k.miles)} miles recorded`;
+  // Per-driver tiles show UNCLAIMED only — that's what's "due" (owed to you).
+  // The sub-line shows unclaimed miles; parenthetical notes total miles for context.
+  document.getElementById('milKpiPhilipAmt').textContent   = milFmt(pDue.amt);
+  document.getElementById('milKpiPhilipMiles').textContent =
+    pDue.miles === pAll.miles
+      ? `${milFmtMiles(pAll.miles)} miles recorded`
+      : `${milFmtMiles(pDue.miles)} mi unclaimed (${milFmtMiles(pAll.miles)} total)`;
+  document.getElementById('milKpiJackAmt').textContent     = milFmt(kDue.amt);
+  document.getElementById('milKpiJackMiles').textContent =
+    kDue.miles === kAll.miles
+      ? `${milFmtMiles(kAll.miles)} miles recorded`
+      : `${milFmtMiles(kDue.miles)} mi unclaimed (${milFmtMiles(kAll.miles)} total)`;
+
+  // Combined + Tax Saving stay all-time (HMRC cares about total, not claim status)
   document.getElementById('milKpiCombined').textContent    = milFmt(combined);
   document.getElementById('milKpiTaxSave').textContent     = milFmt(taxSave);
 
@@ -4933,13 +4954,13 @@ function milRenderKpis() {
     }
   }
 
-  // Export tab mirrors
-  document.getElementById('milExpPhilipAmt').textContent   = milFmt(p.amt);
-  document.getElementById('milExpPhilipMiles').textContent = milFmtMiles(p.miles);
-  document.getElementById('milExpJackAmt').textContent     = milFmt(k.amt);
-  document.getElementById('milExpJackMiles').textContent   = milFmtMiles(k.miles);
-  document.getElementById('milYtPhilipMiles').textContent  = milFmtMiles(p.miles);
-  document.getElementById('milYtJackMiles').textContent    = milFmtMiles(k.miles);
+  // Export tab mirrors — show ALL-TIME totals (HMRC view, not claim-filtered)
+  document.getElementById('milExpPhilipAmt').textContent   = milFmt(pAll.amt);
+  document.getElementById('milExpPhilipMiles').textContent = milFmtMiles(pAll.miles);
+  document.getElementById('milExpJackAmt').textContent     = milFmt(kAll.amt);
+  document.getElementById('milExpJackMiles').textContent   = milFmtMiles(kAll.miles);
+  document.getElementById('milYtPhilipMiles').textContent  = milFmtMiles(pAll.miles);
+  document.getElementById('milYtJackMiles').textContent    = milFmtMiles(kAll.miles);
   document.getElementById('milYtCombined').textContent     = milFmt(combined);
   document.getElementById('milYtTaxSave').textContent      = milFmt(taxSave);
 }
@@ -5441,11 +5462,17 @@ function milOpenBulkClaimModal() {
 function milShowClaimModal(bodyText, ids) {
   document.getElementById('milClaimModalTitle').textContent = ids.length > 1 ? 'Mark Claimed' : 'Mark as Claimed';
   document.getElementById('milClaimModalBody').textContent  = bodyText;
-  document.getElementById('milClaimDate').value = milTodayIso();
+  // Default the date picker to today, but the user can change it before confirming
+  const dateEl = document.getElementById('milClaimDate');
+  dateEl.value  = milTodayIso();
   const btn = document.getElementById('milClaimModalConfirm');
   btn.textContent = ids.length > 1 ? `Mark ${ids.length} Claimed` : 'Mark Claimed';
   btn.onclick = () => {
-    const claimedOn = document.getElementById('milClaimDate').value || milTodayIso();
+    // Read the date AT CLICK TIME — whatever the user has changed it to.
+    // The date input returns '' when the browser considers the value invalid
+    // (e.g. 31st April, which doesn't exist). Fall back to today in that case.
+    const pickedDate = dateEl.value;
+    const claimedOn  = pickedDate || milTodayIso();
     milCloseClaimModal();
     milDoClaim(ids, claimedOn);
   };
