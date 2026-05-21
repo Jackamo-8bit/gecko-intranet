@@ -7272,8 +7272,17 @@ async function tshLoadEntries() {
       if (f[k] !== undefined && f[k] !== null) { hours = Number(f[k]) || 0; break; }
     }
 
-    // Work Type
-    const workType = f.WorkType || f.Work_x0020_Type || f['Work Type'] || '';
+    // Work Type — SharePoint Choice column. The internal name depends on how
+    // the column was created. Try known variants, then scan all keys for a match.
+    let workType = f.WorkType || f.Work_x0020_Type || f['Work Type'] || '';
+    if (!workType) {
+      // Fallback: scan for any key containing 'work' and 'type' (case-insensitive)
+      for (const k of Object.keys(f)) {
+        if (k.toLowerCase().replace(/[_\s]/g, '').includes('worktype') && f[k]) {
+          workType = f[k]; break;
+        }
+      }
+    }
 
     // Work Description (long notes field)
     const workDescription = f.WorkDescription || f.Work_x0020_Description || f['Work Description'] || '';
@@ -7618,12 +7627,13 @@ function tshFilteredEntries() {
   }
 
   // Sort by date (most recent first by default)
-  const dir = TSH.sortDir === 'desc' ? -1 : 1;
   rows.sort((a, b) => {
     const da = a.date || '';
     const db = b.date || '';
     if (da === db) return 0;
-    return da < db ? dir : -dir;
+    // desc (default): newer dates first → b before a when b > a
+    if (TSH.sortDir === 'desc') return db.localeCompare(da);
+    return da.localeCompare(db);
   });
 
   return rows;
@@ -7711,10 +7721,20 @@ function tshRenderSsa() {
   }
 
   const cards = ssaList.map(c => {
-    const pct = c.hoursPurchased > 0 ? Math.max(0, (c.hoursRemaining / c.hoursPurchased) * 100) : 0;
+    // Bar shows USAGE percentage (filled = used, empty = remaining)
+    const usedPct = c.hoursPurchased > 0 ? Math.min(100, Math.max(0, (c.hoursUsed / c.hoursPurchased) * 100)) : 0;
+    const remainPct = c.hoursPurchased > 0 ? Math.max(0, (c.hoursRemaining / c.hoursPurchased) * 100) : 0;
     let barCls = 'ok';
-    if (pct < 5) barCls = 'crit';
-    else if (pct < 20) barCls = 'warn';
+    if (remainPct < 5) barCls = 'crit';
+    else if (remainPct < 20) barCls = 'warn';
+    // Bar colour: green when plenty left, amber/red when running low
+    // The bar FILL represents usage, so invert the colour logic:
+    // lots used + little remaining = red/amber fill, little used = green fill
+    let fillCls = 'ok';
+    if (remainPct < 5) fillCls = 'crit';
+    else if (remainPct < 20) fillCls = 'warn';
+
+    const remColor = barCls === 'crit' ? 'var(--red)' : barCls === 'warn' ? 'var(--amber)' : 'var(--green)';
 
     return `
     <div class="tsh-ssa-card">
@@ -7723,12 +7743,12 @@ function tshRenderSsa() {
         <div class="tsh-ssa-name">${escapeHtml(c.name)}</div>
       </div>
       <div class="tsh-ssa-stats">
-        <span>Purchased: <span>${tshFmtHours(c.hoursPurchased)}</span></span>
         <span>Used: <span>${tshFmtHours(c.hoursUsed)}</span></span>
-        <span>Remaining: <span style="color:${barCls === 'crit' ? 'var(--red)' : barCls === 'warn' ? 'var(--amber)' : 'var(--green)'}">${tshFmtHours(c.hoursRemaining)}</span></span>
+        <span style="font-size:10px;color:var(--muted);">of ${tshFmtHours(c.hoursPurchased)}</span>
+        <span>Remaining: <span style="color:${remColor}">${tshFmtHours(c.hoursRemaining)}</span></span>
       </div>
       <div class="tsh-ssa-bar">
-        <div class="tsh-ssa-bar-fill ${barCls}" style="width:${Math.min(100, Math.max(0, pct))}%"></div>
+        <div class="tsh-ssa-bar-fill ${fillCls}" style="width:${usedPct}%"></div>
       </div>
       <div class="tsh-ssa-actions">
         <button class="tsh-ssa-link" type="button" onclick="tshViewEntries('${tshJsAttr(c.name)}')">View entries</button>
