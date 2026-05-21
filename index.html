@@ -7273,7 +7273,6 @@ async function tshLoadEntries() {
     // Safety valve: stop after 5000 items to avoid infinite loops
     if (allItems.length > 5000) break;
   }
-  const res = await graphFetch(url);
   TSH.entries = allItems.map(it => {
     const f = it.fields || {};
 
