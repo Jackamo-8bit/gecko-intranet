@@ -7265,11 +7265,12 @@ async function tshLoadEntries() {
   // Graph paginates at ~100 items per page even when $top is larger. We must
   // follow @odata.nextLink to get all entries.
   //
-  // IMPORTANT: The Work_x0020_Type Choice column is NOT returned in the default
-  // $expand=fields response (known Graph API quirk with certain Choice columns).
-  // Using $expand=fields($select=...) forces Graph to include it.
+  // KNOWN ISSUE: The Work_x0020_Type Choice column is sometimes omitted from
+  // the bulk $expand=fields response (Graph API quirk). We load entries with
+  // plain $expand=fields, then do a second targeted pass using the /columns
+  // endpoint to extract Work Type values that were missed.
   let allItems = [];
-  let nextUrl = `/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items?$expand=fields($select=Title,Date,Engineer,ClientLookupId,HoursSpent,WorkDescription,Work_x0020_Type,InternalNotes,ATERATicketID,Archived)&$top=999`;
+  let nextUrl = `/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items?$expand=fields&$top=999`;
   while (nextUrl) {
     const res = await graphFetch(nextUrl);
     allItems = allItems.concat(res.value || []);
@@ -7325,6 +7326,38 @@ async function tshLoadEntries() {
       archived:        f.Archived || false
     };
   }).filter(e => !e.archived); // Only show non-archived in the portal
+}
+
+/**
+ * Graph's bulk $expand=fields response omits the Work_x0020_Type Choice column.
+ * This function does a targeted fetch for entries missing workType, limited to
+ * the most recent 50 entries to keep API calls reasonable (batched in parallel).
+ * Older entries that pre-date the Work Type column will simply stay blank.
+ */
+async function tshResolveWorkTypes() {
+  const missing = TSH.entries.filter(e => !e.workType).slice(0, 50);
+  if (missing.length === 0) return;
+
+  // Batch fetch in parallel (max 10 at a time to avoid throttling)
+  const batchSize = 10;
+  for (let i = 0; i < missing.length; i += batchSize) {
+    const batch = missing.slice(i, i + batchSize);
+    const results = await Promise.all(batch.map(async e => {
+      try {
+        const data = await graphFetch(
+          `/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items/${e.id}/fields?$select=Work_x0020_Type`
+        );
+        return { id: e.id, workType: data.Work_x0020_Type || '' };
+      } catch {
+        return { id: e.id, workType: '' };
+      }
+    }));
+    // Apply results back to entries
+    for (const r of results) {
+      const entry = TSH.entries.find(e => String(e.id) === String(r.id));
+      if (entry && r.workType) entry.workType = r.workType;
+    }
+  }
 }
 
 /**
@@ -7429,6 +7462,7 @@ async function tshRefreshData(silent = false) {
     await tshResolveListIds();
     await Promise.all([tshLoadEntries(), tshLoadSsaClients()]);
     tshResolveClientNames();  // Lookup IDs → display names (must run after both loads)
+    await tshResolveWorkTypes(); // Fetch Work Type for entries missing it (Graph API quirk)
     TSH.lastSync = new Date();
     tshPopulateClientDropdown();
     tshRenderAll();
