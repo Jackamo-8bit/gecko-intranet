@@ -7258,12 +7258,23 @@ async function tshLoadEntries() {
   // created. We try multiple variants and take the first defined value.
   // Confirmed internal names (from Graph API inspection, May 2026):
   //   HoursSpent, WorkType, WorkDescription, InternalNotes, ATERATicketID
-  // Graph can omit Choice columns from the default $expand=fields response.
-  // Explicitly request Work_x0020_Type (the "Work Type" Choice column) to
-  // ensure it's included. Other fields come through automatically.
-  const url = `/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items?$expand=fields($select=Title,Date,Engineer,ClientLookupId,HoursSpent,WorkDescription,Work_x0020_Type,InternalNotes,ATERATicketID,Archived)&$top=2000`;
+  // Graph can omit Choice columns with null/empty values from the response.
+  // The Work Type column (internal name: Work_x0020_Type) was added recently,
+  // so older entries won't have it — Graph simply omits fields with null values.
+  //
+  // Graph paginates at ~100 items per page even when $top is larger. We must
+  // follow @odata.nextLink to get all entries.
+  let allItems = [];
+  let nextUrl = `/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items?$expand=fields&$top=2000`;
+  while (nextUrl) {
+    const res = await graphFetch(nextUrl);
+    allItems = allItems.concat(res.value || []);
+    nextUrl = res['@odata.nextLink'] || null;
+    // Safety valve: stop after 5000 items to avoid infinite loops
+    if (allItems.length > 5000) break;
+  }
   const res = await graphFetch(url);
-  TSH.entries = (res.value || []).map(it => {
+  TSH.entries = allItems.map(it => {
     const f = it.fields || {};
 
     // Lookup ID for the Client column
