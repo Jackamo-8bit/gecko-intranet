@@ -7335,8 +7335,13 @@ async function tshLoadEntries() {
  * Older entries that pre-date the Work Type column will simply stay blank.
  */
 async function tshResolveWorkTypes() {
-  const missing = TSH.entries.filter(e => !e.workType).slice(0, 50);
+  // Pick the most recent entries missing workType (older ones pre-date the column)
+  const missing = TSH.entries
+    .filter(e => !e.workType)
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+    .slice(0, 80);
   if (missing.length === 0) return;
+  console.log(`[TSH] Resolving Work Type for ${missing.length} entries...`);
 
   // Batch fetch in parallel (max 10 at a time to avoid throttling)
   const batchSize = 10;
@@ -7345,10 +7350,11 @@ async function tshResolveWorkTypes() {
     const results = await Promise.all(batch.map(async e => {
       try {
         const data = await graphFetch(
-          `/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items/${e.id}/fields?$select=Work_x0020_Type`
+          `/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items/${e.id}/fields`
         );
-        return { id: e.id, workType: data.Work_x0020_Type || '' };
-      } catch {
+        return { id: e.id, workType: data.Work_x0020_Type || data.WorkType || '' };
+      } catch (err) {
+        console.warn('[TSH] Work type fetch failed for', e.id, err);
         return { id: e.id, workType: '' };
       }
     }));
