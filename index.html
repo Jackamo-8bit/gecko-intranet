@@ -7258,7 +7258,10 @@ async function tshLoadEntries() {
   // created. We try multiple variants and take the first defined value.
   // Confirmed internal names (from Graph API inspection, May 2026):
   //   HoursSpent, WorkType, WorkDescription, InternalNotes, ATERATicketID
-  const url = `/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items?expand=fields&$top=2000`;
+  // Graph can omit Choice columns from the default $expand=fields response.
+  // Explicitly request Work_x0020_Type (the "Work Type" Choice column) to
+  // ensure it's included. Other fields come through automatically.
+  const url = `/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items?$expand=fields($select=Title,Date,Engineer,ClientLookupId,HoursSpent,WorkDescription,Work_x0020_Type,InternalNotes,ATERATicketID,Archived)&$top=2000`;
   const res = await graphFetch(url);
   TSH.entries = (res.value || []).map(it => {
     const f = it.fields || {};
@@ -7364,7 +7367,7 @@ async function tshCreateEntry(data) {
     ClientLookupId: data.clientLookupId,
     Engineer:       data.engineer,
     Date:           data.date,
-    WorkType:       data.workType,
+    Work_x0020_Type: data.workType,
     HoursSpent:     data.hours
   };
   if (data.workDescription) fields.WorkDescription = data.workDescription;
@@ -7927,7 +7930,7 @@ async function tshSaveEdit(entryId, oldHours) {
       Title: newDesc,
       Engineer: newEng,
       Date: newDate,
-      WorkType: newWorkType,
+      Work_x0020_Type: newWorkType,
       HoursSpent: newHours
     };
     if (newWorkDesc !== undefined) patch.WorkDescription = newWorkDesc;
