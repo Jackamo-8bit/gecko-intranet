@@ -2304,6 +2304,7 @@ body {
 }
 #section-timesheets .tsh-eng-pill.philip { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
 #section-timesheets .tsh-eng-pill.jack   { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(155,109,255,0.3); }
+#section-timesheets .tsh-eng-pill.system { background: var(--border-dim); color: var(--muted); border: 1px solid var(--border-dim); }
 
 /* — Work Type pill (category) — */
 #section-timesheets .tsh-wt-pill {
@@ -3088,6 +3089,7 @@ body {
               <select class="tsh-select" id="tshEngineer" required>
                 <option value="Philip">Philip</option>
                 <option value="Jack">Jack</option>
+                <option value="System">System</option>
               </select>
             </div>
             <div class="tsh-field">
@@ -3151,6 +3153,7 @@ body {
             <button class="tsh-chip active" data-filter="all" onclick="tshFilterEng('all',this)" type="button">All</button>
             <button class="tsh-chip" data-filter="Philip" onclick="tshFilterEng('Philip',this)" type="button">Philip</button>
             <button class="tsh-chip" data-filter="Jack" onclick="tshFilterEng('Jack',this)" type="button">Jack</button>
+            <button class="tsh-chip" data-filter="System" onclick="tshFilterEng('System',this)" type="button">System</button>
             <span class="tsh-filter-sep"></span>
             <span class="tsh-filter-label">Period:</span>
             <button class="tsh-chip" data-range="week" onclick="tshFilterRange('week',this)" type="button">This Week</button>
@@ -7175,6 +7178,7 @@ const tshEngClass = eng => {
   const e = (eng || '').toLowerCase();
   if (e === 'philip') return 'philip';
   if (e === 'jack')   return 'jack';
+  if (e === 'system') return 'system';
   return '';
 };
 
@@ -7243,51 +7247,76 @@ async function tshResolveListIds() {
 
 // ─── SharePoint helpers — load data ──────────────────────────────────
 async function tshLoadEntries() {
-  // The Client column is a Lookup — Graph returns it as ClientLookupId (integer).
-  // We also get the lookup value via $expand. The Archived column filters out
-  // archived entries from the default view, but we load all (Archived=No) and
-  // let the portal filter.
-  // Load ALL entries (not just non-archived) so edits/deletes work on any entry.
+  // ── Client column is a Lookup to the Clients list ──────────────────
+  // Graph returns `ClientLookupId` (the SP item ID in the Clients list)
+  // but does NOT return the display name inline. We resolve client names
+  // by matching ClientLookupId against TSH.ssaClients (loaded in parallel
+  // but resolved after both complete — see tshRefreshData).
+  //
+  // ── Field name discovery ───────────────────────────────────────────
+  // SharePoint internal names depend on how the column was originally
+  // created. We try multiple variants and take the first defined value.
+  // Confirmed internal names (from Graph API inspection, May 2026):
+  //   HoursSpent, WorkType, WorkDescription, InternalNotes, ATERATicketID
   const url = `/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items?expand=fields&$top=2000`;
   const res = await graphFetch(url);
   TSH.entries = (res.value || []).map(it => {
     const f = it.fields || {};
-    // Client is a Lookup — internal name is 'Client', Graph returns 'ClientLookupId' for the ID
-    // and 'Client' object or just the resolved value. We need the LookupId for writes.
-    // The display value of the lookup comes through as the Client field's LookupValue.
-    // In practice, Graph often returns the lookup display value under the column's display name
-    // as a string when using $expand=fields. We handle both shapes.
-    let clientName = '';
-    let clientLookupId = null;
-    if (f.ClientLookupId !== undefined) {
-      clientLookupId = f.ClientLookupId;
+
+    // Lookup ID for the Client column
+    const clientLookupId = f.ClientLookupId ?? null;
+
+    // Hours — try multiple internal name variants
+    let hours = 0;
+    for (const k of ['HoursSpent', 'Hours_x0020_Spent', 'Hours Spent']) {
+      if (f[k] !== undefined && f[k] !== null) { hours = Number(f[k]) || 0; break; }
     }
-    // The lookup display value typically appears under the column's internal name
-    // For a Lookup column named "Client", Graph may give:
-    // - f.Client (string — the display value from the looked-up list)
-    // - f.ClientLookupId (number — the SP item ID in the Clients list)
-    if (typeof f.Client === 'string') {
-      clientName = f.Client;
-    } else if (f.Client && typeof f.Client === 'object') {
-      clientName = f.Client.LookupValue || f.Client.Title || '';
-      if (!clientLookupId) clientLookupId = f.Client.LookupId;
-    }
+
+    // Work Type
+    const workType = f.WorkType || f.Work_x0020_Type || f['Work Type'] || '';
+
+    // Work Description (long notes field)
+    const workDescription = f.WorkDescription || f.Work_x0020_Description || f['Work Description'] || '';
+
+    // Internal Notes
+    const internalNotes = f.InternalNotes || f.Internal_x0020_Notes || f['Internal Notes'] || '';
+
+    // ATERA Ticket ID
+    const ateraId = f.ATERATicketID || f.ATERA_x0020_Ticket_x0020_ID || f['ATERA Ticket ID'] || null;
 
     return {
       id:              it.id,
-      clientName:      clientName,
+      clientName:      '',   // resolved after ssaClients loads — see tshResolveClientNames()
       clientLookupId:  clientLookupId,
       engineer:        f.Engineer || '',
       date:            f.Date ? String(f.Date).split('T')[0] : '',
-      hours:           f.Hours_x0020_Spent !== undefined ? Number(f.Hours_x0020_Spent) : (f.HoursSpent !== undefined ? Number(f.HoursSpent) : (f['Hours Spent'] !== undefined ? Number(f['Hours Spent']) : 0)),
-      workType:        f.Work_x0020_Type || f.WorkType || '',
+      hours,
+      workType,
       description:     f.Title || '',
-      workDescription: f.Work_x0020_Description || f.WorkDescription || '',
-      internalNotes:   f.Internal_x0020_Notes || f.InternalNotes || '',
-      ateraId:         f.ATERA_x0020_Ticket_x0020_ID || f.ATERATicketID || null,
+      workDescription,
+      internalNotes,
+      ateraId:         ateraId ? Number(ateraId) : null,
       archived:        f.Archived || false
     };
   }).filter(e => !e.archived); // Only show non-archived in the portal
+}
+
+/**
+ * Resolve client names on TSH.entries using the Clients list item IDs.
+ * Called AFTER both tshLoadEntries() and tshLoadSsaClients() have completed,
+ * so TSH.ssaClients is populated with { id, name } pairs.
+ */
+function tshResolveClientNames() {
+  // Build a map: SP item ID (string) → client name
+  const idToName = new Map();
+  for (const c of TSH.ssaClients) {
+    idToName.set(String(c.id), c.name);
+  }
+  for (const e of TSH.entries) {
+    if (e.clientLookupId) {
+      e.clientName = idToName.get(String(e.clientLookupId)) || `Client #${e.clientLookupId}`;
+    }
+  }
 }
 
 async function tshLoadSsaClients() {
@@ -7322,15 +7351,14 @@ async function tshLoadSsaClients() {
 async function tshCreateEntry(data) {
   // data: { clientLookupId, engineer, date, hours, workType, description, workDescription }
   const fields = {
-    Title:         data.description,
+    Title:          data.description,
     ClientLookupId: data.clientLookupId,
-    Engineer:      data.engineer,
-    Date:          data.date,
-    Work_x0020_Type: data.workType
+    Engineer:       data.engineer,
+    Date:           data.date,
+    WorkType:       data.workType,
+    HoursSpent:     data.hours
   };
-  // Hours Spent — try the x0020 encoded name first (SharePoint's internal name for "Hours Spent")
-  fields['Hours_x0020_Spent'] = data.hours;
-  if (data.workDescription) fields['Work_x0020_Description'] = data.workDescription;
+  if (data.workDescription) fields.WorkDescription = data.workDescription;
   return graphFetch(`/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items`, {
     method: 'POST', body: JSON.stringify({ fields })
   });
@@ -7374,6 +7402,7 @@ async function tshRefreshData(silent = false) {
   try {
     await tshResolveListIds();
     await Promise.all([tshLoadEntries(), tshLoadSsaClients()]);
+    tshResolveClientNames();  // Lookup IDs → display names (must run after both loads)
     TSH.lastSync = new Date();
     tshPopulateClientDropdown();
     tshRenderAll();
@@ -7633,12 +7662,16 @@ function tshRenderLog() {
   const tbody = rows.map(e => {
     const engCls = tshEngClass(e.engineer);
     const wtCls = TSH_WT_CLASS[e.workType] || 'tsh-wt-misc';
-    const ateraStr = e.ateraId ? `<span style="color:var(--muted);font-size:11px;">#${e.ateraId}</span>` : '';
+    const ateraStr = e.ateraId ? `<span style="color:var(--muted);font-size:11px;margin-left:6px;">#${e.ateraId}</span>` : '';
+    // Prefer workDescription (the actual work log) over Title (often empty)
+    const descText = e.workDescription || e.description || '';
+    // Truncate long descriptions for the table
+    const descShort = descText.length > 80 ? descText.substring(0, 80) + '…' : descText;
     return `<tr>
       <td>${tshFmtDate(e.date)}</td>
       <td><span class="tsh-eng-pill ${engCls}">${escapeHtml(e.engineer)}</span></td>
       <td>${escapeHtml(e.clientName)}</td>
-      <td class="col-desc">${escapeHtml(e.description)} ${ateraStr}</td>
+      <td class="col-desc">${escapeHtml(descShort)}${ateraStr}</td>
       <td class="col-cat"><span class="tsh-wt-pill ${wtCls}">${escapeHtml(e.workType)}</span></td>
       <td class="num">${tshFmtHours(e.hours)}</td>
       <td class="actions">
@@ -7826,6 +7859,7 @@ function tshOpenEditModal(entryId) {
       <select id="tshEditEng">
         <option value="Philip" ${e.engineer === 'Philip' ? 'selected' : ''}>Philip</option>
         <option value="Jack" ${e.engineer === 'Jack' ? 'selected' : ''}>Jack</option>
+        <option value="System" ${e.engineer === 'System' ? 'selected' : ''}>System</option>
       </select>
     </div>
     <div class="tsh-form-grp">
@@ -7873,10 +7907,10 @@ async function tshSaveEdit(entryId, oldHours) {
       Title: newDesc,
       Engineer: newEng,
       Date: newDate,
-      Work_x0020_Type: newWorkType,
-      Hours_x0020_Spent: newHours
+      WorkType: newWorkType,
+      HoursSpent: newHours
     };
-    if (newWorkDesc !== undefined) patch['Work_x0020_Description'] = newWorkDesc;
+    if (newWorkDesc !== undefined) patch.WorkDescription = newWorkDesc;
 
     await tshPatchEntry(entryId, patch);
 
