@@ -543,10 +543,10 @@ body {
 /* — Wrapper layout (vertical stack, gap matches profitability) — */
 #section-overview .ovw-wrap { display: flex; flex-direction: column; gap: 14px; }
 
-/* — KPI strip (4 tiles across the top) — */
+/* — KPI strip (6 tiles — 3×2 grid) — */
 #section-overview .ovw-kpis {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
 }
 #section-overview .ovw-kpi {
@@ -578,11 +578,14 @@ body {
 }
 #section-overview .ovw-kpi .k-sub strong { color: var(--white); font-weight: 600; }
 /* KPI value colour variants */
-#section-overview .ovw-kpi.neutral .k-value { color: var(--white); }
-#section-overview .ovw-kpi.profit  .k-value { color: var(--green); }
-#section-overview .ovw-kpi.miles   .k-value { color: var(--green); }
-#section-overview .ovw-kpi.revenue .k-value { color: var(--green); }
-#section-overview .ovw-kpi.clients .k-value { color: var(--white); }
+#section-overview .ovw-kpi.neutral  .k-value { color: var(--white); }
+#section-overview .ovw-kpi.profit   .k-value { color: var(--green); }
+#section-overview .ovw-kpi.miles    .k-value { color: var(--green); }
+#section-overview .ovw-kpi.revenue  .k-value { color: var(--green); }
+#section-overview .ovw-kpi.clients  .k-value { color: var(--white); }
+#section-overview .ovw-kpi.hours    .k-value { color: var(--blue); }
+#section-overview .ovw-kpi.ssa-risk .k-value { color: var(--green); }
+#section-overview .ovw-kpi.ssa-risk.has-risk .k-value { color: var(--amber); }
 
 /* — Two-column detail row (mileage breakdown + revenue breakdown) — */
 #section-overview .ovw-row {
@@ -2478,6 +2481,93 @@ body {
   #section-timesheets .tsh-tbl tbody td.col-cat { display: none; }
 }
 
+
+/* ╔═══════════════════════════════════════════════════════════════════╗
+   ║   SETTINGS SECTION (Phase 7)                                      ║
+   ║                                                                   ║
+   ║   Portal info, account details, system configuration.             ║
+   ║   Scoped under `#section-settings .set-*` to avoid bleed.        ║
+   ╚═══════════════════════════════════════════════════════════════════╝ */
+
+#section-settings .set-wrap {
+  display: flex; flex-direction: column; gap: 14px;
+}
+#section-settings .set-card {
+  background: var(--card);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color .2s ease;
+}
+#section-settings .set-card:hover { border-color: var(--border); }
+#section-settings .set-card-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-dim);
+  display: flex; align-items: center; gap: 10px;
+  color: var(--muted);
+}
+#section-settings .set-card-head h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 14px;
+  letter-spacing: .07em; text-transform: uppercase;
+  color: var(--white); flex: 1;
+}
+#section-settings .set-card-body { padding: 4px 0; }
+#section-settings .set-row {
+  padding: 10px 18px;
+  display: flex; align-items: center; gap: 14px;
+  border-bottom: 1px solid var(--border-dim);
+}
+#section-settings .set-row:last-child { border-bottom: none; }
+#section-settings .set-label {
+  font-size: 12px; color: var(--muted);
+  min-width: 120px; flex-shrink: 0;
+}
+#section-settings .set-label.set-muted {
+  font-style: italic; min-width: auto;
+}
+#section-settings .set-value {
+  font-size: 13px; color: var(--white);
+  font-weight: 500; word-break: break-all;
+}
+#section-settings .set-mono {
+  font-family: 'Barlow Condensed', monospace;
+  font-size: 13px; letter-spacing: .02em;
+  color: var(--green);
+}
+#section-settings .set-list-name {
+  font-weight: 600; color: var(--white);
+  margin-right: 6px;
+}
+#section-settings .set-list-id {
+  font-family: 'Barlow Condensed', monospace;
+  font-size: 11px; color: var(--muted);
+  word-break: break-all;
+}
+#section-settings .set-actions {
+  background: var(--card);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  display: flex; align-items: center; gap: 14px;
+  flex-wrap: wrap;
+}
+#section-settings .set-signout-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 18px; border-radius: var(--radius-sm);
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all .15s ease;
+  border: 1px solid var(--red);
+  background: var(--red-dim); color: var(--red);
+}
+#section-settings .set-signout-btn:hover {
+  background: var(--red); color: var(--white);
+}
+#section-settings .set-actions-note {
+  font-size: 11px; color: var(--muted); flex: 1;
+}
+
 </style>
 </head>
 <body>
@@ -2554,7 +2644,7 @@ body {
 
       <div class="sb-nav-label">Operations</div>
       <div class="sb-link" data-section="timesheets" onclick="navTo('timesheets')">
-        <span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" ><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span class="lbl">Timesheets</span><span class="tag">soon</span>
+        <span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" ><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span class="lbl">Timesheets</span>
       </div>
       <div class="sb-link" data-section="compliance" onclick="navTo('compliance')">
         <span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" ><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span><span class="lbl">Compliance</span><span class="tag">soon</span>
@@ -2604,7 +2694,7 @@ body {
 
       <div class="section-head">
         <h1>OVERVIEW <span>DASHBOARD</span></h1>
-        <p>Live summary across mileage, profitability and clients · <span id="ovwHeadMonth">—</span></p>
+        <p>Live summary across mileage, profitability, timesheets and clients · <span id="ovwHeadMonth">—</span></p>
         <div class="ovw-head-actions">
           <button class="ovw-refresh" id="ovwRefresh" type="button" onclick="ovwRefreshData()" title="Reload from SharePoint">
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
@@ -3202,13 +3292,64 @@ body {
     <!-- ═══ SETTINGS SECTION ═══════════════════════════════════════ -->
     <section class="section" id="section-settings">
       <div class="section-head">
-        <h1>SETTINGS</h1>
-        <p>Portal configuration and account information.</p>
+        <h1>SETTINGS <span>& INFO</span></h1>
+        <p>Portal configuration, account information, and system details.</p>
       </div>
-      <div class="placeholder">
-        <div class="ph-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" ><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M4.93 19.07l1.41-1.41M19.07 19.07l-1.41-1.41M1 12h2M21 12h2M12 1v2M12 21v2"/></svg></div>
-        <h3>Coming Soon</h3>
-        <p>Portal preferences, account info, and admin tools will live here.</p>
+      <div class="set-wrap">
+
+        <div class="set-card">
+          <div class="set-card-head">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <h3>Signed-In User</h3>
+          </div>
+          <div class="set-card-body">
+            <div class="set-row"><span class="set-label">Name</span><span class="set-value" id="setUserName">—</span></div>
+            <div class="set-row"><span class="set-label">Email</span><span class="set-value" id="setUserEmail">—</span></div>
+          </div>
+        </div>
+
+        <div class="set-card">
+          <div class="set-card-head">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <h3>Azure App Registration</h3>
+          </div>
+          <div class="set-card-body">
+            <div class="set-row"><span class="set-label">Client ID</span><span class="set-value set-mono" id="setClientId">—</span></div>
+            <div class="set-row"><span class="set-label">Tenant ID</span><span class="set-value set-mono" id="setTenantId">—</span></div>
+            <div class="set-row"><span class="set-label">SharePoint Site</span><span class="set-value set-mono" id="setSpSite">—</span></div>
+          </div>
+        </div>
+
+        <div class="set-card">
+          <div class="set-card-head">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <h3>SharePoint Lists</h3>
+          </div>
+          <div class="set-card-body" id="setListsBody">
+            <div class="set-row"><span class="set-label set-muted">Visit a section to resolve list IDs</span></div>
+          </div>
+        </div>
+
+        <div class="set-card">
+          <div class="set-card-head">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <h3>Portal Info</h3>
+          </div>
+          <div class="set-card-body">
+            <div class="set-row"><span class="set-label">Version</span><span class="set-value">Phase 7 — May 2026</span></div>
+            <div class="set-row"><span class="set-label">Hosting</span><span class="set-value">GitHub Pages</span></div>
+            <div class="set-row"><span class="set-label">Auth Library</span><span class="set-value">MSAL.js v3</span></div>
+          </div>
+        </div>
+
+        <div class="set-actions">
+          <button class="set-signout-btn" type="button" onclick="setClearAndSignOut()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Clear Cache &amp; Sign Out
+          </button>
+          <p class="set-actions-note">Clears localStorage and signs out. You will need to sign in again.</p>
+        </div>
+
       </div>
     </section>
 
@@ -3417,6 +3558,9 @@ function navTo(sectionKey) {
   if (sectionKey === 'timesheets' && typeof initTimesheets === 'function') {
     initTimesheets();
   }
+  if (sectionKey === 'settings' && typeof renderSettings === 'function') {
+    renderSettings();
+  }
 }
 
 function openSidebar() {
@@ -3567,10 +3711,12 @@ const OVW = {
   initialised: false,
   loading:     false,
   siteId:      null,
-  listIds:     { journeys: null, services: null, clients: null },
+  listIds:     { journeys: null, services: null, clients: null, timesheets: null, ssaClients: null },
   journeys:    [],   // [{ driver, date, miles, amount }]
   services:    [],   // [{ category, cost, sell }]
   clients:     [],   // [{ status }]
+  tshEntries:  [],   // [{ engineer, date, hours, clientLookupId }] — from Timesheets list
+  ssaClients:  [],   // [{ id, name, hoursPurchased, hoursUsed, hoursRemaining }] — from Clients list
   lastSync:    null
 };
 
@@ -3619,7 +3765,7 @@ function ovwNormaliseDriver(raw) {
 
 // ─── SharePoint helpers — resolve site + list IDs ─────────────────────
 async function ovwResolveListIds() {
-  if (OVW.siteId && OVW.listIds.journeys && OVW.listIds.services && OVW.listIds.clients) return;
+  if (OVW.siteId && OVW.listIds.journeys && OVW.listIds.services && OVW.listIds.clients && OVW.listIds.timesheets && OVW.listIds.ssaClients) return;
 
   const sitePath = `/sites/${CONFIG.SP_HOST}:${CONFIG.SP_SITE}`;
   const site = await graphFetch(sitePath);
@@ -3627,13 +3773,18 @@ async function ovwResolveListIds() {
 
   const lists = await graphFetch(`/sites/${OVW.siteId}/lists?$select=id,displayName,name`);
   for (const l of (lists.value || [])) {
-    if (l.displayName === 'MileageJourneys' || l.name === 'MileageJourneys') OVW.listIds.journeys = l.id;
-    if (l.displayName === 'GeckoServices'   || l.name === 'GeckoServices')   OVW.listIds.services = l.id;
-    if (l.displayName === 'GeckoClients'    || l.name === 'GeckoClients')    OVW.listIds.clients  = l.id;
+    if (l.displayName === 'MileageJourneys' || l.name === 'MileageJourneys') OVW.listIds.journeys    = l.id;
+    if (l.displayName === 'GeckoServices'   || l.name === 'GeckoServices')   OVW.listIds.services    = l.id;
+    if (l.displayName === 'GeckoClients'    || l.name === 'GeckoClients')    OVW.listIds.clients     = l.id;
+    if (l.displayName === 'Timesheets'      || l.name === 'Timesheets')      OVW.listIds.timesheets  = l.id;
+    if (l.displayName === 'Clients'         || l.name === 'Clients')         OVW.listIds.ssaClients  = l.id;
   }
   if (!OVW.listIds.journeys) throw new Error('MileageJourneys list not found in SharePoint site');
   if (!OVW.listIds.services) throw new Error('GeckoServices list not found in SharePoint site');
   if (!OVW.listIds.clients)  throw new Error('GeckoClients list not found in SharePoint site');
+  // Timesheets + Clients lists are non-critical for Overview — if missing, KPIs just won't show
+  if (!OVW.listIds.timesheets) console.warn('Timesheets list not found — hours KPI will be unavailable');
+  if (!OVW.listIds.ssaClients) console.warn('Clients list not found — SSA KPI will be unavailable');
 }
 
 
@@ -3678,6 +3829,63 @@ async function ovwLoadClients() {
       status: f.Status || 'Active'
     };
   });
+}
+
+/**
+ * Load timesheet entries from the Timesheets list (Phase 7).
+ * We only need engineer, date, and hours for the Overview KPI.
+ * Follows @odata.nextLink for pagination (Graph caps at ~100/page).
+ */
+async function ovwLoadTimesheetEntries() {
+  if (!OVW.listIds.timesheets) { OVW.tshEntries = []; return; }
+  let allItems = [];
+  let nextUrl = `/sites/${OVW.siteId}/lists/${OVW.listIds.timesheets}/items?$expand=fields&$top=999`;
+  while (nextUrl) {
+    const res = await graphFetch(nextUrl);
+    allItems = allItems.concat(res.value || []);
+    nextUrl = res['@odata.nextLink'] || null;
+    if (allItems.length > 5000) break;
+  }
+  OVW.tshEntries = allItems.map(it => {
+    const f = it.fields || {};
+    if (f.Archived) return null;
+    let hours = 0;
+    for (const k of ['HoursSpent', 'Hours_x0020_Spent', 'Hours Spent']) {
+      if (f[k] !== undefined && f[k] !== null) { hours = Number(f[k]) || 0; break; }
+    }
+    return {
+      engineer: f.Engineer || '',
+      date:     f.Date ? String(f.Date).split('T')[0] : '',
+      hours
+    };
+  }).filter(Boolean);
+}
+
+/**
+ * Load SSA client data from the Clients list (Phase 7).
+ * Needed for the "SSA Clients At Risk" KPI card.
+ */
+async function ovwLoadSsaClients() {
+  if (!OVW.listIds.ssaClients) { OVW.ssaClients = []; return; }
+  const url = `/sites/${OVW.siteId}/lists/${OVW.listIds.ssaClients}/items?expand=fields&$top=500`;
+  const res = await graphFetch(url);
+  OVW.ssaClients = (res.value || []).map(it => {
+    const f = it.fields || {};
+    let hoursRemaining = f.Hours_x0020_Remaining2;
+    if (hoursRemaining === undefined || hoursRemaining === null || hoursRemaining === '') {
+      hoursRemaining = (Number(f.HoursPurchased) || 0) - (Number(f.HoursUsed) || 0);
+    } else {
+      hoursRemaining = Number(hoursRemaining);
+      if (!isFinite(hoursRemaining)) hoursRemaining = null;
+    }
+    return {
+      id:              it.id,
+      name:            f.Title || '',
+      hoursPurchased:  Number(f.HoursPurchased) || 0,
+      hoursUsed:       Number(f.HoursUsed) || 0,
+      hoursRemaining
+    };
+  }).filter(c => c.name && c.hoursPurchased > 0); // Only SSA clients
 }
 
 
@@ -3755,6 +3963,50 @@ function ovwComputeClients() {
   return { headline, active, isNew, winding, total };
 }
 
+/**
+ * Compute total hours logged this week (Mon–Sun), split by engineer.
+ * Uses OVW.tshEntries (Phase 7).
+ */
+function ovwComputeHoursThisWeek() {
+  const weekStart = new Date();
+  const day = weekStart.getDay(); // 0=Sun
+  const diff = day === 0 ? 6 : day - 1;
+  weekStart.setDate(weekStart.getDate() - diff);
+  weekStart.setHours(0, 0, 0, 0);
+
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate() + 7);
+
+  let total = 0;
+  const byEng = {};
+
+  for (const e of OVW.tshEntries) {
+    if (!e.date) continue;
+    const d = new Date(e.date + 'T00:00:00');
+    if (d >= weekStart && d < weekEnd) {
+      total += e.hours;
+      const eng = e.engineer || 'Unknown';
+      byEng[eng] = (byEng[eng] || 0) + e.hours;
+    }
+  }
+  return { total, byEng };
+}
+
+/**
+ * Compute SSA clients at risk (HoursRemaining < 2.0).
+ * Returns { count, topNames: string[] } — top 3 most urgent.
+ */
+function ovwComputeSsaAtRisk() {
+  const atRisk = OVW.ssaClients
+    .filter(c => c.hoursRemaining !== null && c.hoursRemaining < 2.0)
+    .sort((a, b) => (a.hoursRemaining ?? 0) - (b.hoursRemaining ?? 0));
+  return {
+    count: atRisk.length,
+    topNames: atRisk.slice(0, 3).map(c => c.name),
+    totalSsa: OVW.ssaClients.length
+  };
+}
+
 
 // ─── Rendering ────────────────────────────────────────────────────────
 function ovwRenderAll() {
@@ -3764,6 +4016,8 @@ function ovwRenderAll() {
   const mileage  = ovwComputeMileage();
   const revenue  = ovwComputeRevenue();
   const clients  = ovwComputeClients();
+  const hoursWeek = ovwComputeHoursThisWeek();
+  const ssaRisk   = ovwComputeSsaAtRisk();
   const philip   = mileage['Philip Morris'];
   const jack     = mileage['Jack Morris'];
   const combined = mileage.combined;
@@ -3771,6 +4025,38 @@ function ovwRenderAll() {
   // Update the head subtitle with the current month
   const headMonth = document.getElementById('ovwHeadMonth');
   if (headMonth) headMonth.textContent = ovwFmtMonth(new Date());
+
+  // Format hours helper (local)
+  const fmtH = v => {
+    const n = Number(v) || 0;
+    return n.toFixed(1).replace(/\.0$/, '') + 'h';
+  };
+
+  // Build per-engineer hours sub-text
+  let hoursSubParts = [];
+  for (const eng of ['Philip', 'Jack']) {
+    if (hoursWeek.byEng[eng] !== undefined) {
+      hoursSubParts.push(`${escapeHtml(eng)}: <strong>${fmtH(hoursWeek.byEng[eng])}</strong>`);
+    }
+  }
+  // Include any other engineers (System, etc.)
+  for (const [eng, h] of Object.entries(hoursWeek.byEng)) {
+    if (eng !== 'Philip' && eng !== 'Jack') {
+      hoursSubParts.push(`${escapeHtml(eng)}: <strong>${fmtH(h)}</strong>`);
+    }
+  }
+  const hoursSub = hoursSubParts.length > 0
+    ? hoursSubParts.join(' · ')
+    : 'No time logged yet this week';
+
+  // SSA at risk sub-text
+  let ssaSub = '';
+  if (ssaRisk.count === 0) {
+    ssaSub = `All <strong>${ssaRisk.totalSsa}</strong> SSA clients healthy`;
+  } else {
+    ssaSub = ssaRisk.topNames.map(n => escapeHtml(n)).join(', ');
+    if (ssaRisk.count > 3) ssaSub += ` + ${ssaRisk.count - 3} more`;
+  }
 
   // ── KPI row ──
   const kpiHTML = `
@@ -3819,6 +4105,24 @@ function ovwRenderAll() {
         <div class="k-sub">
           ${clients.isNew > 0 ? `<strong>${clients.isNew}</strong> new · ` : ''}<strong>${clients.total}</strong> total${clients.winding > 0 ? ` · ${clients.winding} winding down` : ''}
         </div>
+      </div>
+
+      <div class="ovw-kpi hours">
+        <div class="k-label">
+          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Hours Logged This Week
+        </div>
+        <div class="k-value">${fmtH(hoursWeek.total)}</div>
+        <div class="k-sub">${hoursSub}</div>
+      </div>
+
+      <div class="ovw-kpi ssa-risk${ssaRisk.count > 0 ? ' has-risk' : ''}">
+        <div class="k-label">
+          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          SSA Clients At Risk
+        </div>
+        <div class="k-value">${ssaRisk.count === 0 ? 'All Healthy' : ssaRisk.count}</div>
+        <div class="k-sub">${ssaSub}</div>
       </div>
     </div>`;
 
@@ -3912,6 +4216,10 @@ function ovwRenderAll() {
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Add Journey
         </button>
+        <button class="ovw-act-btn" type="button" onclick="ovwGoLogTime()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Log Time
+        </button>
         <button class="ovw-act-btn ghost" type="button" onclick="ovwGoProfitability()">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
           View Profitability
@@ -3948,6 +4256,10 @@ function ovwGoProfitability() {
   navTo('profitability');
 }
 
+function ovwGoLogTime() {
+  navTo('timesheets');
+}
+
 
 // ─── Main refresh — load everything from SharePoint ───────────────────
 async function ovwRefreshData(silent = false) {
@@ -3958,7 +4270,7 @@ async function ovwRefreshData(silent = false) {
   showLoading(true);
   try {
     await ovwResolveListIds();
-    await Promise.all([ovwLoadJourneys(), ovwLoadServices(), ovwLoadClients()]);
+    await Promise.all([ovwLoadJourneys(), ovwLoadServices(), ovwLoadClients(), ovwLoadTimesheetEntries(), ovwLoadSsaClients()]);
     OVW.lastSync = new Date();
     ovwRenderAll();
 
@@ -8049,6 +8361,64 @@ async function initTimesheets() {
   });
 
   await tshRefreshData(true);
+}
+
+
+/* ╔═══════════════════════════════════════════════════════════════════╗
+   ║                                                                   ║
+   ║   SETTINGS SECTION (Phase 7)                                      ║
+   ║                                                                   ║
+   ║   Portal info panel. Populates on navTo('settings') with          ║
+   ║   current user details, Azure config, and resolved list IDs       ║
+   ║   from all modules.                                               ║
+   ║                                                                   ║
+   ╚═══════════════════════════════════════════════════════════════════╝ */
+
+function renderSettings() {
+  // — User info —
+  const nameEl  = document.getElementById('setUserName');
+  const emailEl = document.getElementById('setUserEmail');
+  if (nameEl)  nameEl.textContent  = activeAccount?.name || activeAccount?.username || '—';
+  if (emailEl) emailEl.textContent = activeAccount?.username || '—';
+
+  // — Azure config —
+  const cidEl   = document.getElementById('setClientId');
+  const tidEl   = document.getElementById('setTenantId');
+  const spEl    = document.getElementById('setSpSite');
+  if (cidEl) cidEl.textContent = CONFIG.CLIENT_ID || '—';
+  if (tidEl) tidEl.textContent = CONFIG.TENANT_ID || '—';
+  if (spEl)  spEl.textContent  = CONFIG.SP_HOST + CONFIG.SP_SITE;
+
+  // — Resolved list IDs (gathered from all module state objects) —
+  const listsBody = document.getElementById('setListsBody');
+  if (listsBody) {
+    const lists = [];
+    // OVW lists
+    if (OVW.listIds.journeys)    lists.push({ name: 'MileageJourneys', id: OVW.listIds.journeys });
+    if (OVW.listIds.services)    lists.push({ name: 'GeckoServices',   id: OVW.listIds.services });
+    if (OVW.listIds.clients)     lists.push({ name: 'GeckoClients',    id: OVW.listIds.clients });
+    if (OVW.listIds.timesheets)  lists.push({ name: 'Timesheets',      id: OVW.listIds.timesheets });
+    if (OVW.listIds.ssaClients)  lists.push({ name: 'Clients (SSA)',   id: OVW.listIds.ssaClients });
+    // TSH lists (may overlap — deduplicate by ID)
+    if (TSH.listIds.timesheets && !lists.find(l => l.id === TSH.listIds.timesheets))
+      lists.push({ name: 'Timesheets', id: TSH.listIds.timesheets });
+    if (TSH.listIds.clients && !lists.find(l => l.id === TSH.listIds.clients))
+      lists.push({ name: 'Clients (SSA)', id: TSH.listIds.clients });
+
+    if (lists.length === 0) {
+      listsBody.innerHTML = '<div class="set-row"><span class="set-label set-muted">Visit a section to resolve list IDs</span></div>';
+    } else {
+      listsBody.innerHTML = lists.map(l =>
+        `<div class="set-row"><span class="set-list-name">${escapeHtml(l.name)}</span><span class="set-list-id">${escapeHtml(l.id)}</span></div>`
+      ).join('');
+    }
+  }
+}
+
+/** Clear localStorage and sign out — wipes cached tokens + state */
+function setClearAndSignOut() {
+  try { localStorage.clear(); } catch (e) { /* ignore */ }
+  signOut();
 }
 
 
