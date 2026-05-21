@@ -2114,6 +2114,369 @@ body {
   #section-clients .cli-head-actions .cli-last-sync { display: none; }
 }
 
+
+/* ╔═══════════════════════════════════════════════════════════════════╗
+   ║   TIMESHEETS SECTION (Phase 6)                                    ║
+   ║                                                                   ║
+   ║   Scoped under `#section-timesheets .tsh-*` to avoid bleed.      ║
+   ║   Mirrors Mileage tab/chip/form patterns and CLI card/modal       ║
+   ║   patterns. Category pills use Work Type colour set.              ║
+   ╚═══════════════════════════════════════════════════════════════════╝ */
+
+/* — Section head actions row — */
+#section-timesheets .tsh-head-actions {
+  display: flex; align-items: center; gap: 10px; margin-top: 6px; flex-wrap: wrap;
+}
+#section-timesheets .tsh-refresh {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 999px;
+  background: transparent; border: 1px solid var(--border-dim);
+  color: var(--muted); font-family: 'Instrument Sans', sans-serif;
+  font-size: 12px; cursor: pointer; transition: all .15s;
+}
+#section-timesheets .tsh-refresh:hover:not(:disabled) { color: var(--green); border-color: var(--green); }
+#section-timesheets .tsh-refresh:disabled { opacity: .5; cursor: not-allowed; }
+#section-timesheets .tsh-refresh svg { transition: transform .4s ease; }
+#section-timesheets .tsh-refresh.spinning svg { animation: cliSpin 1s linear infinite; }
+#section-timesheets .tsh-last-sync { font-size: 11px; color: var(--muted); margin-left: auto; }
+
+/* — Tabs (mirrors Mileage .mil-tab) — */
+#section-timesheets .tsh-tabs {
+  display: flex; gap: 2px;
+  background: var(--card); border: 1px solid var(--border-dim);
+  border-radius: var(--radius); padding: 4px; width: fit-content;
+  margin-bottom: 16px;
+}
+#section-timesheets .tsh-tab {
+  padding: 8px 18px; font-size: 12px; font-weight: 600;
+  color: var(--muted); background: transparent; border: none;
+  border-radius: var(--radius-sm); cursor: pointer;
+  font-family: 'Instrument Sans', sans-serif;
+  letter-spacing: .03em; transition: all .15s ease;
+}
+#section-timesheets .tsh-tab:hover { color: var(--white); }
+#section-timesheets .tsh-tab.active {
+  background: var(--green-glow); color: var(--green);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+#section-timesheets .tsh-panel { display: none; }
+#section-timesheets .tsh-panel.active { display: block; animation: fadeIn .2s ease; }
+
+/* — Cards (form, SSA cards) — */
+#section-timesheets .tsh-card {
+  background: var(--card); border: 1px solid var(--border-dim);
+  border-radius: var(--radius); padding: 22px;
+}
+#section-timesheets .tsh-card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px; gap: 12px; flex-wrap: wrap;
+}
+#section-timesheets .tsh-card-head h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 16px;
+  letter-spacing: .07em; text-transform: uppercase; color: var(--white);
+}
+
+/* — Form (mirrors Mileage .mil-form) — */
+#section-timesheets .tsh-form {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 14px 18px;
+}
+#section-timesheets .tsh-field { display: flex; flex-direction: column; gap: 6px; }
+#section-timesheets .tsh-field.full { grid-column: 1 / -1; }
+#section-timesheets .tsh-field label {
+  font-size: 10px; color: var(--muted);
+  letter-spacing: .08em; text-transform: uppercase; font-weight: 600;
+}
+#section-timesheets .tsh-input,
+#section-timesheets .tsh-select,
+#section-timesheets .tsh-textarea {
+  width: 100%; padding: 9px 12px;
+  background: var(--dark); border: 1px solid var(--border-dim);
+  border-radius: var(--radius-sm); color: var(--white);
+  font-family: 'Instrument Sans', sans-serif; font-size: 13px;
+  outline: none; transition: border-color .15s ease;
+}
+#section-timesheets .tsh-input:focus,
+#section-timesheets .tsh-select:focus,
+#section-timesheets .tsh-textarea:focus { border-color: var(--green); background: var(--black); }
+#section-timesheets .tsh-input::placeholder,
+#section-timesheets .tsh-textarea::placeholder { color: var(--muted); }
+#section-timesheets .tsh-select {
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none' stroke='%237a8f80' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='1 1 5 5 9 1'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+}
+#section-timesheets .tsh-textarea { resize: vertical; min-height: 60px; }
+#section-timesheets .tsh-form-actions {
+  grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px;
+}
+
+/* — SSA status inline hint beneath client dropdown — */
+#section-timesheets .tsh-ssa-hint {
+  font-size: 11px; color: var(--muted); margin-top: 2px; min-height: 16px;
+}
+#section-timesheets .tsh-ssa-hint .hrs { color: var(--green); font-weight: 600; }
+#section-timesheets .tsh-ssa-hint .hrs.low { color: var(--amber); }
+#section-timesheets .tsh-ssa-hint .hrs.crit { color: var(--red); }
+
+/* — Billable toggle — */
+#section-timesheets .tsh-toggle-wrap {
+  display: flex; align-items: center; gap: 10px; padding-top: 4px;
+}
+#section-timesheets .tsh-toggle {
+  position: relative; width: 38px; height: 20px; cursor: pointer;
+}
+#section-timesheets .tsh-toggle input { display: none; }
+#section-timesheets .tsh-toggle-track {
+  position: absolute; inset: 0;
+  background: var(--border-dim); border-radius: 999px;
+  transition: background .2s;
+}
+#section-timesheets .tsh-toggle input:checked + .tsh-toggle-track { background: var(--green); }
+#section-timesheets .tsh-toggle-knob {
+  position: absolute; top: 2px; left: 2px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--white); transition: left .2s;
+}
+#section-timesheets .tsh-toggle input:checked ~ .tsh-toggle-knob { left: 20px; }
+#section-timesheets .tsh-toggle-label { font-size: 12px; color: var(--muted); }
+#section-timesheets .tsh-toggle-note { font-size: 10px; color: var(--amber); margin-left: 4px; display: none; }
+
+/* — Notes expand link — */
+#section-timesheets .tsh-notes-toggle {
+  background: none; border: none; padding: 0;
+  color: var(--muted); font-size: 11px; font-family: inherit;
+  cursor: pointer; text-decoration: underline; text-decoration-color: var(--border-dim);
+  transition: color .15s;
+}
+#section-timesheets .tsh-notes-toggle:hover { color: var(--green); text-decoration-color: var(--green); }
+
+/* — Filter row — */
+#section-timesheets .tsh-filters {
+  display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; align-items: center;
+}
+#section-timesheets .tsh-chip {
+  padding: 5px 14px; font-size: 11px; font-weight: 600;
+  border-radius: 999px; border: 1px solid var(--border-dim);
+  background: transparent; color: var(--muted);
+  cursor: pointer; font-family: 'Instrument Sans', sans-serif;
+  transition: all .15s ease;
+}
+#section-timesheets .tsh-chip:hover { color: var(--white); border-color: var(--border); }
+#section-timesheets .tsh-chip.active {
+  background: var(--green-glow); color: var(--green); border-color: var(--green);
+}
+#section-timesheets .tsh-filter-sep {
+  width: 1px; height: 18px; background: var(--border-dim);
+  display: inline-block; margin: 0 6px;
+}
+#section-timesheets .tsh-filter-label {
+  font-size: 10px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .08em; font-weight: 600; align-self: center; margin-right: 2px;
+}
+
+/* — Tables — */
+#section-timesheets .tsh-tbl-wrap { overflow-x: auto; border-radius: var(--radius-sm); }
+#section-timesheets .tsh-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+#section-timesheets .tsh-tbl thead th {
+  padding: 9px 12px; font-size: 9px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); background: rgba(0,0,0,0.3);
+  border-bottom: 1px solid var(--border-dim); text-align: left; white-space: nowrap;
+}
+#section-timesheets .tsh-tbl thead th.num { text-align: right; }
+#section-timesheets .tsh-tbl tbody td {
+  padding: 10px 12px; border-bottom: 1px solid var(--border-dim); vertical-align: middle;
+}
+#section-timesheets .tsh-tbl tbody tr:last-child td { border-bottom: none; }
+#section-timesheets .tsh-tbl tbody tr:hover td { background: rgba(255,255,255,0.015); }
+#section-timesheets .tsh-tbl tbody td.num {
+  text-align: right; font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600; font-size: 14px;
+}
+#section-timesheets .tsh-tbl tbody td.actions { text-align: right; width: 1%; white-space: nowrap; }
+
+/* — Engineer pill (same scheme as mileage driver pill) — */
+#section-timesheets .tsh-eng-pill {
+  display: inline-block; padding: 2px 8px; border-radius: 999px;
+  font-size: 10px; font-weight: 700; letter-spacing: .04em;
+}
+#section-timesheets .tsh-eng-pill.philip { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
+#section-timesheets .tsh-eng-pill.jack   { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(155,109,255,0.3); }
+
+/* — Work Type pill (category) — */
+#section-timesheets .tsh-wt-pill {
+  display: inline-block; padding: 2px 8px; border-radius: 999px;
+  font-size: 10px; font-weight: 700; letter-spacing: .04em; white-space: nowrap;
+}
+#section-timesheets .tsh-wt-remote    { background: var(--green-glow);  color: var(--green);  border: 1px solid var(--border); }
+#section-timesheets .tsh-wt-onsite    { background: var(--blue-dim);    color: var(--blue);   border: 1px solid rgba(74,158,221,0.3); }
+#section-timesheets .tsh-wt-project   { background: var(--amber-dim);   color: var(--amber);  border: 1px solid rgba(224,154,46,0.3); }
+#section-timesheets .tsh-wt-maint     { background: var(--purple-dim);  color: var(--purple);  border: 1px solid rgba(155,109,255,0.3); }
+#section-timesheets .tsh-wt-misc      { background: var(--border-dim);  color: var(--muted);  border: 1px solid var(--border-dim); }
+#section-timesheets .tsh-wt-pcsetup   { background: var(--teal-dim);    color: var(--teal);   border: 1px solid rgba(45,212,191,0.2); }
+
+/* — Icon buttons (edit/delete) — */
+#section-timesheets .tsh-icon-btn {
+  width: 28px; height: 28px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; border: 1px solid var(--border-dim);
+  border-radius: 6px; color: var(--muted);
+  cursor: pointer; transition: all .15s ease;
+}
+#section-timesheets .tsh-icon-btn:hover { color: var(--white); border-color: var(--border); }
+#section-timesheets .tsh-icon-btn.danger:hover { color: var(--red); border-color: var(--red); }
+
+/* — SSA Dashboard cards — */
+#section-timesheets .tsh-ssa-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+}
+#section-timesheets .tsh-ssa-card {
+  background: var(--card); border: 1px solid var(--border-dim);
+  border-radius: var(--radius); padding: 18px; transition: border-color .2s;
+}
+#section-timesheets .tsh-ssa-card:hover { border-color: var(--border); }
+#section-timesheets .tsh-ssa-card-head {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+}
+#section-timesheets .tsh-ssa-av {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--green-glow); border: 1px solid var(--border);
+  color: var(--green); font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800; font-size: 12px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+#section-timesheets .tsh-ssa-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 14px; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--white); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+#section-timesheets .tsh-ssa-stats {
+  display: flex; justify-content: space-between; font-size: 11px; color: var(--muted);
+  margin-bottom: 8px;
+}
+#section-timesheets .tsh-ssa-stats span { font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 13px; }
+#section-timesheets .tsh-ssa-bar {
+  width: 100%; height: 6px; border-radius: 3px; background: var(--border-dim); overflow: hidden;
+  margin-bottom: 10px;
+}
+#section-timesheets .tsh-ssa-bar-fill {
+  height: 100%; border-radius: 3px; transition: width .3s ease;
+}
+#section-timesheets .tsh-ssa-bar-fill.ok    { background: var(--green); }
+#section-timesheets .tsh-ssa-bar-fill.warn  { background: var(--amber); }
+#section-timesheets .tsh-ssa-bar-fill.crit  { background: var(--red); }
+#section-timesheets .tsh-ssa-actions {
+  display: flex; gap: 8px; font-size: 11px;
+}
+#section-timesheets .tsh-ssa-link {
+  background: none; border: none; padding: 0;
+  color: var(--muted); font-size: 11px; font-family: inherit;
+  cursor: pointer; text-decoration: underline; text-decoration-color: var(--border-dim);
+  transition: color .15s;
+}
+#section-timesheets .tsh-ssa-link:hover { color: var(--green); text-decoration-color: var(--green); }
+#section-timesheets .tsh-ssa-note {
+  margin-top: 14px; padding: 10px 14px;
+  background: var(--green-glow); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); font-size: 11px; color: var(--green);
+}
+
+/* — Weekly summary blocks — */
+#section-timesheets .tsh-week-block {
+  background: var(--card); border: 1px solid var(--border-dim);
+  border-radius: var(--radius); margin-bottom: 10px; overflow: hidden;
+}
+#section-timesheets .tsh-week-head {
+  padding: 12px 18px; display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border-dim);
+}
+#section-timesheets .tsh-week-head h4 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 14px; letter-spacing: .05em; text-transform: uppercase;
+}
+#section-timesheets .tsh-week-head .total {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 15px; color: var(--green);
+}
+#section-timesheets .tsh-week-body { padding: 14px 18px; }
+#section-timesheets .tsh-week-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 4px 0; font-size: 12px;
+}
+#section-timesheets .tsh-week-row .lbl { color: var(--muted); }
+#section-timesheets .tsh-week-row .val {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 13px;
+}
+#section-timesheets .tsh-week-sub {
+  margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-dim);
+  font-size: 11px; color: var(--muted);
+}
+#section-timesheets .tsh-week-sub-row { display: flex; justify-content: space-between; padding: 2px 0; }
+
+/* — Modal (mirrors CLI modal — independent element IDs) — */
+#section-timesheets .tsh-modal-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+  display: none; align-items: center; justify-content: center;
+  z-index: 1500; animation: fadeIn .15s ease;
+}
+#section-timesheets .tsh-modal-bg.show { display: flex; }
+#section-timesheets .tsh-modal {
+  width: 100%; max-width: 520px; margin: 20px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+  max-height: 90vh; overflow-y: auto;
+}
+#section-timesheets .tsh-modal h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 17px;
+  letter-spacing: .06em; text-transform: uppercase; margin-bottom: 14px;
+}
+#section-timesheets .tsh-modal p { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+#section-timesheets .tsh-form-grp { margin-bottom: 14px; }
+#section-timesheets .tsh-form-grp label {
+  display: block; font-size: 10px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .07em;
+  margin-bottom: 6px; font-weight: 600;
+}
+#section-timesheets .tsh-form-grp input,
+#section-timesheets .tsh-form-grp select,
+#section-timesheets .tsh-form-grp textarea {
+  width: 100%; padding: 8px 12px;
+  background: var(--dark); color: var(--white);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-family: 'Instrument Sans', sans-serif; font-size: 13px;
+  outline: none; transition: border-color .15s;
+}
+#section-timesheets .tsh-form-grp input:focus,
+#section-timesheets .tsh-form-grp select:focus,
+#section-timesheets .tsh-form-grp textarea:focus { border-color: var(--green); }
+#section-timesheets .tsh-form-grp textarea { resize: vertical; min-height: 70px; }
+#section-timesheets .tsh-mm-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+
+/* — Empty / error states — */
+#section-timesheets .tsh-empty {
+  text-align: center; padding: 40px 20px; color: var(--muted);
+}
+#section-timesheets .tsh-empty h3 { color: var(--white); margin-bottom: 8px; }
+
+/* — Mobile/tablet adjustments — */
+@media (max-width: 900px) {
+  #section-timesheets .tsh-ssa-grid { grid-template-columns: repeat(2, 1fr); }
+  #section-timesheets .tsh-form { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  #section-timesheets .tsh-ssa-grid { grid-template-columns: 1fr; }
+  #section-timesheets .tsh-tabs { width: 100%; overflow-x: auto; }
+  #section-timesheets .tsh-tab { flex: 1; white-space: nowrap; }
+  #section-timesheets .tsh-tbl thead th.col-desc,
+  #section-timesheets .tsh-tbl tbody td.col-desc { display: none; }
+  #section-timesheets .tsh-tbl thead th.col-cat,
+  #section-timesheets .tsh-tbl tbody td.col-cat { display: none; }
+}
+
 </style>
 </head>
 <body>
@@ -2676,17 +3039,146 @@ body {
     </section>
 
 
-    <!-- ═══ TIMESHEETS SECTION ═════════════════════════════════════ -->
+    <!-- ═══════════════════════════════════════════════════════════════
+         TIMESHEETS SECTION (Phase 6)
+         — Web-based time-logging tool reading/writing SharePoint.
+         — Reads `Timesheets` list (audit trail) and `Clients` list (SSA hours).
+         — Writes new entries to `Timesheets`; PATCHes `HoursUsed` on `Clients`.
+         — The `Clients` list is structurally read-only — only PATCH HoursUsed.
+         — Lazy-loaded on first nav (see initTimesheets).
+         — Future: Overview KPI integration (hours logged this week).
+         ═══════════════════════════════════════════════════════════════ -->
     <section class="section" id="section-timesheets">
+
       <div class="section-head">
-        <h1>TIME <span>SHEETS</span></h1>
-        <p>Time tracking for client work and internal projects.</p>
+        <h1>TIME<span>SHEETS</span></h1>
+        <p>Time tracking for SSA client work &amp; internal projects — Philip Morris &amp; Jack Morris</p>
+        <div class="tsh-head-actions">
+          <button class="tsh-refresh" id="tshRefresh" type="button" onclick="tshRefreshData()" title="Reload from SharePoint">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+            Refresh
+          </button>
+          <span class="tsh-last-sync" id="tshLastSync"></span>
+        </div>
       </div>
-      <div class="placeholder">
-        <div class="ph-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" ><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-        <h3>Placeholder — Phase 6</h3>
-        <p>For now, the existing Power Apps timesheet tool remains in use. A web version will be built directly into the portal in a future phase.</p>
+
+      <!-- Tab strip -->
+      <div class="tsh-tabs" role="tablist">
+        <button class="tsh-tab active" data-tab="log"   onclick="tshTab('log')"   type="button" role="tab">Log Time</button>
+        <button class="tsh-tab"        data-tab="ssa"   onclick="tshTab('ssa')"   type="button" role="tab">SSA Dashboard</button>
+        <button class="tsh-tab"        data-tab="week"  onclick="tshTab('week')"  type="button" role="tab">Weekly Summary</button>
       </div>
+
+      <!-- ═══ LOG TIME TAB ═══ -->
+      <div class="tsh-panel active" id="tshPanelLog" role="tabpanel">
+
+        <!-- Quick-log form -->
+        <div class="tsh-card" style="margin-bottom:16px;">
+          <div class="tsh-card-head"><h3>Log Time</h3></div>
+          <form class="tsh-form" onsubmit="tshAddEntry(event)">
+            <div class="tsh-field">
+              <label for="tshClient">Client</label>
+              <select class="tsh-select" id="tshClient" required onchange="tshClientPicked()">
+                <option value="">Select client…</option>
+              </select>
+              <div class="tsh-ssa-hint" id="tshSsaHint"></div>
+            </div>
+            <div class="tsh-field">
+              <label for="tshEngineer">Engineer</label>
+              <select class="tsh-select" id="tshEngineer" required>
+                <option value="Philip">Philip</option>
+                <option value="Jack">Jack</option>
+              </select>
+            </div>
+            <div class="tsh-field">
+              <label for="tshDate">Date</label>
+              <input class="tsh-input" type="date" id="tshDate" required>
+            </div>
+            <div class="tsh-field">
+              <label for="tshHours">Hours</label>
+              <input class="tsh-input" type="number" id="tshHours" step="0.25" min="0.25" placeholder="e.g. 1.5" required>
+            </div>
+            <div class="tsh-field">
+              <label for="tshWorkType">Work Type</label>
+              <select class="tsh-select" id="tshWorkType" required>
+                <option value="Remote Support">Remote Support</option>
+                <option value="Onsite Support">Onsite Support</option>
+                <option value="Project Work">Project Work</option>
+                <option value="Maintenance">Maintenance</option>
+                <option value="Misc">Misc</option>
+                <option value="PC Set Up">PC Set Up</option>
+              </select>
+            </div>
+            <div class="tsh-field">
+              <label for="tshDesc">Description</label>
+              <input class="tsh-input" type="text" id="tshDesc" placeholder="Short summary of work done" required>
+            </div>
+            <div class="tsh-field full">
+              <div class="tsh-toggle-wrap">
+                <label class="tsh-toggle">
+                  <input type="checkbox" id="tshBillable" checked onchange="tshBillableChanged()">
+                  <span class="tsh-toggle-track"></span>
+                  <span class="tsh-toggle-knob"></span>
+                </label>
+                <span class="tsh-toggle-label">Billable (counts against SSA hours)</span>
+                <span class="tsh-toggle-note" id="tshBillableNote">Won't count against SSA hours</span>
+              </div>
+            </div>
+            <div class="tsh-field full" id="tshNotesWrap" style="display:none;">
+              <label for="tshNotes">Work Description / Notes</label>
+              <textarea class="tsh-textarea" id="tshNotes" placeholder="Optional longer description, follow-up actions…"></textarea>
+            </div>
+            <div class="tsh-field full" style="margin-top:-8px;">
+              <button type="button" class="tsh-notes-toggle" id="tshNotesBtn" onclick="tshToggleNotes()">+ Add detailed notes</button>
+            </div>
+            <div class="tsh-form-actions">
+              <button class="btn btn-primary" type="submit" id="tshAddBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Log Time
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Recent entries table -->
+        <div class="tsh-card">
+          <div class="tsh-card-head">
+            <h3>Recent Entries</h3>
+            <span id="tshEntryCount" style="font-size:11px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;letter-spacing:.05em;text-transform:uppercase;"></span>
+          </div>
+          <div class="tsh-filters" id="tshFilters">
+            <span class="tsh-filter-label">Engineer:</span>
+            <button class="tsh-chip active" data-filter="all" onclick="tshFilterEng('all',this)" type="button">All</button>
+            <button class="tsh-chip" data-filter="Philip" onclick="tshFilterEng('Philip',this)" type="button">Philip</button>
+            <button class="tsh-chip" data-filter="Jack" onclick="tshFilterEng('Jack',this)" type="button">Jack</button>
+            <span class="tsh-filter-sep"></span>
+            <span class="tsh-filter-label">Period:</span>
+            <button class="tsh-chip" data-range="week" onclick="tshFilterRange('week',this)" type="button">This Week</button>
+            <button class="tsh-chip active" data-range="month" onclick="tshFilterRange('month',this)" type="button">This Month</button>
+            <button class="tsh-chip" data-range="all" onclick="tshFilterRange('all',this)" type="button">All</button>
+          </div>
+          <div id="tshLogWrap"><!-- rendered by tshRenderLog() --></div>
+        </div>
+      </div>
+
+      <!-- ═══ SSA DASHBOARD TAB ═══ -->
+      <div class="tsh-panel" id="tshPanelSsa" role="tabpanel">
+        <div id="tshSsaWrap"><!-- rendered by tshRenderSsa() --></div>
+      </div>
+
+      <!-- ═══ WEEKLY SUMMARY TAB ═══ -->
+      <div class="tsh-panel" id="tshPanelWeek" role="tabpanel">
+        <div id="tshWeekWrap"><!-- rendered by tshRenderWeekly() --></div>
+      </div>
+
+      <!-- ═══ TIMESHEETS MODAL ═══ -->
+      <div class="tsh-modal-bg" id="tshModalBg" onclick="if(event.target===this)tshCloseModal()">
+        <div class="tsh-modal" id="tshModal">
+          <h3 id="tshModalTitle">—</h3>
+          <div id="tshModalBody"></div>
+        </div>
+      </div>
+
     </section>
 
 
@@ -2919,7 +3411,9 @@ function navTo(sectionKey) {
   if (sectionKey === 'clients' && typeof initClients === 'function') {
     initClients();
   }
-  // Future phases: timesheets / compliance hooks in here too.
+  if (sectionKey === 'timesheets' && typeof initTimesheets === 'function') {
+    initTimesheets();
+  }
 }
 
 function openSidebar() {
@@ -6622,6 +7116,858 @@ async function initClients() {
   });
 
   await cliRefreshData(true);
+}
+
+
+/* ╔═══════════════════════════════════════════════════════════════════╗
+   ║                                                                   ║
+   ║   TIMESHEETS SECTION (Phase 6)                                    ║
+   ║                                                                   ║
+   ║   Web-based time-logging tool. Reads the existing `Timesheets`    ║
+   ║   SharePoint list (audit trail) and the `Clients` list (SSA       ║
+   ║   hours). Writes new entries to `Timesheets` and PATCHes          ║
+   ║   `HoursUsed` on `Clients` for billable entries.                  ║
+   ║                                                                   ║
+   ║   The `Clients` list is structurally read-only from this portal   ║
+   ║   — only PATCH `HoursUsed`, never create/delete rows.             ║
+   ║                                                                   ║
+   ║   `Client` column is a Lookup to the Clients list.                ║
+   ║   Graph API returns it as `ClientLookupId` (number) and the       ║
+   ║   expanded value comes via `$expand=fields($select=...)`.         ║
+   ║                                                                   ║
+   ║   Future: Overview KPI integration (hours logged this week).      ║
+   ║                                                                   ║
+   ╚═══════════════════════════════════════════════════════════════════╝ */
+
+const TSH = {
+  initialised: false,
+  loading:     false,
+  siteId:      null,
+  listIds:     { timesheets: null, clients: null },
+  entries:     [],   // [{ id, clientName, clientLookupId, engineer, date, hours, workType, description, workDescription, internalNotes, ateraId, archived }]
+  ssaClients:  [],   // [{ id, name, hoursPurchased, hoursUsed, hoursRemaining, primaryContact, email, clientFolder }]
+  activeTab:   'log',
+  filter:      'all',         // engineer filter: 'all' | 'Philip' | 'Jack'
+  dateRange:   'month',       // 'week' | 'month' | 'all'
+  sortBy:      'date',
+  sortDir:     'desc',
+  lastSync:    null
+};
+
+// ─── Work Type pill class mapping ────────────────────────────────────
+const TSH_WT_CLASS = {
+  'Remote Support': 'tsh-wt-remote',
+  'Onsite Support': 'tsh-wt-onsite',
+  'Project Work':   'tsh-wt-project',
+  'Maintenance':    'tsh-wt-maint',
+  'Misc':           'tsh-wt-misc',
+  'PC Set Up':      'tsh-wt-pcsetup'
+};
+
+// ─── Helpers ─────────────────────────────────────────────────────────
+const tshFmtHours = v => {
+  if (v === null || v === undefined || v === '' || !isFinite(v)) return '—';
+  const n = Number(v);
+  return n.toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1') + 'h';
+};
+
+const tshEngClass = eng => {
+  const e = (eng || '').toLowerCase();
+  if (e === 'philip') return 'philip';
+  if (e === 'jack')   return 'jack';
+  return '';
+};
+
+/** Safe string for onclick attributes — mirrors cliJsAttr */
+function tshJsAttr(s) {
+  return String(s)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/** Today as YYYY-MM-DD */
+function tshToday() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+/** Monday of the current week */
+function tshWeekStart() {
+  const d = new Date();
+  const day = d.getDay(); // 0=Sun
+  const diff = day === 0 ? 6 : day - 1; // Mon = 0
+  d.setDate(d.getDate() - diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+/** First day of the current month */
+function tshMonthStart() {
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+
+/** Format date for display */
+function tshFmtDate(isoStr) {
+  if (!isoStr) return '—';
+  const d = new Date(isoStr + 'T00:00:00');
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+
+// ─── SharePoint helpers — resolve site + list IDs ─────────────────────
+async function tshResolveListIds() {
+  if (TSH.siteId && TSH.listIds.timesheets && TSH.listIds.clients) return;
+
+  // Reuse siteId from CLI if already resolved
+  if (CLI.siteId) {
+    TSH.siteId = CLI.siteId;
+  } else {
+    const sitePath = `/sites/${CONFIG.SP_HOST}:${CONFIG.SP_SITE}`;
+    const site = await graphFetch(sitePath);
+    TSH.siteId = site.id;
+  }
+
+  const lists = await graphFetch(`/sites/${TSH.siteId}/lists?$select=id,displayName,name`);
+  for (const l of (lists.value || [])) {
+    if (l.displayName === 'Timesheets' || l.name === 'Timesheets') TSH.listIds.timesheets = l.id;
+    if (l.displayName === 'Clients'    || l.name === 'Clients')    TSH.listIds.clients    = l.id;
+  }
+  if (!TSH.listIds.timesheets) throw new Error('Timesheets list not found in SharePoint site');
+  if (!TSH.listIds.clients)    throw new Error('Clients list not found in SharePoint site');
+}
+
+
+// ─── SharePoint helpers — load data ──────────────────────────────────
+async function tshLoadEntries() {
+  // The Client column is a Lookup — Graph returns it as ClientLookupId (integer).
+  // We also get the lookup value via $expand. The Archived column filters out
+  // archived entries from the default view, but we load all (Archived=No) and
+  // let the portal filter.
+  // Load ALL entries (not just non-archived) so edits/deletes work on any entry.
+  const url = `/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items?expand=fields&$top=2000`;
+  const res = await graphFetch(url);
+  TSH.entries = (res.value || []).map(it => {
+    const f = it.fields || {};
+    // Client is a Lookup — internal name is 'Client', Graph returns 'ClientLookupId' for the ID
+    // and 'Client' object or just the resolved value. We need the LookupId for writes.
+    // The display value of the lookup comes through as the Client field's LookupValue.
+    // In practice, Graph often returns the lookup display value under the column's display name
+    // as a string when using $expand=fields. We handle both shapes.
+    let clientName = '';
+    let clientLookupId = null;
+    if (f.ClientLookupId !== undefined) {
+      clientLookupId = f.ClientLookupId;
+    }
+    // The lookup display value typically appears under the column's internal name
+    // For a Lookup column named "Client", Graph may give:
+    // - f.Client (string — the display value from the looked-up list)
+    // - f.ClientLookupId (number — the SP item ID in the Clients list)
+    if (typeof f.Client === 'string') {
+      clientName = f.Client;
+    } else if (f.Client && typeof f.Client === 'object') {
+      clientName = f.Client.LookupValue || f.Client.Title || '';
+      if (!clientLookupId) clientLookupId = f.Client.LookupId;
+    }
+
+    return {
+      id:              it.id,
+      clientName:      clientName,
+      clientLookupId:  clientLookupId,
+      engineer:        f.Engineer || '',
+      date:            f.Date ? String(f.Date).split('T')[0] : '',
+      hours:           f.Hours_x0020_Spent !== undefined ? Number(f.Hours_x0020_Spent) : (f.HoursSpent !== undefined ? Number(f.HoursSpent) : (f['Hours Spent'] !== undefined ? Number(f['Hours Spent']) : 0)),
+      workType:        f.Work_x0020_Type || f.WorkType || '',
+      description:     f.Title || '',
+      workDescription: f.Work_x0020_Description || f.WorkDescription || '',
+      internalNotes:   f.Internal_x0020_Notes || f.InternalNotes || '',
+      ateraId:         f.ATERA_x0020_Ticket_x0020_ID || f.ATERATicketID || null,
+      archived:        f.Archived || false
+    };
+  }).filter(e => !e.archived); // Only show non-archived in the portal
+}
+
+async function tshLoadSsaClients() {
+  const url = `/sites/${TSH.siteId}/lists/${TSH.listIds.clients}/items?expand=fields&$top=500`;
+  const res = await graphFetch(url);
+  TSH.ssaClients = (res.value || []).map(it => {
+    const f = it.fields || {};
+    let hoursRemaining = f.Hours_x0020_Remaining2;
+    if (hoursRemaining === undefined || hoursRemaining === null || hoursRemaining === '') {
+      const purchased = Number(f.HoursPurchased) || 0;
+      const used      = Number(f.HoursUsed) || 0;
+      hoursRemaining = purchased - used;
+    } else {
+      hoursRemaining = Number(hoursRemaining);
+      if (!isFinite(hoursRemaining)) hoursRemaining = null;
+    }
+    return {
+      id:              it.id,
+      name:            f.Title || '',
+      hoursPurchased:  Number(f.HoursPurchased) || 0,
+      hoursUsed:       Number(f.HoursUsed) || 0,
+      hoursRemaining:  hoursRemaining,
+      primaryContact:  f.PrimaryContact || '',
+      email:           f.Email || '',
+      clientFolder:    f.ClientFolder || ''
+    };
+  }).filter(c => c.name);
+}
+
+
+// ─── CRUD — create entry ─────────────────────────────────────────────
+async function tshCreateEntry(data) {
+  // data: { clientLookupId, engineer, date, hours, workType, description, workDescription }
+  const fields = {
+    Title:         data.description,
+    ClientLookupId: data.clientLookupId,
+    Engineer:      data.engineer,
+    Date:          data.date,
+    Work_x0020_Type: data.workType
+  };
+  // Hours Spent — try the x0020 encoded name first (SharePoint's internal name for "Hours Spent")
+  fields['Hours_x0020_Spent'] = data.hours;
+  if (data.workDescription) fields['Work_x0020_Description'] = data.workDescription;
+  return graphFetch(`/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items`, {
+    method: 'POST', body: JSON.stringify({ fields })
+  });
+}
+
+async function tshPatchEntry(id, patch) {
+  return graphFetch(`/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items/${id}/fields`, {
+    method: 'PATCH', body: JSON.stringify(patch)
+  });
+}
+
+async function tshDeleteEntry(id) {
+  return graphFetch(`/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items/${id}`, {
+    method: 'DELETE'
+  });
+}
+
+/** PATCH HoursUsed on the Clients list for a specific client row. */
+async function tshUpdateHoursUsed(clientId, newHoursUsed) {
+  // Ensure HoursUsed doesn't go below 0
+  const clamped = Math.max(0, newHoursUsed);
+  return graphFetch(`/sites/${TSH.siteId}/lists/${TSH.listIds.clients}/items/${clientId}/fields`, {
+    method: 'PATCH', body: JSON.stringify({ HoursUsed: clamped })
+  });
+}
+
+/** Find the SSA client record for a given client name (case-insensitive match). */
+function tshFindSsaClient(clientName) {
+  const key = (clientName || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  return TSH.ssaClients.find(c => c.name.replace(/\s+/g, ' ').trim().toLowerCase() === key) || null;
+}
+
+
+// ─── Refresh — main data load ─────────────────────────────────────────
+async function tshRefreshData(silent = false) {
+  if (TSH.loading) return;
+  TSH.loading = true;
+  const refreshBtn = document.getElementById('tshRefresh');
+  if (refreshBtn) { refreshBtn.classList.add('spinning'); refreshBtn.disabled = true; }
+  showLoading(true);
+  try {
+    await tshResolveListIds();
+    await Promise.all([tshLoadEntries(), tshLoadSsaClients()]);
+    TSH.lastSync = new Date();
+    tshPopulateClientDropdown();
+    tshRenderAll();
+    const last = document.getElementById('tshLastSync');
+    if (last) {
+      last.textContent = 'Synced ' + TSH.lastSync.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    }
+    if (!silent) {
+      toast(`Refreshed — ${TSH.entries.length} entries, ${TSH.ssaClients.filter(c => c.hoursPurchased > 0).length} SSA clients`, 'success', 2500);
+    }
+  } catch (err) {
+    console.error('Timesheets refresh failed:', err);
+    toast('Could not load timesheets: ' + (err.message || 'unknown error'), 'error', 6000);
+  } finally {
+    if (refreshBtn) { refreshBtn.classList.remove('spinning'); refreshBtn.disabled = false; }
+    showLoading(false);
+    TSH.loading = false;
+  }
+}
+
+
+// ─── Tab switching ───────────────────────────────────────────────────
+function tshTab(name) {
+  TSH.activeTab = name;
+  document.querySelectorAll('#section-timesheets .tsh-tab').forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('#section-timesheets .tsh-panel').forEach(p =>
+    p.classList.toggle('active', p.id === 'tshPanel' + name.charAt(0).toUpperCase() + name.slice(1)));
+  // Re-render on tab switch to pick up any data changes
+  tshRenderAll();
+}
+
+
+// ─── Populate client dropdown from SSA data ──────────────────────────
+function tshPopulateClientDropdown() {
+  const sel = document.getElementById('tshClient');
+  if (!sel) return;
+  const current = sel.value;
+  // Keep the placeholder option
+  sel.innerHTML = '<option value="">Select client…</option>';
+  // Sort clients alphabetically
+  const sorted = TSH.ssaClients.slice().sort((a, b) => a.name.localeCompare(b.name));
+  for (const c of sorted) {
+    const hasSsa = c.hoursPurchased > 0;
+    const opt = document.createElement('option');
+    opt.value = c.id; // Use the Clients list item ID as the value (= ClientLookupId)
+    opt.dataset.name = c.name;
+    opt.dataset.hasSsa = hasSsa ? '1' : '0';
+    opt.dataset.remaining = c.hoursRemaining;
+    opt.dataset.purchased = c.hoursPurchased;
+    opt.textContent = c.name + (hasSsa ? '' : ' (No SSA)');
+    sel.appendChild(opt);
+  }
+  // Restore selection if still valid
+  if (current) sel.value = current;
+}
+
+
+// ─── Client dropdown change handler ──────────────────────────────────
+function tshClientPicked() {
+  const sel = document.getElementById('tshClient');
+  const opt = sel.options[sel.selectedIndex];
+  const hint = document.getElementById('tshSsaHint');
+  const billable = document.getElementById('tshBillable');
+  const note = document.getElementById('tshBillableNote');
+  if (!opt || !opt.value) {
+    if (hint) hint.innerHTML = '';
+    return;
+  }
+  const hasSsa = opt.dataset.hasSsa === '1';
+  if (!hasSsa) {
+    hint.innerHTML = '<span style="color:var(--muted)">No SSA agreement — billable defaulted to No</span>';
+    billable.checked = false;
+    tshBillableChanged();
+  } else {
+    const rem = Number(opt.dataset.remaining);
+    const pur = Number(opt.dataset.purchased);
+    let cls = 'hrs';
+    if (rem < 1) cls = 'hrs crit';
+    else if (rem < 2) cls = 'hrs low';
+    hint.innerHTML = `${escapeHtml(opt.dataset.name)} — <span class="${cls}">${tshFmtHours(rem)}</span> remaining of ${tshFmtHours(pur)}`;
+    billable.checked = true;
+    tshBillableChanged();
+  }
+}
+
+
+// ─── Billable toggle handler ─────────────────────────────────────────
+function tshBillableChanged() {
+  const checked = document.getElementById('tshBillable').checked;
+  const note = document.getElementById('tshBillableNote');
+  if (note) note.style.display = checked ? 'none' : 'inline';
+}
+
+
+// ─── Notes expand/collapse ───────────────────────────────────────────
+function tshToggleNotes() {
+  const wrap = document.getElementById('tshNotesWrap');
+  const btn = document.getElementById('tshNotesBtn');
+  if (wrap.style.display === 'none') {
+    wrap.style.display = '';
+    btn.textContent = '− Hide notes';
+  } else {
+    wrap.style.display = 'none';
+    btn.textContent = '+ Add detailed notes';
+  }
+}
+
+
+// ─── Add Entry handler ───────────────────────────────────────────────
+async function tshAddEntry(ev) {
+  ev.preventDefault();
+  const btn = document.getElementById('tshAddBtn');
+  btn.disabled = true;
+  btn.textContent = 'Logging…';
+
+  try {
+    const sel = document.getElementById('tshClient');
+    const opt = sel.options[sel.selectedIndex];
+    const clientId = Number(sel.value);
+    const clientName = opt.dataset.name;
+    const engineer = document.getElementById('tshEngineer').value;
+    const date = document.getElementById('tshDate').value;
+    const hours = parseFloat(document.getElementById('tshHours').value);
+    const workType = document.getElementById('tshWorkType').value;
+    const desc = document.getElementById('tshDesc').value.trim();
+    const billable = document.getElementById('tshBillable').checked;
+    const workDesc = document.getElementById('tshNotes').value.trim();
+
+    if (!clientId || !date || !hours || !desc) {
+      toast('Please fill in all required fields', 'warning');
+      return;
+    }
+
+    // Create the timesheet entry
+    await tshCreateEntry({
+      clientLookupId: clientId,
+      engineer,
+      date,
+      hours,
+      workType,
+      description: desc,
+      workDescription: workDesc
+    });
+
+    // Update HoursUsed on Clients list if billable
+    const ssaClient = tshFindSsaClient(clientName);
+    if (billable && ssaClient && ssaClient.hoursPurchased > 0) {
+      const newUsed = ssaClient.hoursUsed + hours;
+      await tshUpdateHoursUsed(ssaClient.id, newUsed);
+
+      // Check if this pushes remaining below 0
+      const newRemaining = ssaClient.hoursPurchased - newUsed;
+      if (newRemaining < 0) {
+        toast(`${clientName} now has ${tshFmtHours(newRemaining)} remaining — consider invoicing for additional hours`, 'warning', 5000);
+      }
+    }
+
+    toast(`Logged ${tshFmtHours(hours)} for ${clientName}`, 'success');
+
+    // Reset form
+    document.getElementById('tshDesc').value = '';
+    document.getElementById('tshHours').value = '';
+    document.getElementById('tshNotes').value = '';
+    document.getElementById('tshNotesWrap').style.display = 'none';
+    document.getElementById('tshNotesBtn').textContent = '+ Add detailed notes';
+
+    // Reload data
+    await tshRefreshData(true);
+
+  } catch (err) {
+    console.error('Failed to log entry:', err);
+    toast('Failed to log entry: ' + (err.message || 'unknown error'), 'error', 5000);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Log Time';
+  }
+}
+
+
+// ─── Filter handlers ─────────────────────────────────────────────────
+function tshFilterEng(eng, btn) {
+  TSH.filter = eng;
+  document.querySelectorAll('#section-timesheets .tsh-chip[data-filter]').forEach(c => c.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  tshRenderLog();
+}
+
+function tshFilterRange(range, btn) {
+  TSH.dateRange = range;
+  document.querySelectorAll('#section-timesheets .tsh-chip[data-range]').forEach(c => c.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  tshRenderLog();
+}
+
+
+// ─── Get filtered + sorted entries ───────────────────────────────────
+function tshFilteredEntries() {
+  let rows = TSH.entries.slice();
+
+  // Engineer filter
+  if (TSH.filter !== 'all') {
+    rows = rows.filter(e => e.engineer === TSH.filter);
+  }
+
+  // Date range filter
+  if (TSH.dateRange === 'week') {
+    const ws = tshWeekStart();
+    rows = rows.filter(e => new Date(e.date + 'T00:00:00') >= ws);
+  } else if (TSH.dateRange === 'month') {
+    const ms = tshMonthStart();
+    rows = rows.filter(e => new Date(e.date + 'T00:00:00') >= ms);
+  }
+
+  // Sort by date (most recent first by default)
+  const dir = TSH.sortDir === 'desc' ? -1 : 1;
+  rows.sort((a, b) => {
+    const da = a.date || '';
+    const db = b.date || '';
+    if (da === db) return 0;
+    return da < db ? dir : -dir;
+  });
+
+  return rows;
+}
+
+
+// ─── Render — main entry point ───────────────────────────────────────
+function tshRenderAll() {
+  if (TSH.activeTab === 'log') tshRenderLog();
+  else if (TSH.activeTab === 'ssa') tshRenderSsa();
+  else if (TSH.activeTab === 'week') tshRenderWeekly();
+}
+
+
+// ─── Render — Log tab ────────────────────────────────────────────────
+function tshRenderLog() {
+  const wrap = document.getElementById('tshLogWrap');
+  if (!wrap) return;
+  const rows = tshFilteredEntries();
+
+  // Update count
+  const countEl = document.getElementById('tshEntryCount');
+  if (countEl) {
+    const totalHrs = rows.reduce((a, e) => a + (e.hours || 0), 0);
+    countEl.textContent = `${rows.length} entr${rows.length === 1 ? 'y' : 'ies'} · ${tshFmtHours(totalHrs)}`;
+  }
+
+  if (rows.length === 0) {
+    wrap.innerHTML = '<div class="tsh-empty"><h3>No entries</h3><p>No timesheet entries match the current filters.</p></div>';
+    return;
+  }
+
+  const editIc = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+  const delIc = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';
+
+  const tbody = rows.map(e => {
+    const engCls = tshEngClass(e.engineer);
+    const wtCls = TSH_WT_CLASS[e.workType] || 'tsh-wt-misc';
+    const ateraStr = e.ateraId ? `<span style="color:var(--muted);font-size:11px;">#${e.ateraId}</span>` : '';
+    return `<tr>
+      <td>${tshFmtDate(e.date)}</td>
+      <td><span class="tsh-eng-pill ${engCls}">${escapeHtml(e.engineer)}</span></td>
+      <td>${escapeHtml(e.clientName)}</td>
+      <td class="col-desc">${escapeHtml(e.description)} ${ateraStr}</td>
+      <td class="col-cat"><span class="tsh-wt-pill ${wtCls}">${escapeHtml(e.workType)}</span></td>
+      <td class="num">${tshFmtHours(e.hours)}</td>
+      <td class="actions">
+        <button class="tsh-icon-btn" type="button" onclick="tshOpenEditModal('${e.id}')" title="Edit">${editIc}</button>
+        <button class="tsh-icon-btn danger" type="button" onclick="tshConfirmDelete('${e.id}')" title="Delete">${delIc}</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <div class="tsh-tbl-wrap">
+      <table class="tsh-tbl">
+        <thead><tr>
+          <th>Date</th><th>Engineer</th><th>Client</th>
+          <th class="col-desc">Description</th>
+          <th class="col-cat">Work Type</th>
+          <th class="num">Hours</th><th>Actions</th>
+        </tr></thead>
+        <tbody>${tbody}</tbody>
+      </table>
+    </div>`;
+}
+
+
+// ─── Render — SSA Dashboard tab ──────────────────────────────────────
+function tshRenderSsa() {
+  const wrap = document.getElementById('tshSsaWrap');
+  if (!wrap) return;
+
+  // Only SSA clients (hoursPurchased > 0)
+  const ssaList = TSH.ssaClients.filter(c => c.hoursPurchased > 0)
+    .sort((a, b) => (a.hoursRemaining ?? 999) - (b.hoursRemaining ?? 999));
+
+  if (ssaList.length === 0) {
+    wrap.innerHTML = '<div class="tsh-empty"><h3>No SSA Clients</h3><p>No clients have an active SSA agreement (Hours Purchased &gt; 0).</p></div>';
+    return;
+  }
+
+  const cards = ssaList.map(c => {
+    const pct = c.hoursPurchased > 0 ? Math.max(0, (c.hoursRemaining / c.hoursPurchased) * 100) : 0;
+    let barCls = 'ok';
+    if (pct < 5) barCls = 'crit';
+    else if (pct < 20) barCls = 'warn';
+
+    return `
+    <div class="tsh-ssa-card">
+      <div class="tsh-ssa-card-head">
+        <div class="tsh-ssa-av">${escapeHtml(initialsFor(c.name))}</div>
+        <div class="tsh-ssa-name">${escapeHtml(c.name)}</div>
+      </div>
+      <div class="tsh-ssa-stats">
+        <span>Purchased: <span>${tshFmtHours(c.hoursPurchased)}</span></span>
+        <span>Used: <span>${tshFmtHours(c.hoursUsed)}</span></span>
+        <span>Remaining: <span style="color:${barCls === 'crit' ? 'var(--red)' : barCls === 'warn' ? 'var(--amber)' : 'var(--green)'}">${tshFmtHours(c.hoursRemaining)}</span></span>
+      </div>
+      <div class="tsh-ssa-bar">
+        <div class="tsh-ssa-bar-fill ${barCls}" style="width:${Math.min(100, Math.max(0, pct))}%"></div>
+      </div>
+      <div class="tsh-ssa-actions">
+        <button class="tsh-ssa-link" type="button" onclick="tshViewEntries('${tshJsAttr(c.name)}')">View entries</button>
+        <button class="tsh-ssa-link" type="button" onclick="navTo('clients')">Jump to Directory</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <div class="tsh-ssa-grid">${cards}</div>
+    <div class="tsh-ssa-note">SSA hours sync from SharePoint. If the Power App was used recently, click Refresh to get the latest totals.</div>`;
+}
+
+/** Switch to Log tab filtered by a specific client */
+function tshViewEntries(clientName) {
+  TSH.filter = 'all';
+  TSH.dateRange = 'all';
+  tshTab('log');
+  // Re-render with all filters off, then let the user see entries for that client
+  // We'll temporarily filter — but since we don't have a client filter in the chip UI,
+  // just scroll to the tab and the user can visually find them. For a better UX, toast
+  // the name so they know what to look for.
+  toast(`Showing all entries — look for "${clientName}"`, 'info', 3000);
+}
+
+
+// ─── Render — Weekly Summary tab ─────────────────────────────────────
+function tshRenderWeekly() {
+  const wrap = document.getElementById('tshWeekWrap');
+  if (!wrap) return;
+
+  if (TSH.entries.length === 0) {
+    wrap.innerHTML = '<div class="tsh-empty"><h3>No entries</h3><p>No timesheet entries to summarise.</p></div>';
+    return;
+  }
+
+  // Group by ISO week (Monday-based)
+  const weeks = new Map();
+  for (const e of TSH.entries) {
+    if (!e.date) continue;
+    const d = new Date(e.date + 'T00:00:00');
+    const day = d.getDay();
+    const diff = day === 0 ? 6 : day - 1;
+    const mon = new Date(d);
+    mon.setDate(mon.getDate() - diff);
+    const key = mon.toISOString().split('T')[0];
+    if (!weeks.has(key)) weeks.set(key, []);
+    weeks.get(key).push(e);
+  }
+
+  // Sort weeks descending (most recent first)
+  const sortedKeys = Array.from(weeks.keys()).sort((a, b) => b.localeCompare(a));
+
+  const blocks = sortedKeys.map(wk => {
+    const entries = weeks.get(wk);
+    const totalHrs = entries.reduce((a, e) => a + (e.hours || 0), 0);
+    const weekDate = new Date(wk + 'T00:00:00');
+    const label = 'Week of ' + weekDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+    // Per-engineer breakdown
+    const byEng = {};
+    const byCli = {};
+    for (const e of entries) {
+      const eng = e.engineer || 'Unknown';
+      byEng[eng] = (byEng[eng] || 0) + (e.hours || 0);
+      const cli = e.clientName || 'Unknown';
+      byCli[cli] = (byCli[cli] || 0) + (e.hours || 0);
+    }
+
+    const engRows = Object.entries(byEng)
+      .sort((a, b) => b[1] - a[1])
+      .map(([eng, hrs]) => `<div class="tsh-week-row"><span class="lbl">${escapeHtml(eng)}</span><span class="val">${tshFmtHours(hrs)}</span></div>`)
+      .join('');
+
+    const cliRows = Object.entries(byCli)
+      .sort((a, b) => b[1] - a[1])
+      .map(([cli, hrs]) => `<div class="tsh-week-sub-row"><span>${escapeHtml(cli)}</span><span>${tshFmtHours(hrs)}</span></div>`)
+      .join('');
+
+    return `
+    <div class="tsh-week-block">
+      <div class="tsh-week-head">
+        <h4>${label}</h4>
+        <span class="total">${tshFmtHours(totalHrs)}</span>
+      </div>
+      <div class="tsh-week-body">
+        ${engRows}
+        <div class="tsh-week-sub">
+          <div class="tsh-week-row" style="margin-bottom:4px;"><span class="lbl" style="font-weight:600;color:var(--white);font-size:11px;text-transform:uppercase;letter-spacing:.06em;">By client</span><span></span></div>
+          ${cliRows}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  wrap.innerHTML = blocks || '<div class="tsh-empty"><h3>No entries</h3><p>Nothing to summarise yet.</p></div>';
+}
+
+
+// ─── Modal — open / close ────────────────────────────────────────────
+function tshOpenModal(title, bodyHtml) {
+  document.getElementById('tshModalTitle').textContent = title;
+  document.getElementById('tshModalBody').innerHTML = bodyHtml;
+  document.getElementById('tshModalBg').classList.add('show');
+}
+function tshCloseModal() {
+  document.getElementById('tshModalBg').classList.remove('show');
+}
+
+
+// ─── Edit entry modal ────────────────────────────────────────────────
+function tshOpenEditModal(entryId) {
+  const e = TSH.entries.find(x => String(x.id) === String(entryId));
+  if (!e) { toast('Entry not found', 'error'); return; }
+
+  const workTypes = ['Remote Support', 'Onsite Support', 'Project Work', 'Maintenance', 'Misc', 'PC Set Up'];
+  const wtOpts = workTypes.map(wt =>
+    `<option value="${escapeHtml(wt)}" ${wt === e.workType ? 'selected' : ''}>${escapeHtml(wt)}</option>`
+  ).join('');
+
+  const body = `
+    <div class="tsh-form-grp">
+      <label>Client</label>
+      <input type="text" value="${escapeHtml(e.clientName)}" disabled style="opacity:.6">
+    </div>
+    <div class="tsh-form-grp">
+      <label>Engineer</label>
+      <select id="tshEditEng">
+        <option value="Philip" ${e.engineer === 'Philip' ? 'selected' : ''}>Philip</option>
+        <option value="Jack" ${e.engineer === 'Jack' ? 'selected' : ''}>Jack</option>
+      </select>
+    </div>
+    <div class="tsh-form-grp">
+      <label>Date</label>
+      <input type="date" id="tshEditDate" value="${e.date}">
+    </div>
+    <div class="tsh-form-grp">
+      <label>Hours</label>
+      <input type="number" id="tshEditHours" step="0.25" min="0.25" value="${e.hours}">
+    </div>
+    <div class="tsh-form-grp">
+      <label>Work Type</label>
+      <select id="tshEditWorkType">${wtOpts}</select>
+    </div>
+    <div class="tsh-form-grp">
+      <label>Description</label>
+      <input type="text" id="tshEditDesc" value="${escapeHtml(e.description)}">
+    </div>
+    <div class="tsh-form-grp">
+      <label>Work Description / Notes</label>
+      <textarea id="tshEditWorkDesc">${escapeHtml(e.workDescription)}</textarea>
+    </div>
+    <div class="tsh-mm-actions">
+      <button class="btn btn-ghost" type="button" onclick="tshCloseModal()">Cancel</button>
+      <button class="btn btn-primary" type="button" onclick="tshSaveEdit('${entryId}', ${e.hours})">Save Changes</button>
+    </div>`;
+  tshOpenModal('Edit Entry', body);
+}
+
+async function tshSaveEdit(entryId, oldHours) {
+  const newHours = parseFloat(document.getElementById('tshEditHours').value);
+  const newDesc = document.getElementById('tshEditDesc').value.trim();
+  const newDate = document.getElementById('tshEditDate').value;
+  const newEng = document.getElementById('tshEditEng').value;
+  const newWorkType = document.getElementById('tshEditWorkType').value;
+  const newWorkDesc = document.getElementById('tshEditWorkDesc').value.trim();
+
+  if (!newDesc || !newDate || !newHours) {
+    toast('Please fill in all required fields', 'warning');
+    return;
+  }
+
+  try {
+    const patch = {
+      Title: newDesc,
+      Engineer: newEng,
+      Date: newDate,
+      Work_x0020_Type: newWorkType,
+      Hours_x0020_Spent: newHours
+    };
+    if (newWorkDesc !== undefined) patch['Work_x0020_Description'] = newWorkDesc;
+
+    await tshPatchEntry(entryId, patch);
+
+    // Adjust HoursUsed if hours changed
+    const entry = TSH.entries.find(x => String(x.id) === String(entryId));
+    if (entry && newHours !== oldHours) {
+      const ssaClient = tshFindSsaClient(entry.clientName);
+      if (ssaClient && ssaClient.hoursPurchased > 0) {
+        const delta = newHours - oldHours;
+        const newUsed = ssaClient.hoursUsed + delta;
+        await tshUpdateHoursUsed(ssaClient.id, newUsed);
+
+        const newRemaining = ssaClient.hoursPurchased - newUsed;
+        if (newRemaining < 0) {
+          toast(`${entry.clientName} now has ${tshFmtHours(newRemaining)} remaining — consider invoicing`, 'warning', 5000);
+        }
+      }
+    }
+
+    tshCloseModal();
+    toast('Entry updated', 'success');
+    await tshRefreshData(true);
+  } catch (err) {
+    console.error('Failed to update entry:', err);
+    toast('Failed to update: ' + (err.message || 'unknown error'), 'error', 5000);
+  }
+}
+
+
+// ─── Delete confirmation ─────────────────────────────────────────────
+function tshConfirmDelete(entryId) {
+  const e = TSH.entries.find(x => String(x.id) === String(entryId));
+  if (!e) { toast('Entry not found', 'error'); return; }
+
+  const body = `
+    <p>Delete this timesheet entry?</p>
+    <p style="color:var(--white);">${tshFmtDate(e.date)} — ${escapeHtml(e.clientName)} — ${tshFmtHours(e.hours)} (${escapeHtml(e.engineer)})</p>
+    <p style="font-size:11px;">This will also adjust the client's SSA hours if applicable. This action cannot be undone.</p>
+    <div class="tsh-mm-actions">
+      <button class="btn btn-ghost" type="button" onclick="tshCloseModal()">Cancel</button>
+      <button class="btn" type="button" style="background:var(--red);border-color:var(--red);color:var(--white);" onclick="tshDeleteConfirmed('${entryId}')">Delete Entry</button>
+    </div>`;
+  tshOpenModal('Confirm Delete', body);
+}
+
+async function tshDeleteConfirmed(entryId) {
+  const e = TSH.entries.find(x => String(x.id) === String(entryId));
+  if (!e) { toast('Entry not found', 'error'); return; }
+
+  try {
+    await tshDeleteEntry(entryId);
+
+    // Decrement HoursUsed if the entry had positive hours
+    if (e.hours > 0) {
+      const ssaClient = tshFindSsaClient(e.clientName);
+      if (ssaClient && ssaClient.hoursPurchased > 0) {
+        const newUsed = ssaClient.hoursUsed - e.hours;
+        await tshUpdateHoursUsed(ssaClient.id, newUsed);
+        if (newUsed < 0) {
+          toast('HoursUsed adjusted to 0 — may have been manually changed', 'warning', 4000);
+        }
+      }
+    }
+
+    tshCloseModal();
+    toast('Entry deleted', 'success');
+    await tshRefreshData(true);
+  } catch (err) {
+    console.error('Failed to delete entry:', err);
+    toast('Failed to delete: ' + (err.message || 'unknown error'), 'error', 5000);
+  }
+}
+
+
+// ─── Init ────────────────────────────────────────────────────────────
+async function initTimesheets() {
+  if (TSH.initialised) return;
+  TSH.initialised = true;
+
+  // Set default date to today
+  const dateInput = document.getElementById('tshDate');
+  if (dateInput) dateInput.value = tshToday();
+
+  // Modal: close on ESC
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.getElementById('tshModalBg')?.classList.contains('show')) {
+      tshCloseModal();
+    }
+  });
+
+  await tshRefreshData(true);
 }
 
 
