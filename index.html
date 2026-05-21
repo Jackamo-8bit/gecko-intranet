@@ -2492,6 +2492,108 @@ body {
 #section-settings .set-wrap {
   display: flex; flex-direction: column; gap: 14px;
 }
+
+/* ── User Profile Hero Card ── */
+#section-settings .set-profile-card {
+  background: var(--card);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color .2s ease;
+}
+#section-settings .set-profile-card:hover { border-color: var(--border); }
+#section-settings .set-profile-top {
+  padding: 28px 24px 20px;
+  display: flex; align-items: center; gap: 22px;
+  border-bottom: 1px solid var(--border-dim);
+}
+#section-settings .set-avatar-wrap {
+  position: relative; flex-shrink: 0;
+}
+#section-settings .set-avatar {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: var(--green-glow); border: 2px solid var(--border);
+  color: var(--green);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800; font-size: 24px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  transition: border-color .2s ease;
+}
+#section-settings .set-avatar img {
+  width: 100%; height: 100%; object-fit: cover;
+  border-radius: 50%;
+}
+#section-settings .set-avatar-ring {
+  position: absolute; bottom: 2px; right: 2px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--green);
+  border: 3px solid var(--card);
+}
+#section-settings .set-profile-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800; font-size: 24px;
+  letter-spacing: .04em; text-transform: uppercase;
+  color: var(--white); line-height: 1.1;
+}
+#section-settings .set-profile-email {
+  font-size: 13px; color: var(--muted);
+  margin-top: 3px;
+}
+#section-settings .set-profile-badges {
+  display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;
+}
+#section-settings .set-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 999px;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase;
+}
+#section-settings .set-badge-role {
+  background: var(--blue-dim); color: var(--blue);
+  border: 1px solid rgba(74,158,221,0.3);
+}
+#section-settings .set-badge-status {
+  background: var(--green-glow); color: var(--green);
+  border: 1px solid var(--border);
+}
+#section-settings .set-status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green);
+  animation: setDotPulse 2s ease-in-out infinite;
+}
+@keyframes setDotPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .4; }
+}
+#section-settings .set-profile-details {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: none;
+}
+#section-settings .set-detail {
+  padding: 14px 20px;
+  border-right: 1px solid var(--border-dim);
+  display: flex; flex-direction: column; gap: 3px;
+}
+#section-settings .set-detail:last-child { border-right: none; }
+#section-settings .set-detail-label {
+  font-size: 9px; color: var(--muted);
+  letter-spacing: .1em; text-transform: uppercase;
+}
+#section-settings .set-detail-value {
+  font-size: 13px; color: var(--white);
+  font-weight: 500;
+}
+
+/* ── Two-column grid (Azure + Lists) ── */
+#section-settings .set-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* ── Standard settings cards ── */
 #section-settings .set-card {
   background: var(--card);
   border: 1px solid var(--border-dim);
@@ -2544,6 +2646,8 @@ body {
   font-size: 11px; color: var(--muted);
   word-break: break-all;
 }
+
+/* ── Actions bar ── */
 #section-settings .set-actions {
   background: var(--card);
   border: 1px solid var(--border-dim);
@@ -2566,6 +2670,20 @@ body {
 }
 #section-settings .set-actions-note {
   font-size: 11px; color: var(--muted); flex: 1;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  #section-settings .set-profile-top { flex-direction: column; text-align: center; }
+  #section-settings .set-profile-badges { justify-content: center; }
+  #section-settings .set-profile-details { grid-template-columns: repeat(2, 1fr); }
+  #section-settings .set-detail:nth-child(2) { border-right: none; }
+  #section-settings .set-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  #section-settings .set-profile-details { grid-template-columns: 1fr; }
+  #section-settings .set-detail { border-right: none; border-bottom: 1px solid var(--border-dim); }
+  #section-settings .set-detail:last-child { border-bottom: none; }
 }
 
 </style>
@@ -2652,7 +2770,7 @@ body {
 
       <div class="sb-nav-label">System</div>
       <div class="sb-link" data-section="settings" onclick="navTo('settings')">
-        <span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" ><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M4.93 19.07l1.41-1.41M19.07 19.07l-1.41-1.41M1 12h2M21 12h2M12 1v2M12 21v2"/></svg></span><span class="lbl">Settings</span>
+        <span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="lbl">Settings</span>
       </div>
     </nav>
 
@@ -3297,39 +3415,73 @@ body {
       </div>
       <div class="set-wrap">
 
-        <div class="set-card">
-          <div class="set-card-head">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <h3>Signed-In User</h3>
+        <!-- ── User Profile Card (hero) ── -->
+        <div class="set-profile-card" id="setProfileCard">
+          <div class="set-profile-top">
+            <div class="set-avatar-wrap">
+              <div class="set-avatar" id="setAvatar">—</div>
+              <div class="set-avatar-ring"></div>
+            </div>
+            <div class="set-profile-info">
+              <h2 class="set-profile-name" id="setProfileName">—</h2>
+              <p class="set-profile-email" id="setProfileEmail">—</p>
+              <div class="set-profile-badges">
+                <span class="set-badge set-badge-role" id="setProfileRole">Engineer</span>
+                <span class="set-badge set-badge-status">
+                  <span class="set-status-dot"></span>
+                  Signed In
+                </span>
+              </div>
+            </div>
           </div>
-          <div class="set-card-body">
-            <div class="set-row"><span class="set-label">Name</span><span class="set-value" id="setUserName">—</span></div>
-            <div class="set-row"><span class="set-label">Email</span><span class="set-value" id="setUserEmail">—</span></div>
+          <div class="set-profile-details">
+            <div class="set-detail">
+              <span class="set-detail-label">Job Title</span>
+              <span class="set-detail-value" id="setJobTitle">—</span>
+            </div>
+            <div class="set-detail">
+              <span class="set-detail-label">Department</span>
+              <span class="set-detail-value" id="setDepartment">—</span>
+            </div>
+            <div class="set-detail">
+              <span class="set-detail-label">Office</span>
+              <span class="set-detail-value" id="setOffice">—</span>
+            </div>
+            <div class="set-detail">
+              <span class="set-detail-label">Phone</span>
+              <span class="set-detail-value" id="setPhone">—</span>
+            </div>
           </div>
         </div>
 
-        <div class="set-card">
-          <div class="set-card-head">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-            <h3>Azure App Registration</h3>
+        <!-- ── Two-column grid: Azure + SharePoint Lists ── -->
+        <div class="set-grid">
+          <div class="set-card">
+            <div class="set-card-head">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              <h3>Azure App Registration</h3>
+            </div>
+            <div class="set-card-body">
+              <div class="set-row"><span class="set-label">Client ID</span><span class="set-value set-mono" id="setClientId">—</span></div>
+              <div class="set-row"><span class="set-label">Tenant ID</span><span class="set-value set-mono" id="setTenantId">—</span></div>
+              <div class="set-row"><span class="set-label">SharePoint Site</span><span class="set-value set-mono" id="setSpSite">—</span></div>
+              <div class="set-row"><span class="set-label">Auth Scopes</span><span class="set-value set-mono" id="setScopes">—</span></div>
+              <div class="set-row"><span class="set-label">Redirect URI</span><span class="set-value set-mono" id="setRedirect">—</span></div>
+            </div>
           </div>
-          <div class="set-card-body">
-            <div class="set-row"><span class="set-label">Client ID</span><span class="set-value set-mono" id="setClientId">—</span></div>
-            <div class="set-row"><span class="set-label">Tenant ID</span><span class="set-value set-mono" id="setTenantId">—</span></div>
-            <div class="set-row"><span class="set-label">SharePoint Site</span><span class="set-value set-mono" id="setSpSite">—</span></div>
+
+          <div class="set-card">
+            <div class="set-card-head">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              <h3>SharePoint Lists</h3>
+            </div>
+            <div class="set-card-body" id="setListsBody">
+              <div class="set-row"><span class="set-label set-muted">Visit a section to resolve list IDs</span></div>
+            </div>
           </div>
         </div>
 
-        <div class="set-card">
-          <div class="set-card-head">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            <h3>SharePoint Lists</h3>
-          </div>
-          <div class="set-card-body" id="setListsBody">
-            <div class="set-row"><span class="set-label set-muted">Visit a section to resolve list IDs</span></div>
-          </div>
-        </div>
-
+        <!-- ── Portal Info ── -->
         <div class="set-card">
           <div class="set-card-head">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -3338,10 +3490,13 @@ body {
           <div class="set-card-body">
             <div class="set-row"><span class="set-label">Version</span><span class="set-value">Phase 7 — May 2026</span></div>
             <div class="set-row"><span class="set-label">Hosting</span><span class="set-value">GitHub Pages</span></div>
-            <div class="set-row"><span class="set-label">Auth Library</span><span class="set-value">MSAL.js v3</span></div>
+            <div class="set-row"><span class="set-label">Auth Library</span><span class="set-value">MSAL.js v3 (jsDelivr CDN)</span></div>
+            <div class="set-row"><span class="set-label">API</span><span class="set-value">Microsoft Graph v1.0</span></div>
+            <div class="set-row"><span class="set-label">Portal URL</span><span class="set-value set-mono">jackamo-8bit.github.io/gecko-intranet</span></div>
           </div>
         </div>
 
+        <!-- ── Actions ── -->
         <div class="set-actions">
           <button class="set-signout-btn" type="button" onclick="setClearAndSignOut()">
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -8375,35 +8530,50 @@ async function initTimesheets() {
    ╚═══════════════════════════════════════════════════════════════════╝ */
 
 function renderSettings() {
-  // — User info —
-  const nameEl  = document.getElementById('setUserName');
-  const emailEl = document.getElementById('setUserEmail');
-  if (nameEl)  nameEl.textContent  = activeAccount?.name || activeAccount?.username || '—';
-  if (emailEl) emailEl.textContent = activeAccount?.username || '—';
+  // — Profile card: populate from activeAccount immediately —
+  const name  = activeAccount?.name || activeAccount?.username || '—';
+  const email = activeAccount?.username || '—';
+
+  const nameEl  = document.getElementById('setProfileName');
+  const emailEl = document.getElementById('setProfileEmail');
+  const avatarEl = document.getElementById('setAvatar');
+  if (nameEl)  nameEl.textContent  = name;
+  if (emailEl) emailEl.textContent = email;
+  if (avatarEl) avatarEl.textContent = initialsFor(name);
 
   // — Azure config —
   const cidEl   = document.getElementById('setClientId');
   const tidEl   = document.getElementById('setTenantId');
   const spEl    = document.getElementById('setSpSite');
+  const scEl    = document.getElementById('setScopes');
+  const rdEl    = document.getElementById('setRedirect');
   if (cidEl) cidEl.textContent = CONFIG.CLIENT_ID || '—';
   if (tidEl) tidEl.textContent = CONFIG.TENANT_ID || '—';
   if (spEl)  spEl.textContent  = CONFIG.SP_HOST + CONFIG.SP_SITE;
+  if (scEl)  scEl.textContent  = (CONFIG.SCOPES || []).join(', ');
+  if (rdEl)  rdEl.textContent  = window.location.origin + window.location.pathname;
 
   // — Resolved list IDs (gathered from all module state objects) —
   const listsBody = document.getElementById('setListsBody');
   if (listsBody) {
     const lists = [];
-    // OVW lists
     if (OVW.listIds.journeys)    lists.push({ name: 'MileageJourneys', id: OVW.listIds.journeys });
     if (OVW.listIds.services)    lists.push({ name: 'GeckoServices',   id: OVW.listIds.services });
     if (OVW.listIds.clients)     lists.push({ name: 'GeckoClients',    id: OVW.listIds.clients });
     if (OVW.listIds.timesheets)  lists.push({ name: 'Timesheets',      id: OVW.listIds.timesheets });
     if (OVW.listIds.ssaClients)  lists.push({ name: 'Clients (SSA)',   id: OVW.listIds.ssaClients });
-    // TSH lists (may overlap — deduplicate by ID)
+    // TSH lists (deduplicate by ID)
     if (TSH.listIds.timesheets && !lists.find(l => l.id === TSH.listIds.timesheets))
       lists.push({ name: 'Timesheets', id: TSH.listIds.timesheets });
     if (TSH.listIds.clients && !lists.find(l => l.id === TSH.listIds.clients))
       lists.push({ name: 'Clients (SSA)', id: TSH.listIds.clients });
+    // MIL lists
+    if (typeof MIL !== 'undefined' && MIL.listIds) {
+      if (MIL.listIds.journeys && !lists.find(l => l.id === MIL.listIds.journeys))
+        lists.push({ name: 'MileageJourneys', id: MIL.listIds.journeys });
+      if (MIL.listIds.clients && !lists.find(l => l.id === MIL.listIds.clients))
+        lists.push({ name: 'MileageClients', id: MIL.listIds.clients });
+    }
 
     if (lists.length === 0) {
       listsBody.innerHTML = '<div class="set-row"><span class="set-label set-muted">Visit a section to resolve list IDs</span></div>';
@@ -8412,6 +8582,59 @@ function renderSettings() {
         `<div class="set-row"><span class="set-list-name">${escapeHtml(l.name)}</span><span class="set-list-id">${escapeHtml(l.id)}</span></div>`
       ).join('');
     }
+  }
+
+  // — Fetch full profile from Microsoft Graph (async, fills in after load) —
+  setLoadProfile();
+  setLoadProfilePhoto();
+}
+
+/**
+ * Fetch the signed-in user's full profile from Microsoft Graph (/me).
+ * Populates: job title, department, office location, phone.
+ * Runs silently — if it fails (permissions, network), fields stay as "—".
+ */
+async function setLoadProfile() {
+  try {
+    const profile = await graphFetch('/me');
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val || '—';
+    };
+    setVal('setJobTitle',   profile.jobTitle);
+    setVal('setDepartment', profile.department);
+    setVal('setOffice',     profile.officeLocation);
+    setVal('setPhone',      profile.businessPhones?.[0] || profile.mobilePhone);
+
+    // Update profile role badge with job title if available
+    const roleEl = document.getElementById('setProfileRole');
+    if (roleEl && profile.jobTitle) roleEl.textContent = profile.jobTitle;
+  } catch (err) {
+    console.warn('Settings: could not load profile:', err.message);
+  }
+}
+
+/**
+ * Fetch the signed-in user's profile photo from Microsoft Graph.
+ * Uses /me/photo/$value which returns a binary image blob.
+ * Falls back gracefully to initials if no photo is set.
+ */
+async function setLoadProfilePhoto() {
+  try {
+    const token = await getToken();
+    const res = await fetch(CONFIG.GRAPH_BASE + '/me/photo/$value', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) return; // 404 = no photo set, fail silently
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const avatarEl = document.getElementById('setAvatar');
+    if (avatarEl) {
+      avatarEl.innerHTML = `<img src="${url}" alt="Profile photo">`;
+    }
+  } catch (err) {
+    // No photo available — keep initials. This is normal for many M365 accounts.
+    console.warn('Settings: profile photo not available:', err.message);
   }
 }
 
