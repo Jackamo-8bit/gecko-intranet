@@ -7264,8 +7264,12 @@ async function tshLoadEntries() {
   //
   // Graph paginates at ~100 items per page even when $top is larger. We must
   // follow @odata.nextLink to get all entries.
+  //
+  // IMPORTANT: The Work_x0020_Type Choice column is NOT returned in the default
+  // $expand=fields response (known Graph API quirk with certain Choice columns).
+  // Using $expand=fields($select=...) forces Graph to include it.
   let allItems = [];
-  let nextUrl = `/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items?$expand=fields&$top=2000`;
+  let nextUrl = `/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items?$expand=fields($select=Title,Date,Engineer,ClientLookupId,HoursSpent,WorkDescription,Work_x0020_Type,InternalNotes,ATERATicketID,Archived)&$top=999`;
   while (nextUrl) {
     const res = await graphFetch(nextUrl);
     allItems = allItems.concat(res.value || []);
