@@ -7328,43 +7328,14 @@ async function tshLoadEntries() {
   }).filter(e => !e.archived); // Only show non-archived in the portal
 }
 
-/**
- * Graph's bulk $expand=fields response omits the Work_x0020_Type Choice column.
- * This function does a targeted fetch for entries missing workType, limited to
- * the most recent 50 entries to keep API calls reasonable (batched in parallel).
- * Older entries that pre-date the Work Type column will simply stay blank.
- */
-async function tshResolveWorkTypes() {
-  // Pick the most recent entries missing workType (older ones pre-date the column)
-  const missing = TSH.entries
-    .filter(e => !e.workType)
-    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
-    .slice(0, 80);
-  if (missing.length === 0) return;
-  console.log(`[TSH] Resolving Work Type for ${missing.length} entries...`);
-
-  // Batch fetch in parallel (max 10 at a time to avoid throttling)
-  const batchSize = 10;
-  for (let i = 0; i < missing.length; i += batchSize) {
-    const batch = missing.slice(i, i + batchSize);
-    const results = await Promise.all(batch.map(async e => {
-      try {
-        const data = await graphFetch(
-          `/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items/${e.id}/fields`
-        );
-        return { id: e.id, workType: data.Work_x0020_Type || data.WorkType || '' };
-      } catch (err) {
-        console.warn('[TSH] Work type fetch failed for', e.id, err);
-        return { id: e.id, workType: '' };
-      }
-    }));
-    // Apply results back to entries
-    for (const r of results) {
-      const entry = TSH.entries.find(e => String(e.id) === String(r.id));
-      if (entry && r.workType) entry.workType = r.workType;
-    }
-  }
-}
+// NOTE: The Work_x0020_Type Choice column is NOT returned by the Graph API
+// for this list (neither in bulk $expand=fields nor individual /fields fetches).
+// This appears to be a SharePoint/Graph quirk with certain Choice columns added
+// via content types or site columns. The Work Type will display correctly for
+// entries created through the portal (we write it successfully) but existing
+// entries created via the Power App won't show their Work Type here.
+// This is a known limitation accepted for Phase 6 — if resolved in future,
+// the field reader at line ~7290 already checks for Work_x0020_Type.
 
 /**
  * Resolve client names on TSH.entries using the Clients list item IDs.
@@ -7468,7 +7439,6 @@ async function tshRefreshData(silent = false) {
     await tshResolveListIds();
     await Promise.all([tshLoadEntries(), tshLoadSsaClients()]);
     tshResolveClientNames();  // Lookup IDs → display names (must run after both loads)
-    await tshResolveWorkTypes(); // Fetch Work Type for entries missing it (Graph API quirk)
     TSH.lastSync = new Date();
     tshPopulateClientDropdown();
     tshRenderAll();
