@@ -692,6 +692,70 @@ body {
   font-style: italic;
 }
 
+/* — Operational snapshot — */
+#section-overview .ovw-ops {
+  background: var(--card);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+#section-overview .ovw-ops-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-dim);
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+#section-overview .ovw-ops-head h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 14px;
+  letter-spacing: .07em; text-transform: uppercase;
+  color: var(--white);
+  flex: 1;
+}
+#section-overview .ovw-ops-head p {
+  width: 100%;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+#section-overview .ovw-ops-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+#section-overview .ovw-op {
+  padding: 16px 18px;
+  border-right: 1px solid var(--border-dim);
+  min-width: 0;
+}
+#section-overview .ovw-op:last-child { border-right: none; }
+#section-overview .ovw-op .op-label {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+#section-overview .ovw-op .op-value {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.05;
+  color: var(--white);
+  margin-bottom: 5px;
+}
+#section-overview .ovw-op.good .op-value { color: var(--green); }
+#section-overview .ovw-op.warn .op-value { color: var(--amber); }
+#section-overview .ovw-op.info .op-value { color: var(--blue); }
+#section-overview .ovw-op .op-note {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+#section-overview .ovw-op .op-note strong {
+  color: var(--white);
+  font-weight: 600;
+}
+
 /* — Quick actions card — */
 #section-overview .ovw-actions {
   background: var(--card);
@@ -752,10 +816,19 @@ body {
 /* — Responsive — */
 @media (max-width: 1100px) {
   #section-overview .ovw-kpis { grid-template-columns: repeat(2, 1fr); }
+  #section-overview .ovw-ops-grid { grid-template-columns: repeat(2, 1fr); }
+  #section-overview .ovw-op:nth-child(2) { border-right: none; }
+  #section-overview .ovw-op:nth-child(-n+2) { border-bottom: 1px solid var(--border-dim); }
 }
 @media (max-width: 720px) {
   #section-overview .ovw-kpis { grid-template-columns: 1fr; }
   #section-overview .ovw-row  { grid-template-columns: 1fr; }
+  #section-overview .ovw-ops-grid { grid-template-columns: 1fr; }
+  #section-overview .ovw-op {
+    border-right: none;
+    border-bottom: 1px solid var(--border-dim);
+  }
+  #section-overview .ovw-op:last-child { border-bottom: none; }
 }
 
 
@@ -3212,11 +3285,12 @@ body::before {
 #section-timesheets .tsh-panel,
 #section-timesheets .tsh-ssa-card,
 #section-settings .set-card,
-#section-compliance .cmp-kpi,
-#section-compliance .cmp-panel,
-#section-compliance .cmp-item,
-#section-compliance .cmp-form,
-#section-compliance .cmp-empty {
+  #section-compliance .cmp-kpi,
+  #section-compliance .cmp-panel,
+  #section-compliance .cmp-item,
+  #section-compliance .cmp-form,
+  #section-compliance .cmp-empty,
+  #section-overview .ovw-ops {
   background:
     linear-gradient(180deg, rgba(255,255,255,0.028), rgba(255,255,255,0.006)),
     var(--card);
@@ -3883,6 +3957,7 @@ body::before {
 
   #section-overview .ovw-kpis,
   #section-overview .ovw-row,
+  #section-overview .ovw-ops-grid,
   #section-mileage .mil-kpis,
   #section-timesheets .tsh-kpi-strip,
   #section-compliance .cmp-kpi-strip,
@@ -5604,7 +5679,8 @@ async function ovwLoadJourneys() {
       driver: ovwNormaliseDriver(f.Driver || ''),
       date:   f.JourneyDate ? f.JourneyDate.split('T')[0] : '',
       miles:  Number(f.Miles)  || 0,
-      amount: Number(f.Amount) || 0
+      amount: Number(f.Amount) || 0,
+      claimedDate: f.ClaimedDate ? String(f.ClaimedDate).split('T')[0] : ''
     };
   });
 }
@@ -5809,6 +5885,36 @@ function ovwComputeSsaAtRisk() {
   };
 }
 
+/**
+ * Read-only operational snapshot for the landing page.
+ * Uses data already loaded for the Overview cards; no SharePoint writes.
+ */
+function ovwComputeOperationalSnapshot({ hoursWeek, ssaRisk }) {
+  const todayDate = new Date();
+  const limitedDate = new Date('2026-06-01T00:00:00');
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const daysToLimited = Math.ceil((limitedDate - todayDate) / msPerDay);
+
+  const unclaimedThisMonth = OVW.journeys.reduce((acc, j) => {
+    if (!j.date || j.claimedDate) return acc;
+    const parts = j.date.split('-');
+    if (parts.length !== 3) return acc;
+    const jy = Number(parts[0]);
+    const jm = Number(parts[1]) - 1;
+    if (jy !== todayDate.getFullYear() || jm !== todayDate.getMonth()) return acc;
+    acc.count += 1;
+    acc.amount += Number(j.amount) || 0;
+    return acc;
+  }, { count: 0, amount: 0 });
+
+  return {
+    unclaimedThisMonth,
+    hoursWeekTotal: hoursWeek.total || 0,
+    ssaRiskCount: ssaRisk.count || 0,
+    daysToLimited
+  };
+}
+
 
 // ─── Rendering ────────────────────────────────────────────────────────
 function ovwRenderAll() {
@@ -5820,6 +5926,7 @@ function ovwRenderAll() {
   const clients  = ovwComputeClients();
   const hoursWeek = ovwComputeHoursThisWeek();
   const ssaRisk   = ovwComputeSsaAtRisk();
+  const ops       = ovwComputeOperationalSnapshot({ hoursWeek, ssaRisk });
   const philip   = mileage['Philip Morris'];
   const jack     = mileage['Jack Morris'];
   const combined = mileage.combined;
@@ -5928,6 +6035,44 @@ function ovwRenderAll() {
       </div>
     </div>`;
 
+  const limitedValue = ops.daysToLimited > 0
+    ? `${ops.daysToLimited} day${ops.daysToLimited === 1 ? '' : 's'}`
+    : 'Active';
+  const limitedNote = ops.daysToLimited > 0
+    ? 'Limited company transition · 1 June 2026'
+    : 'Limited company mode from 1 June 2026';
+
+  const opsHTML = `
+    <div class="ovw-ops">
+      <div class="ovw-ops-head">
+        <h3>Operational Snapshot</h3>
+        <span class="ovw-month-tag">Today</span>
+        <p>Claim admin, revenue health, support time and company transition.</p>
+      </div>
+      <div class="ovw-ops-grid">
+        <div class="ovw-op ${ops.unclaimedThisMonth.count > 0 ? 'warn' : 'good'}">
+          <div class="op-label">Mileage Claims</div>
+          <div class="op-value">${ops.unclaimedThisMonth.count > 0 ? ovwFmt(ops.unclaimedThisMonth.amount) : 'Clear'}</div>
+          <div class="op-note">${ops.unclaimedThisMonth.count > 0 ? `<strong>${ops.unclaimedThisMonth.count}</strong> journey${ops.unclaimedThisMonth.count === 1 ? '' : 's'} awaiting claim` : 'No unclaimed journeys this month'}</div>
+        </div>
+        <div class="ovw-op ${ops.ssaRiskCount > 0 ? 'warn' : 'good'}">
+          <div class="op-label">SSA Health</div>
+          <div class="op-value">${ops.ssaRiskCount > 0 ? ops.ssaRiskCount : 'Healthy'}</div>
+          <div class="op-note">${ops.ssaRiskCount > 0 ? 'Client hour balances need attention' : `<strong>${ssaRisk.totalSsa}</strong> SSA clients above threshold`}</div>
+        </div>
+        <div class="ovw-op info">
+          <div class="op-label">Weekly Delivery</div>
+          <div class="op-value">${fmtH(ops.hoursWeekTotal)}</div>
+          <div class="op-note">Logged through Timesheets this week</div>
+        </div>
+        <div class="ovw-op ${ops.daysToLimited > 0 ? 'warn' : 'good'}">
+          <div class="op-label">Company Switch</div>
+          <div class="op-value">${escapeHtml(limitedValue)}</div>
+          <div class="op-note">${escapeHtml(limitedNote)}</div>
+        </div>
+      </div>
+    </div>`;
+
   // ── Breakdown row (mileage by driver + revenue P&L) ──
   const monthLabel = ovwFmtMonth(new Date()).split(' ')[0]; // just the month name, e.g. "May"
 
@@ -6026,10 +6171,18 @@ function ovwRenderAll() {
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
           View Profitability
         </button>
+        <button class="ovw-act-btn ghost" type="button" onclick="ovwGoClients()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          Directory
+        </button>
+        <button class="ovw-act-btn ghost" type="button" onclick="ovwGoCompliance()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Compliance
+        </button>
       </div>
     </div>`;
 
-  wrap.innerHTML = kpiHTML + breakdownHTML + actionsHTML;
+  wrap.innerHTML = kpiHTML + opsHTML + breakdownHTML + actionsHTML;
 }
 
 
@@ -6060,6 +6213,14 @@ function ovwGoProfitability() {
 
 function ovwGoLogTime() {
   navTo('timesheets');
+}
+
+function ovwGoClients() {
+  navTo('clients');
+}
+
+function ovwGoCompliance() {
+  navTo('compliance');
 }
 
 
