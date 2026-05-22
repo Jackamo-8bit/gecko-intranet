@@ -73,6 +73,18 @@
   --teal:         #2dd4bf;
   --teal-dim:     rgba(45,212,191,0.10);
 
+
+  /* Borders — status colours (Phase 9 consolidation) */
+  --amber-border: var(--amber-border);
+  --blue-border:  var(--blue-border);
+  --red-border:   var(--red-border);
+  --purple-border:var(--purple-border);
+
+  /* Shared UI (Phase 9 consolidation) */
+  --overlay:      var(--overlay);
+  --shadow-heavy: var(--shadow-heavy);
+  --row-hover:    var(--row-hover);
+
   /* Geometry */
   --radius:       14px;
   --radius-sm:    8px;
@@ -132,10 +144,13 @@ body {
   letter-spacing: .07em; text-transform: uppercase;
 }
 .badge-green  { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
-.badge-amber  { background: var(--amber-dim);  color: var(--amber); border: 1px solid rgba(224,154,46,0.3); }
-.badge-blue   { background: var(--blue-dim);   color: var(--blue);  border: 1px solid rgba(74,158,221,0.3); }
-.badge-red    { background: var(--red-dim);    color: var(--red);   border: 1px solid rgba(224,82,82,0.3); }
-.badge-purple { background: var(--purple-dim); color: var(--purple);border: 1px solid rgba(155,109,255,0.3); }
+.badge-amber  { background: var(--amber-dim);  color: var(--amber); border: 1px solid var(--amber-border); }
+.badge-blue   { background: var(--blue-dim);   color: var(--blue);  border: 1px solid var(--blue-border); }
+.badge-red    { background: var(--red-dim);    color: var(--red);   border: 1px solid var(--red-border); }
+.badge-purple { background: var(--purple-dim); color: var(--purple);border: 1px solid var(--purple-border); }
+
+/* Shared spinner (Phase 9 — replaces ovwSpin, prfSpin, milSpin, cliSpin) */
+@keyframes spin { to { transform: rotate(360deg); } }
 
 
 /* ╔═══════════════════════════════════════════════════════════════════╗
@@ -536,8 +551,7 @@ body {
 #section-overview .ovw-refresh:hover:not(:disabled) { color: var(--green); border-color: var(--green); }
 #section-overview .ovw-refresh:disabled { opacity: .5; cursor: not-allowed; }
 #section-overview .ovw-refresh svg { transition: transform .4s ease; }
-#section-overview .ovw-refresh.spinning svg { animation: ovwSpin 1s linear infinite; }
-@keyframes ovwSpin { to { transform: rotate(360deg); } }
+#section-overview .ovw-refresh.spinning svg { animation: spin 1s linear infinite; }
 #section-overview .ovw-last-sync { font-size: 11px; color: var(--muted); margin-left: 4px; }
 
 /* — Wrapper layout (vertical stack, gap matches profitability) — */
@@ -757,8 +771,8 @@ body {
    ╚═══════════════════════════════════════════════════════════════════╝ */
 
 /* — Section head actions (refresh + last sync), mirrors Mileage pattern — */
-.prf-head-actions { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
-.prf-refresh {
+#section-profitability .prf-head-actions { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+#section-profitability .prf-refresh {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 6px 12px; border-radius: var(--radius-sm);
   background: var(--card); border: 1px solid var(--border);
@@ -766,13 +780,12 @@ body {
   font-family: 'Instrument Sans', sans-serif;
   transition: all .15s ease;
 }
-.prf-refresh:hover:not(:disabled) { color: var(--green); border-color: var(--green); }
-.prf-refresh:disabled { opacity: .5; cursor: not-allowed; }
-.prf-refresh svg { transition: transform .4s ease; }
-.prf-refresh.spinning svg { animation: prfSpin 1s linear infinite; }
-@keyframes prfSpin { to { transform: rotate(360deg); } }
-.prf-last-sync { font-size: 11px; color: var(--muted); margin-left: 4px; }
-.prf-add-btn {
+#section-profitability .prf-refresh:hover:not(:disabled) { color: var(--green); border-color: var(--green); }
+#section-profitability .prf-refresh:disabled { opacity: .5; cursor: not-allowed; }
+#section-profitability .prf-refresh svg { transition: transform .4s ease; }
+#section-profitability .prf-refresh.spinning svg { animation: spin 1s linear infinite; }
+#section-profitability .prf-last-sync { font-size: 11px; color: var(--muted); margin-left: 4px; }
+#section-profitability .prf-add-btn {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 6px 14px; border-radius: var(--radius-sm);
   background: var(--green); color: var(--black);
@@ -780,141 +793,141 @@ body {
   font-family: 'Instrument Sans', sans-serif; font-size: 12px; font-weight: 700;
   cursor: pointer; transition: all .15s ease;
 }
-.prf-add-btn:hover { background: var(--green-dark); border-color: var(--green-dark); color: var(--white); }
+#section-profitability .prf-add-btn:hover { background: var(--green-dark); border-color: var(--green-dark); color: var(--white); }
 
 /* — Wrapper layout — */
-.prf-wrap { display: flex; flex-direction: column; gap: 14px; }
+#section-profitability .prf-wrap { display: flex; flex-direction: column; gap: 14px; }
 
 /* — Empty / seed banner — */
-.prf-seed {
+#section-profitability .prf-seed {
   background: var(--card); border: 1px dashed var(--green);
   border-radius: var(--radius); padding: 26px 24px;
   display: flex; gap: 18px; align-items: center; flex-wrap: wrap;
 }
-.prf-seed-ic {
+#section-profitability .prf-seed-ic {
   width: 44px; height: 44px; border-radius: 10px;
   background: var(--green-glow); border: 1px solid var(--border);
   color: var(--green);
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
-.prf-seed-text { flex: 1; min-width: 220px; }
-.prf-seed-text h3 {
+#section-profitability .prf-seed-text { flex: 1; min-width: 220px; }
+#section-profitability .prf-seed-text h3 {
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 800; font-size: 17px; letter-spacing: .05em;
   text-transform: uppercase; margin-bottom: 4px;
 }
-.prf-seed-text p { color: var(--muted); font-size: 13px; }
-.prf-seed-actions { display: flex; gap: 8px; flex-shrink: 0; }
+#section-profitability .prf-seed-text p { color: var(--muted); font-size: 13px; }
+#section-profitability .prf-seed-actions { display: flex; gap: 8px; flex-shrink: 0; }
 
 /* — Summary strip (KPI tiles across the top) — */
-.prf-sum-strip {
+#section-profitability .prf-sum-strip {
   background: var(--card); border: 1px solid var(--border-dim);
   border-radius: var(--radius);
   display: flex; align-items: stretch; overflow-x: auto;
 }
-.prf-sum-s {
+#section-profitability .prf-sum-s {
   padding: 14px 22px; border-right: 1px solid var(--border-dim);
   display: flex; flex-direction: column; gap: 3px; white-space: nowrap;
   min-width: 110px;
 }
-.prf-sum-s:last-child { border-right: none; }
-.prf-sum-v {
+#section-profitability .prf-sum-s:last-child { border-right: none; }
+#section-profitability .prf-sum-v {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 22px; font-weight: 700; color: var(--green);
   letter-spacing: .02em;
 }
-.prf-sum-l {
+#section-profitability .prf-sum-l {
   font-size: 9px; color: var(--muted);
   text-transform: uppercase; letter-spacing: .08em;
 }
 
 /* — Filter / search bar — */
-.prf-ctrl {
+#section-profitability .prf-ctrl {
   background: var(--card); border: 1px solid var(--border-dim);
   border-radius: var(--radius);
   padding: 10px 14px; display: flex; gap: 7px; align-items: center;
   flex-wrap: wrap;
 }
-.prf-cl {
+#section-profitability .prf-cl {
   font-size: 9px; color: var(--muted);
   text-transform: uppercase; letter-spacing: .08em; margin-right: 3px;
 }
-.prf-fbtn {
+#section-profitability .prf-fbtn {
   padding: 4px 13px; border-radius: 999px; border: 1px solid var(--border);
   background: transparent; cursor: pointer;
   font-size: 11px; font-family: 'Instrument Sans', sans-serif;
   color: var(--muted); transition: all .15s;
 }
-.prf-fbtn:hover { border-color: var(--green); color: var(--green); }
-.prf-fbtn.on { background: var(--green-glow); color: var(--green); border-color: var(--green); }
-.prf-cg { flex: 1; }
-.prf-abtn {
+#section-profitability .prf-fbtn:hover { border-color: var(--green); color: var(--green); }
+#section-profitability .prf-fbtn.on { background: var(--green-glow); color: var(--green); border-color: var(--green); }
+#section-profitability .prf-cg { flex: 1; }
+#section-profitability .prf-abtn {
   padding: 4px 11px; border-radius: 6px; border: 1px solid var(--border-dim);
   background: transparent; cursor: pointer;
   font-size: 11px; font-family: 'Instrument Sans', sans-serif;
   color: var(--muted); transition: all .15s;
 }
-.prf-abtn:hover { color: var(--white); border-color: var(--border); }
-.prf-srch { position: relative; }
-.prf-srch input {
+#section-profitability .prf-abtn:hover { color: var(--white); border-color: var(--border); }
+#section-profitability .prf-srch { position: relative; }
+#section-profitability .prf-srch input {
   padding: 5px 11px 5px 28px; border-radius: 999px;
   border: 1px solid var(--border); background: var(--dark);
   color: var(--white); font-size: 11px;
   font-family: 'Instrument Sans', sans-serif;
   width: 200px; outline: none; transition: border-color .15s;
 }
-.prf-srch input::placeholder { color: var(--muted); }
-.prf-srch input:focus { border-color: var(--green); }
-.prf-srch-ic {
+#section-profitability .prf-srch input::placeholder { color: var(--muted); }
+#section-profitability .prf-srch input:focus { border-color: var(--green); }
+#section-profitability .prf-srch-ic {
   position: absolute; left: 9px; top: 50%;
   transform: translateY(-50%); color: var(--muted);
   pointer-events: none; font-size: 11px;
 }
 
 /* — Legend (category pill key + margin colour key) — */
-.prf-leg {
+#section-profitability .prf-leg {
   padding: 8px 14px; display: flex; gap: 14px; align-items: center;
   flex-wrap: wrap;
   background: var(--card); border: 1px solid var(--border-dim);
   border-radius: var(--radius);
 }
-.prf-li { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); }
-.prf-leg-r { margin-left: auto; font-size: 10px; color: var(--muted); display: flex; gap: 10px; }
-.prf-m-hi { color: var(--green); font-weight: 700; }
-.prf-m-md { color: var(--amber); font-weight: 700; }
-.prf-m-lo { color: var(--red); font-weight: 700; }
+#section-profitability .prf-li { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); }
+#section-profitability .prf-leg-r { margin-left: auto; font-size: 10px; color: var(--muted); display: flex; gap: 10px; }
+#section-profitability .prf-m-hi { color: var(--green); font-weight: 700; }
+#section-profitability .prf-m-md { color: var(--amber); font-weight: 700; }
+#section-profitability .prf-m-lo { color: var(--red); font-weight: 700; }
 
 /* — Category pills — */
-.prf-ct {
+#section-profitability .prf-ct {
   display: inline-block; padding: 1px 7px; border-radius: 999px;
   font-size: 9px; font-weight: 700;
   text-transform: uppercase; letter-spacing: .05em;
 }
-.prf-ct-stack    { background: var(--green-glow); color: var(--green); }
-.prf-ct-m365     { background: var(--blue-dim);   color: var(--blue); }
-.prf-ct-hosting  { background: var(--teal-dim);   color: var(--teal); }
-.prf-ct-retainer { background: var(--purple-dim); color: var(--purple); }
-.prf-ct-other    { background: rgba(255,204,51,0.1); color: #ffcc33; }
+#section-profitability .prf-ct-stack { background: var(--green-glow); color: var(--green); }
+#section-profitability .prf-ct-m365 { background: var(--blue-dim);   color: var(--blue); }
+#section-profitability .prf-ct-hosting { background: var(--teal-dim);   color: var(--teal); }
+#section-profitability .prf-ct-retainer { background: var(--purple-dim); color: var(--purple); }
+#section-profitability .prf-ct-other { background: rgba(255,204,51,0.1); color: #ffcc33; }
 
 /* — Client card — */
-.prf-cc {
+#section-profitability .prf-cc {
   background: var(--card); border: 1px solid var(--border-dim);
   border-radius: var(--radius); overflow: hidden;
   transition: border-color .2s;
 }
-.prf-cc:hover { border-color: var(--border); }
-.prf-cc.winding { border-left: 3px solid var(--amber); }
-.prf-cc.isnew   { border-left: 3px solid var(--blue); }
-.prf-cc.open    { border-color: var(--green-line); }
+#section-profitability .prf-cc:hover { border-color: var(--border); }
+#section-profitability .prf-cc.winding { border-left: 3px solid var(--amber); }
+#section-profitability .prf-cc.isnew { border-left: 3px solid var(--blue); }
+#section-profitability .prf-cc.open { border-color: var(--green-line); }
 
 /* — Card header (collapsed view, click to toggle) — */
-.prf-ch {
+#section-profitability .prf-ch {
   padding: 12px 18px; display: flex; align-items: center; gap: 12px;
   cursor: pointer; user-select: none; transition: background .15s;
 }
-.prf-ch:hover { background: var(--card-hover); }
-.prf-cav {
+#section-profitability .prf-ch:hover { background: var(--card-hover); }
+#section-profitability .prf-cav {
   width: 32px; height: 32px; border-radius: 8px;
   background: var(--green-glow); border: 1px solid var(--border);
   color: var(--green);
@@ -923,77 +936,77 @@ body {
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
-.prf-cn {
+#section-profitability .prf-cn {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 15px; font-weight: 700; letter-spacing: .05em;
   text-transform: uppercase; color: var(--white); flex: 1;
   min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.prf-cbadge {
+#section-profitability .prf-cbadge {
   font-size: 9px; font-weight: 700; letter-spacing: .07em;
   text-transform: uppercase; padding: 2px 8px; border-radius: 999px;
   flex-shrink: 0;
 }
-.prf-b-act { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
-.prf-b-win { background: var(--amber-dim);  color: var(--amber); border: 1px solid rgba(224,154,46,0.3); }
-.prf-b-new { background: var(--blue-dim);   color: var(--blue);  border: 1px solid rgba(74,158,221,0.3); }
+#section-profitability .prf-b-act { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
+#section-profitability .prf-b-win { background: var(--amber-dim);  color: var(--amber); border: 1px solid var(--amber-border); }
+#section-profitability .prf-b-new { background: var(--blue-dim);   color: var(--blue);  border: 1px solid var(--blue-border); }
 
-.prf-cnums { display: flex; gap: 18px; align-items: center; }
-.prf-cnum { text-align: right; }
-.prf-cnum .v {
+#section-profitability .prf-cnums { display: flex; gap: 18px; align-items: center; }
+#section-profitability .prf-cnum { text-align: right; }
+#section-profitability .prf-cnum .v {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 15px; font-weight: 700;
 }
-.prf-cnum .l {
+#section-profitability .prf-cnum .l {
   font-size: 9px; color: var(--muted);
   text-transform: uppercase; letter-spacing: .05em;
 }
-.prf-vc { color: var(--red); }
-.prf-vs { color: var(--white); }
-.prf-vg { color: var(--green); }
+#section-profitability .prf-vc { color: var(--red); }
+#section-profitability .prf-vs { color: var(--white); }
+#section-profitability .prf-vg { color: var(--green); }
 
 /* — Margin pill — */
-.prf-mpill {
+#section-profitability .prf-mpill {
   padding: 4px 10px; border-radius: 999px;
   font-size: 11px; font-weight: 700;
   font-family: 'Barlow Condensed', sans-serif;
   letter-spacing: .04em; min-width: 50px; text-align: center;
 }
-.prf-mp-hi { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
-.prf-mp-md { background: var(--amber-dim);  color: var(--amber); border: 1px solid rgba(224,154,46,0.3); }
-.prf-mp-lo { background: var(--red-dim);    color: var(--red);   border: 1px solid rgba(224,82,82,0.3); }
+#section-profitability .prf-mp-hi { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
+#section-profitability .prf-mp-md { background: var(--amber-dim);  color: var(--amber); border: 1px solid var(--amber-border); }
+#section-profitability .prf-mp-lo { background: var(--red-dim);    color: var(--red);   border: 1px solid var(--red-border); }
 
 /* — Card action buttons (edit pencil, delete bin) on header & rows — */
-.prf-iconbtn {
+#section-profitability .prf-iconbtn {
   width: 26px; height: 26px; border-radius: 6px;
   border: 1px solid var(--border-dim); background: transparent;
   color: var(--muted); cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
   transition: all .15s; flex-shrink: 0;
 }
-.prf-iconbtn:hover { color: var(--green); border-color: var(--green); background: var(--green-glow); }
-.prf-iconbtn.danger:hover { color: var(--red); border-color: var(--red); background: var(--red-dim); }
+#section-profitability .prf-iconbtn:hover { color: var(--green); border-color: var(--green); background: var(--green-glow); }
+#section-profitability .prf-iconbtn.danger:hover { color: var(--red); border-color: var(--red); background: var(--red-dim); }
 
-.prf-chev {
+#section-profitability .prf-chev {
   font-size: 10px; color: var(--muted); transition: transform .2s;
   flex-shrink: 0; margin-left: 4px;
 }
-.prf-cc.open .prf-chev { transform: rotate(180deg); }
+#section-profitability .prf-cc.open .prf-chev { transform: rotate(180deg); }
 
 /* — Service body (revealed when card is open) — */
-.prf-sbody {
+#section-profitability .prf-sbody {
   display: none; border-top: 1px solid var(--border-dim);
 }
-.prf-cc.open .prf-sbody { display: block; }
-.prf-ret-notice {
+#section-profitability .prf-cc.open .prf-sbody { display: block; }
+#section-profitability .prf-ret-notice {
   padding: 8px 18px; background: var(--purple-dim);
   border-bottom: 1px solid rgba(155,109,255,0.15);
   font-size: 11px; color: var(--purple);
 }
 
 /* — Service line table — */
-.prf-stbl { width: 100%; border-collapse: collapse; }
-.prf-stbl thead th {
+#section-profitability .prf-stbl { width: 100%; border-collapse: collapse; }
+#section-profitability .prf-stbl thead th {
   padding: 8px 14px;
   font-size: 9px; font-weight: 700;
   letter-spacing: .1em; text-transform: uppercase;
@@ -1002,32 +1015,32 @@ body {
   border-bottom: 1px solid var(--border-dim);
   text-align: right;
 }
-.prf-stbl thead th:first-child  { text-align: left; width: 95px; }
-.prf-stbl thead th:nth-child(2) { text-align: left; }
-.prf-stbl thead th:last-child   { width: 80px; }
-.prf-stbl tbody tr:hover td { background: rgba(255,255,255,0.015); }
-.prf-stbl tbody td {
+#section-profitability .prf-stbl thead th:first-child { text-align: left; width: 95px; }
+#section-profitability .prf-stbl thead th:nth-child(2) { text-align: left; }
+#section-profitability .prf-stbl thead th:last-child { width: 80px; }
+#section-profitability .prf-stbl tbody tr:hover td { background: var(--row-hover); }
+#section-profitability .prf-stbl tbody td {
   padding: 9px 14px; border-bottom: 1px solid var(--border-dim);
   vertical-align: middle; font-size: 13px;
 }
-.prf-stbl tbody tr:last-child td { border-bottom: none; }
-.prf-sn .n { font-weight: 500; color: var(--white); }
-.prf-sn .d { font-size: 11px; color: var(--muted); margin-top: 2px; }
-.prf-nr {
+#section-profitability .prf-stbl tbody tr:last-child td { border-bottom: none; }
+#section-profitability .prf-sn .n { font-weight: 500; color: var(--white); }
+#section-profitability .prf-sn .d { font-size: 11px; color: var(--muted); margin-top: 2px; }
+#section-profitability .prf-nr {
   text-align: right;
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 14px; font-weight: 600;
 }
-.prf-nc { color: var(--red); }
-.prf-ns { color: var(--white); font-weight: 700; }
-.prf-ng { color: var(--green); font-weight: 700; }
-.prf-nb { color: var(--muted); }
-.prf-pend { color: var(--muted); font-size: 11px; font-style: italic; }
+#section-profitability .prf-nc { color: var(--red); }
+#section-profitability .prf-ns { color: var(--white); font-weight: 700; }
+#section-profitability .prf-ng { color: var(--green); font-weight: 700; }
+#section-profitability .prf-nb { color: var(--muted); }
+#section-profitability .prf-pend { color: var(--muted); font-size: 11px; font-style: italic; }
 
 /* — Inline service edit row (replaces a row when editing/adding) — */
-.prf-erow td { background: rgba(82,176,46,0.04); }
+#section-profitability .prf-erow td { background: rgba(82,176,46,0.04); }
 .prf-erow input,
-.prf-erow select {
+#section-profitability .prf-erow select {
   width: 100%; padding: 5px 8px;
   background: var(--dark); color: var(--white);
   border: 1px solid var(--border); border-radius: 6px;
@@ -1035,29 +1048,29 @@ body {
   outline: none; transition: border-color .15s;
 }
 .prf-erow input:focus,
-.prf-erow select:focus { border-color: var(--green); }
-.prf-erow input[type="number"] {
+#section-profitability .prf-erow select:focus { border-color: var(--green); }
+#section-profitability .prf-erow input[type="number"] {
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 700; text-align: right;
 }
-.prf-erow .prf-eactions { display: flex; gap: 4px; justify-content: flex-end; }
+#section-profitability .prf-erow .prf-eactions { display: flex; gap: 4px; justify-content: flex-end; }
 
 /* — Add-service inline trigger row (last row in service table when card open) — */
-.prf-arow td {
+#section-profitability .prf-arow td {
   background: rgba(0,0,0,0.15);
   text-align: center; padding: 8px 14px;
 }
-.prf-arow button {
+#section-profitability .prf-arow button {
   background: transparent; border: 1px dashed var(--border);
   color: var(--muted); padding: 5px 14px; border-radius: 999px;
   font-size: 11px; font-family: 'Instrument Sans', sans-serif;
   cursor: pointer; transition: all .15s;
   display: inline-flex; align-items: center; gap: 6px;
 }
-.prf-arow button:hover { color: var(--green); border-color: var(--green); }
+#section-profitability .prf-arow button:hover { color: var(--green); border-color: var(--green); }
 
 /* — Total row — */
-.prf-trow td {
+#section-profitability .prf-trow td {
   background: rgba(82,176,46,0.07);
   border-top: 1px solid var(--green-line) !important;
   border-bottom: none !important;
@@ -1067,23 +1080,23 @@ body {
   letter-spacing: .04em; text-transform: uppercase;
   color: var(--white);
 }
-.prf-trow td.prf-nr { font-size: 15px; }
+#section-profitability .prf-trow td.prf-nr { font-size: 15px; }
 
 /* — Xero reconciliation row — */
-.prf-xrow td {
+#section-profitability .prf-xrow td {
   background: rgba(0,0,0,0.25);
   border-top: 1px dashed var(--border) !important;
   border-bottom: none !important;
   padding: 8px 14px;
 }
-.prf-xlbl { font-size: 10px; color: var(--muted); }
-.prf-xctrl { display: flex; align-items: center; gap: 7px; justify-content: flex-end; flex-wrap: wrap; }
-.prf-xcalc { font-size: 10px; color: var(--muted); }
-.prf-xcalc strong {
+#section-profitability .prf-xlbl { font-size: 10px; color: var(--muted); }
+#section-profitability .prf-xctrl { display: flex; align-items: center; gap: 7px; justify-content: flex-end; flex-wrap: wrap; }
+#section-profitability .prf-xcalc { font-size: 10px; color: var(--muted); }
+#section-profitability .prf-xcalc strong {
   font-family: 'Barlow Condensed', sans-serif;
   color: var(--white); font-size: 13px;
 }
-.prf-xinput {
+#section-profitability .prf-xinput {
   width: 105px; padding: 4px 7px;
   background: var(--dark); border: 1px solid var(--border);
   border-radius: 6px; color: var(--white);
@@ -1091,82 +1104,82 @@ body {
   font-size: 14px; font-weight: 700; text-align: right;
   outline: none; transition: border-color .15s;
 }
-.prf-xinput:focus { border-color: var(--green); }
-.prf-xst {
+#section-profitability .prf-xinput:focus { border-color: var(--green); }
+#section-profitability .prf-xst {
   font-size: 9px; font-weight: 700; padding: 3px 8px;
   border-radius: 999px; letter-spacing: .04em; white-space: nowrap;
 }
-.prf-xsp { background: var(--border-dim); color: var(--muted); }
-.prf-xsm { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
-.prf-xsc { background: var(--amber-dim);  color: var(--amber); }
-.prf-xsd { background: var(--red-dim);    color: var(--red); }
-.prf-xdelta { font-size: 11px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; }
-.prf-xdp { color: var(--amber); }
-.prf-xdn { color: var(--red); }
+#section-profitability .prf-xsp { background: var(--border-dim); color: var(--muted); }
+#section-profitability .prf-xsm { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
+#section-profitability .prf-xsc { background: var(--amber-dim);  color: var(--amber); }
+#section-profitability .prf-xsd { background: var(--red-dim);    color: var(--red); }
+#section-profitability .prf-xdelta { font-size: 11px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; }
+#section-profitability .prf-xdp { color: var(--amber); }
+#section-profitability .prf-xdn { color: var(--red); }
 
 /* — Grand total card (bottom of section) — */
-.prf-gtot {
+#section-profitability .prf-gtot {
   background: var(--card); border: 1px solid var(--green-line);
   border-radius: var(--radius);
   padding: 18px 24px; display: flex; align-items: center; gap: 0;
   overflow: hidden; flex-wrap: wrap;
 }
-.prf-gtlbl { flex: 1; padding-right: 24px; border-right: 1px solid var(--border); min-width: 220px; }
-.prf-gtlbl strong {
+#section-profitability .prf-gtlbl { flex: 1; padding-right: 24px; border-right: 1px solid var(--border); min-width: 220px; }
+#section-profitability .prf-gtlbl strong {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 18px; font-weight: 800;
   letter-spacing: .06em; text-transform: uppercase; display: block;
 }
-.prf-gtlbl strong span { color: var(--green); }
-.prf-gtlbl p { font-size: 10px; color: var(--muted); margin-top: 3px; }
-.prf-gtstats { display: flex; flex-wrap: wrap; }
-.prf-gtst { padding: 0 22px; border-right: 1px solid var(--border); text-align: center; }
-.prf-gtst:last-child { border-right: none; padding-right: 0; }
-.prf-gtst .v {
+#section-profitability .prf-gtlbl strong span { color: var(--green); }
+#section-profitability .prf-gtlbl p { font-size: 10px; color: var(--muted); margin-top: 3px; }
+#section-profitability .prf-gtstats { display: flex; flex-wrap: wrap; }
+#section-profitability .prf-gtst { padding: 0 22px; border-right: 1px solid var(--border); text-align: center; }
+#section-profitability .prf-gtst:last-child { border-right: none; padding-right: 0; }
+#section-profitability .prf-gtst .v {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 24px; font-weight: 800; display: block;
   letter-spacing: .02em;
 }
-.prf-gtst .l {
+#section-profitability .prf-gtst .l {
   font-size: 9px; color: var(--muted);
   text-transform: uppercase; letter-spacing: .08em;
 }
 
 /* — Empty state (no clients yet, but lists exist with rows so seed banner won't show) — */
-.prf-empty {
+#section-profitability .prf-empty {
   background: var(--card); border: 1px dashed var(--border-dim);
   border-radius: var(--radius); padding: 50px 30px; text-align: center;
 }
-.prf-empty h3 {
+#section-profitability .prf-empty h3 {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 18px; font-weight: 700;
   letter-spacing: .05em; text-transform: uppercase;
   color: var(--white); margin-bottom: 6px;
 }
-.prf-empty p { color: var(--muted); font-size: 13px; }
+#section-profitability .prf-empty p { color: var(--muted); font-size: 13px; }
 
 /* — Profitability modal (mirrors mil-modal pattern, slightly wider for forms) — */
-.prf-modal-bg {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+#section-profitability .prf-modal-bg {
+  position: fixed; inset: 0; background: var(--overlay);
   display: none; align-items: center; justify-content: center;
   z-index: 1500; animation: fadeIn .15s ease;
 }
-.prf-modal-bg.show { display: flex; }
-.prf-modal {
+#section-profitability .prf-modal-bg.show { display: flex; }
+#section-profitability .prf-modal {
   width: 100%; max-width: 480px; margin: 20px;
   background: var(--card); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 24px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+  box-shadow: 0 20px 50px var(--shadow-heavy);
   max-height: 90vh; overflow-y: auto;
 }
-.prf-modal h3 {
+#section-profitability .prf-modal h3 {
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 700; font-size: 17px;
   letter-spacing: .06em; text-transform: uppercase; margin-bottom: 14px;
 }
-.prf-modal p { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
-.prf-form-grp { margin-bottom: 14px; }
-.prf-form-grp label {
+#section-profitability .prf-modal p { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+#section-profitability .prf-form-grp { margin-bottom: 14px; }
+#section-profitability .prf-form-grp label {
   display: block;
   font-size: 10px; color: var(--muted);
   text-transform: uppercase; letter-spacing: .07em;
@@ -1174,7 +1187,7 @@ body {
 }
 .prf-form-grp input,
 .prf-form-grp select,
-.prf-form-grp textarea {
+#section-profitability .prf-form-grp textarea {
   width: 100%; padding: 8px 12px;
   background: var(--dark); color: var(--white);
   border: 1px solid var(--border); border-radius: var(--radius-sm);
@@ -1183,16 +1196,16 @@ body {
 }
 .prf-form-grp input:focus,
 .prf-form-grp select:focus,
-.prf-form-grp textarea:focus { border-color: var(--green); }
-.prf-form-grp textarea { resize: vertical; min-height: 70px; }
-.prf-mm-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+#section-profitability .prf-form-grp textarea:focus { border-color: var(--green); }
+#section-profitability .prf-form-grp textarea { resize: vertical; min-height: 70px; }
+#section-profitability .prf-mm-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
 
 /* — Mobile/tablet adjustments — */
 @media (max-width: 900px) {
-  .prf-cnums .prf-cnum:not(.keep) { display: none; }
-  .prf-srch input { width: 140px; }
-  .prf-gtlbl { border-right: none; padding-right: 0; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border); }
-  .prf-gtst { padding: 0 14px; }
+#section-profitability .prf-cnums .prf-cnum:not(.keep) { display: none; }
+#section-profitability .prf-srch input { width: 140px; }
+#section-profitability .prf-gtlbl { border-right: none; padding-right: 0; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border); }
+#section-profitability .prf-gtst { padding: 0 14px; }
 }
 
 
@@ -1208,14 +1221,14 @@ body {
    ╚═══════════════════════════════════════════════════════════════════╝ */
 
 /* — Section wrapper that holds the whole tracker — */
-.mil-wrap { display: flex; flex-direction: column; gap: 18px; }
+#section-mileage .mil-wrap { display: flex; flex-direction: column; gap: 18px; }
 
 /* — Section toolbar (lives in the section head, holds refresh button) — */
-.mil-head-actions {
+#section-mileage .mil-head-actions {
   display: flex; gap: 8px; align-items: center;
   margin-top: 10px;
 }
-.mil-refresh {
+#section-mileage .mil-refresh {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 6px 12px; border-radius: var(--radius-sm);
   background: var(--card); border: 1px solid var(--border);
@@ -1223,45 +1236,44 @@ body {
   font-family: 'Instrument Sans', sans-serif;
   transition: all .15s ease;
 }
-.mil-refresh:hover:not(:disabled) { color: var(--green); border-color: var(--green); }
-.mil-refresh:disabled { opacity: .5; cursor: not-allowed; }
-.mil-refresh svg { transition: transform .4s ease; }
-.mil-refresh.spinning svg { animation: milSpin 1s linear infinite; }
-@keyframes milSpin { to { transform: rotate(360deg); } }
-.mil-last-sync { font-size: 11px; color: var(--muted); margin-left: 4px; }
+#section-mileage .mil-refresh:hover:not(:disabled) { color: var(--green); border-color: var(--green); }
+#section-mileage .mil-refresh:disabled { opacity: .5; cursor: not-allowed; }
+#section-mileage .mil-refresh svg { transition: transform .4s ease; }
+#section-mileage .mil-refresh.spinning svg { animation: spin 1s linear infinite; }
+#section-mileage .mil-last-sync { font-size: 11px; color: var(--muted); margin-left: 4px; }
 
 /* — Summary strip (4 KPI cards across the top) — */
-.mil-kpis {
+#section-mileage .mil-kpis {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
 }
-.mil-kpi {
+#section-mileage .mil-kpi {
   background: var(--card);
   border: 1px solid var(--border-dim);
   border-radius: var(--radius);
   padding: 16px 18px;
   transition: border-color .2s ease;
 }
-.mil-kpi:hover { border-color: var(--border); }
-.mil-kpi .k-label {
+#section-mileage .mil-kpi:hover { border-color: var(--border); }
+#section-mileage .mil-kpi .k-label {
   font-size: 9px; color: var(--muted);
   letter-spacing: .12em; text-transform: uppercase;
   margin-bottom: 4px;
 }
-.mil-kpi .k-value {
+#section-mileage .mil-kpi .k-value {
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 800; font-size: 28px;
   letter-spacing: .02em;
   color: var(--green);
   line-height: 1.1;
 }
-.mil-kpi.combined .k-value { color: var(--white); }
-.mil-kpi.tax .k-value { color: var(--amber); }
-.mil-kpi .k-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+#section-mileage .mil-kpi.combined .k-value { color: var(--white); }
+#section-mileage .mil-kpi.tax .k-value { color: var(--amber); }
+#section-mileage .mil-kpi .k-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
 /* — Tabs — */
-.mil-tabs {
+#section-mileage .mil-tabs {
   display: flex; gap: 2px;
   background: var(--card);
   border: 1px solid var(--border-dim);
@@ -1269,7 +1281,7 @@ body {
   padding: 4px;
   width: fit-content;
 }
-.mil-tab {
+#section-mileage .mil-tab {
   padding: 8px 18px;
   font-size: 12px; font-weight: 600;
   color: var(--muted);
@@ -1281,54 +1293,54 @@ body {
   letter-spacing: .03em;
   transition: all .15s ease;
 }
-.mil-tab:hover { color: var(--white); }
-.mil-tab.active {
+#section-mileage .mil-tab:hover { color: var(--white); }
+#section-mileage .mil-tab.active {
   background: var(--green-glow);
   color: var(--green);
   box-shadow: inset 0 0 0 1px var(--border);
 }
 
 /* — Tab panels — */
-.mil-panel { display: none; }
-.mil-panel.active { display: block; animation: fadeIn .2s ease; }
+#section-mileage .mil-panel { display: none; }
+#section-mileage .mil-panel.active { display: block; animation: fadeIn .2s ease; }
 
 /* — Cards specific to mileage section — */
-.mil-card {
+#section-mileage .mil-card {
   background: var(--card);
   border: 1px solid var(--border-dim);
   border-radius: var(--radius);
   padding: 22px;
 }
-.mil-card-head {
+#section-mileage .mil-card-head {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 16px; gap: 12px; flex-wrap: wrap;
 }
-.mil-card-head h3 {
+#section-mileage .mil-card-head h3 {
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 700; font-size: 16px;
   letter-spacing: .07em; text-transform: uppercase;
   color: var(--white);
 }
-.mil-card-head .count {
+#section-mileage .mil-card-head .count {
   font-size: 11px; color: var(--muted);
   font-family: 'Barlow Condensed', sans-serif;
   letter-spacing: .05em; text-transform: uppercase;
 }
 
 /* — Add Journey form — */
-.mil-form {
+#section-mileage .mil-form {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px 18px;
 }
-.mil-field { display: flex; flex-direction: column; gap: 6px; }
-.mil-field.full { grid-column: 1 / -1; }
-.mil-field label {
+#section-mileage .mil-field { display: flex; flex-direction: column; gap: 6px; }
+#section-mileage .mil-field.full { grid-column: 1 / -1; }
+#section-mileage .mil-field label {
   font-size: 10px; color: var(--muted);
   letter-spacing: .08em; text-transform: uppercase;
   font-weight: 600;
 }
-.mil-input, .mil-select {
+#section-mileage .mil-input, #section-mileage .mil-select {
   width: 100%;
   padding: 9px 12px;
   background: var(--dark);
@@ -1340,14 +1352,14 @@ body {
   outline: none;
   transition: border-color .15s ease;
 }
-.mil-input:focus, .mil-select:focus {
+#section-mileage .mil-input:focus, #section-mileage .mil-select:focus {
   border-color: var(--green);
   background: var(--black);
 }
-.mil-input::placeholder { color: var(--muted); }
+#section-mileage .mil-input::placeholder { color: var(--muted); }
 
 /* Native select arrow tinted to muted */
-.mil-select {
+#section-mileage .mil-select {
   appearance: none;
   -webkit-appearance: none;
   background-image:
@@ -1357,14 +1369,14 @@ body {
   padding-right: 32px;
 }
 
-.mil-form-actions {
+#section-mileage .mil-form-actions {
   grid-column: 1 / -1;
   display: flex; justify-content: flex-end; gap: 8px;
   margin-top: 4px;
 }
 
 /* — HMRC rate hint banner — */
-.mil-hmrc-hint {
+#section-mileage .mil-hmrc-hint {
   background: var(--green-glow);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -1374,14 +1386,14 @@ body {
   display: flex; align-items: center; gap: 10px;
   flex-wrap: wrap;
 }
-.mil-hmrc-hint strong { color: var(--white); }
-.mil-hmrc-hint .sep { color: var(--border); }
+#section-mileage .mil-hmrc-hint strong { color: var(--white); }
+#section-mileage .mil-hmrc-hint .sep { color: var(--border); }
 
 /* — Driver filter chips (Journey Log) — */
-.mil-filter {
+#section-mileage .mil-filter {
   display: flex; gap: 6px; margin-bottom: 14px;
 }
-.mil-chip {
+#section-mileage .mil-chip {
   padding: 5px 14px;
   font-size: 11px; font-weight: 600;
   border-radius: 999px;
@@ -1392,20 +1404,20 @@ body {
   font-family: 'Instrument Sans', sans-serif;
   transition: all .15s ease;
 }
-.mil-chip:hover { color: var(--white); border-color: var(--border); }
-.mil-chip.active {
+#section-mileage .mil-chip:hover { color: var(--white); border-color: var(--border); }
+#section-mileage .mil-chip.active {
   background: var(--green-glow);
   color: var(--green);
   border-color: var(--green);
 }
 
 /* — Tables (shared) — */
-.mil-tbl-wrap { overflow-x: auto; border-radius: var(--radius-sm); }
-.mil-tbl {
+#section-mileage .mil-tbl-wrap { overflow-x: auto; border-radius: var(--radius-sm); }
+#section-mileage .mil-tbl {
   width: 100%; border-collapse: collapse;
   font-size: 13px;
 }
-.mil-tbl thead th {
+#section-mileage .mil-tbl thead th {
   padding: 9px 12px;
   font-size: 9px; font-weight: 700;
   letter-spacing: .12em; text-transform: uppercase;
@@ -1415,37 +1427,37 @@ body {
   text-align: left;
   white-space: nowrap;
 }
-.mil-tbl thead th.num { text-align: right; }
-.mil-tbl tbody td {
+#section-mileage .mil-tbl thead th.num { text-align: right; }
+#section-mileage .mil-tbl tbody td {
   padding: 10px 12px;
   border-bottom: 1px solid var(--border-dim);
   vertical-align: middle;
 }
-.mil-tbl tbody tr:last-child td { border-bottom: none; }
-.mil-tbl tbody tr:hover td { background: rgba(255,255,255,0.015); }
-.mil-tbl tbody td.num {
+#section-mileage .mil-tbl tbody tr:last-child td { border-bottom: none; }
+#section-mileage .mil-tbl tbody tr:hover td { background: var(--row-hover); }
+#section-mileage .mil-tbl tbody td.num {
   text-align: right;
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 600; font-size: 14px;
 }
-.mil-tbl tbody td.num.amt { color: var(--green); font-weight: 700; }
-.mil-tbl tbody td.actions { text-align: right; width: 1%; white-space: nowrap; }
+#section-mileage .mil-tbl tbody td.num.amt { color: var(--green); font-weight: 700; }
+#section-mileage .mil-tbl tbody td.actions { text-align: right; width: 1%; white-space: nowrap; }
 
 /* Driver pill in tables */
-.mil-driver-pill {
+#section-mileage .mil-driver-pill {
   display: inline-block;
   padding: 2px 8px;
   border-radius: 999px;
   font-size: 10px; font-weight: 700;
   letter-spacing: .04em;
   background: var(--blue-dim); color: var(--blue);
-  border: 1px solid rgba(74,158,221,0.3);
+  border: 1px solid var(--blue-border);
 }
-.mil-driver-pill.philip { background: var(--green-glow); color: var(--green); border-color: var(--border); }
-.mil-driver-pill.jack   { background: var(--purple-dim); color: var(--purple); border-color: rgba(155,109,255,0.3); }
+#section-mileage .mil-driver-pill.philip { background: var(--green-glow); color: var(--green); border-color: var(--border); }
+#section-mileage .mil-driver-pill.jack { background: var(--purple-dim); color: var(--purple); border-color: var(--purple-border); }
 
 /* Rate pill (45p / 25p / Mixed) */
-.mil-rate-pill {
+#section-mileage .mil-rate-pill {
   display: inline-block;
   padding: 1px 7px; border-radius: 4px;
   font-size: 10px; font-weight: 700;
@@ -1453,141 +1465,144 @@ body {
   letter-spacing: .04em;
   background: var(--border-dim); color: var(--muted);
 }
-.mil-rate-pill.r45 { color: var(--green); background: var(--green-glow); }
-.mil-rate-pill.r25 { color: var(--amber); background: var(--amber-dim); }
-.mil-rate-pill.rm  { color: var(--blue);  background: var(--blue-dim); }
+#section-mileage .mil-rate-pill.r45 { color: var(--green); background: var(--green-glow); }
+#section-mileage .mil-rate-pill.r25 { color: var(--amber); background: var(--amber-dim); }
+#section-mileage .mil-rate-pill.rm { color: var(--blue);  background: var(--blue-dim); }
 
 /* — Table action icon buttons — */
-.mil-icon-btn {
+#section-mileage .mil-icon-btn {
   width: 28px; height: 28px;
   display: inline-flex; align-items: center; justify-content: center;
   background: transparent; border: 1px solid var(--border-dim);
   border-radius: 6px; color: var(--muted);
   cursor: pointer; transition: all .15s ease;
 }
-.mil-icon-btn:hover { color: var(--white); border-color: var(--border); }
-.mil-icon-btn.danger:hover { color: var(--red); border-color: var(--red); }
+#section-mileage .mil-icon-btn:hover { color: var(--white); border-color: var(--border); }
+#section-mileage .mil-icon-btn.danger:hover { color: var(--red); border-color: var(--red); }
 
-/* ── Phase 5.5: Claimed status — pills, checkboxes, claim mode tools ── */
+/* ╔═══════════════════════════════════════════════════════════════════╗
+   ║   MILEAGE — CLAIMED STATUS (Phase 5.5)                            ║
+   ║   Pills, checkboxes, claim mode tools for the journey log.        ║
+   ╚═══════════════════════════════════════════════════════════════════╝ */
 
 /* Filter row: separator + label for the new status filter group */
-.mil-filter-sep {
+#section-mileage .mil-filter-sep {
   width: 1px; height: 18px; background: var(--border-dim);
   display: inline-block; margin: 0 6px;
 }
-.mil-filter-label {
+#section-mileage .mil-filter-label {
   font-size: 10px; color: var(--muted); text-transform: uppercase;
   letter-spacing: .08em; font-weight: 600;
   align-self: center; margin-right: 2px;
 }
 
 /* Claimed pill — sits in the new "Claimed" column */
-.mil-claimed-pill {
+#section-mileage .mil-claimed-pill {
   display: inline-block; padding: 3px 8px; border-radius: 999px;
   font-size: 10px; font-weight: 700; letter-spacing: .04em;
   white-space: nowrap;
 }
-.mil-claimed-pill.yes { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
-.mil-claimed-link {
+#section-mileage .mil-claimed-pill.yes { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
+#section-mileage .mil-claimed-link {
   background: none; border: none; padding: 0;
   color: var(--muted); font-size: 11px; font-family: inherit;
   cursor: pointer; text-decoration: underline; text-decoration-color: var(--border-dim);
   transition: color .15s ease;
 }
-.mil-claimed-link:hover { color: var(--green); text-decoration-color: var(--green); }
+#section-mileage .mil-claimed-link:hover { color: var(--green); text-decoration-color: var(--green); }
 
 /* Indicator on rows that ARE claimed — subtle muted look */
-.mil-tbl tbody tr.is-claimed td { opacity: .72; }
-.mil-tbl tbody tr.is-claimed td.amt { color: var(--muted); }
+#section-mileage .mil-tbl tbody tr.is-claimed td { opacity: .72; }
+#section-mileage .mil-tbl tbody tr.is-claimed td.amt { color: var(--muted); }
 
 /* Checkbox column — hidden by default, revealed only in claim mode */
-.mil-tbl-check { width: 36px; padding: 0 0 0 14px !important; }
+#section-mileage .mil-tbl-check { width: 36px; padding: 0 0 0 14px !important; }
 .mil-tbl thead th.mil-tbl-check,
-.mil-tbl tbody td.mil-tbl-check { display: none; }
+#section-mileage .mil-tbl tbody td.mil-tbl-check { display: none; }
 #section-mileage.claim-mode .mil-tbl thead th.mil-tbl-check,
 #section-mileage.claim-mode .mil-tbl tbody td.mil-tbl-check { display: table-cell; }
 #section-mileage.claim-mode .mil-tbl tbody tr.is-claimed td.mil-tbl-check { visibility: hidden; }
-.mil-tbl input[type="checkbox"] {
+#section-mileage .mil-tbl input[type="checkbox"] {
   width: 16px; height: 16px; accent-color: var(--green);
   cursor: pointer; vertical-align: middle;
 }
 
 /* Selected row highlight */
-.mil-tbl tbody tr.row-selected td {
+#section-mileage .mil-tbl tbody tr.row-selected td {
   background: rgba(82, 176, 46, 0.06) !important;
 }
-.mil-tbl tbody tr.row-selected td:first-child {
+#section-mileage .mil-tbl tbody tr.row-selected td:first-child {
   box-shadow: inset 3px 0 0 0 var(--green);
 }
 
 /* Claim tools group in the card head */
-.mil-claim-tools {
+#section-mileage .mil-claim-tools {
   display: flex; align-items: center; gap: 8px;
   margin-left: auto; flex-wrap: wrap;
 }
-.mil-claim-tools .btn { padding: 5px 12px; font-size: 12px; }
-.mil-claim-tools .mil-claim-enter {
+#section-mileage .mil-claim-tools .btn { padding: 5px 12px; font-size: 12px; }
+#section-mileage .mil-claim-tools .mil-claim-enter {
   display: inline-flex; align-items: center; gap: 6px;
 }
-.mil-claim-counter {
+#section-mileage .mil-claim-counter {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 13px; font-weight: 700; letter-spacing: .04em;
   color: var(--green); text-transform: uppercase;
 }
-.mil-claim-tools .mil-claim-do:disabled {
+#section-mileage .mil-claim-tools .mil-claim-do:disabled {
   opacity: .45; cursor: not-allowed;
 }
 
 /* Unclaimed KPI pill — spans the full row underneath the four KPIs */
-.mil-kpi.unclaimed {
+#section-mileage .mil-kpi.unclaimed {
   grid-column: 1 / -1;
   display: flex; align-items: center; gap: 16px;
   background: var(--amber-dim);
   border-color: rgba(224, 154, 46, 0.3);
   padding: 12px 18px;
 }
-.mil-kpi.unclaimed .k-label {
+#section-mileage .mil-kpi.unclaimed .k-label {
   font-size: 10px; color: var(--amber); margin: 0;
   text-transform: uppercase; letter-spacing: .08em; font-weight: 700;
 }
-.mil-kpi.unclaimed .k-value {
+#section-mileage .mil-kpi.unclaimed .k-value {
   font-size: 22px; color: var(--amber); margin: 0;
   flex-shrink: 0;
 }
-.mil-kpi.unclaimed .k-sub {
+#section-mileage .mil-kpi.unclaimed .k-sub {
   font-size: 12px; color: var(--muted); margin: 0;
   flex: 1; text-align: right;
 }
 
 /* Monthly Summary — claimed split */
-.mil-month-claim {
+#section-mileage .mil-month-claim {
   display: flex; gap: 14px; justify-content: flex-end;
   padding: 10px 16px; border-top: 1px solid var(--border-dim);
   font-size: 11px;
 }
-.mil-month-claim .mc-item {
+#section-mileage .mil-month-claim .mc-item {
   display: inline-flex; align-items: center; gap: 6px;
   color: var(--muted);
 }
-.mil-month-claim .mc-item .mc-dot {
+#section-mileage .mil-month-claim .mc-item .mc-dot {
   width: 8px; height: 8px; border-radius: 50%;
 }
-.mil-month-claim .mc-item.claimed .mc-dot { background: var(--green); }
-.mil-month-claim .mc-item.unclaimed .mc-dot { background: var(--amber); }
-.mil-month-claim .mc-item strong {
+#section-mileage .mil-month-claim .mc-item.claimed .mc-dot { background: var(--green); }
+#section-mileage .mil-month-claim .mc-item.unclaimed .mc-dot { background: var(--amber); }
+#section-mileage .mil-month-claim .mc-item strong {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 13px; color: var(--white); font-weight: 700;
   margin-left: 2px;
 }
 
 /* — Empty-state row — */
-.mil-empty {
+#section-mileage .mil-empty {
   text-align: center;
   padding: 36px 18px;
   color: var(--muted);
   font-size: 13px;
 }
-.mil-empty .e-ic {
+#section-mileage .mil-empty .e-ic {
   width: 44px; height: 44px;
   margin: 0 auto 12px;
   border-radius: 12px;
@@ -1598,13 +1613,13 @@ body {
 }
 
 /* — Client distances list — */
-.mil-clients {
+#section-mileage .mil-clients {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 10px;
   margin-bottom: 18px;
 }
-.mil-client-row {
+#section-mileage .mil-client-row {
   display: flex; align-items: center;
   background: var(--dark);
   border: 1px solid var(--border-dim);
@@ -1613,13 +1628,13 @@ body {
   gap: 10px;
   transition: border-color .15s ease;
 }
-.mil-client-row:hover { border-color: var(--border); }
-.mil-client-row .cn {
+#section-mileage .mil-client-row:hover { border-color: var(--border); }
+#section-mileage .mil-client-row .cn {
   flex: 1; min-width: 0;
   font-size: 13px; color: var(--white);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.mil-client-row .cm {
+#section-mileage .mil-client-row .cm {
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 700; font-size: 14px;
   color: var(--green);
@@ -1628,10 +1643,10 @@ body {
   border-radius: 999px;
   white-space: nowrap;
 }
-.mil-client-row .ca { display: flex; gap: 4px; }
+#section-mileage .mil-client-row .ca { display: flex; gap: 4px; }
 
 /* — Add Client inline form — */
-.mil-add-client-form {
+#section-mileage .mil-add-client-form {
   display: grid;
   grid-template-columns: 2fr 1fr auto;
   gap: 10px;
@@ -1639,93 +1654,93 @@ body {
 }
 
 /* — Monthly summary cards — */
-.mil-month-grid {
+#section-mileage .mil-month-grid {
   display: flex; flex-direction: column; gap: 10px;
 }
-.mil-month {
+#section-mileage .mil-month {
   background: var(--card);
   border: 1px solid var(--border-dim);
   border-radius: var(--radius);
   overflow: hidden;
 }
-.mil-month-head {
+#section-mileage .mil-month-head {
   padding: 12px 18px;
   display: flex; align-items: center; gap: 16px;
   border-bottom: 1px solid var(--border-dim);
   background: rgba(0,0,0,0.2);
   flex-wrap: wrap;
 }
-.mil-month-head .mh-title {
+#section-mileage .mil-month-head .mh-title {
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 700; font-size: 15px;
   letter-spacing: .08em; text-transform: uppercase;
   color: var(--white);
 }
-.mil-month-head .mh-stat {
+#section-mileage .mil-month-head .mh-stat {
   font-size: 11px; color: var(--muted);
   letter-spacing: .04em;
 }
-.mil-month-head .mh-stat strong {
+#section-mileage .mil-month-head .mh-stat strong {
   font-family: 'Barlow Condensed', sans-serif;
   color: var(--white); font-size: 14px; margin-left: 4px;
 }
-.mil-month-head .mh-stat.amt strong { color: var(--green); }
-.mil-month-head .mh-spacer { flex: 1; }
+#section-mileage .mil-month-head .mh-stat.amt strong { color: var(--green); }
+#section-mileage .mil-month-head .mh-spacer { flex: 1; }
 
-.mil-month-split {
+#section-mileage .mil-month-split {
   padding: 12px 18px;
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 16px;
   font-size: 12px;
 }
-.mil-month-split .ms-driver {
+#section-mileage .mil-month-split .ms-driver {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 4px;
 }
-.mil-month-split .ms-val {
+#section-mileage .mil-month-split .ms-val {
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 700; font-size: 16px;
   color: var(--white);
 }
-.mil-month-split .ms-val .miles {
+#section-mileage .mil-month-split .ms-val .miles {
   color: var(--muted); font-size: 12px; font-weight: 500; margin-left: 6px;
 }
-.mil-month-split .ms-val.amt { color: var(--green); }
+#section-mileage .mil-month-split .ms-val.amt { color: var(--green); }
 
 /* — Export tab — */
-.mil-export-grid {
+#section-mileage .mil-export-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
 }
-.mil-export-card .mec-head {
+#section-mileage .mil-export-card .mec-head {
   display: flex; align-items: center; gap: 10px;
   margin-bottom: 4px;
 }
-.mil-export-card .mec-head h4 {
+#section-mileage .mil-export-card .mec-head h4 {
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 700; font-size: 15px;
   letter-spacing: .07em; text-transform: uppercase;
 }
-.mil-export-card .mec-head .veh {
+#section-mileage .mil-export-card .mec-head .veh {
   font-size: 10px; color: var(--muted);
   letter-spacing: .05em;
 }
-.mil-export-card .mec-total {
+#section-mileage .mil-export-card .mec-total {
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 800; font-size: 24px;
   color: var(--green);
   margin-top: 6px;
 }
-.mil-export-card .mec-sub {
+#section-mileage .mil-export-card .mec-sub {
   font-size: 11px; color: var(--muted);
   margin-top: 2px;
 }
 
 /* HMRC compliance footnote */
-.mil-hmrc-note {
+#section-mileage .mil-hmrc-note {
   background: var(--card);
   border: 1px solid var(--border-dim);
   border-left: 3px solid var(--amber);
@@ -1734,10 +1749,10 @@ body {
   font-size: 12px; color: var(--muted);
   line-height: 1.6;
 }
-.mil-hmrc-note strong { color: var(--amber); display: block; margin-bottom: 4px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+#section-mileage .mil-hmrc-note strong { color: var(--amber); display: block; margin-bottom: 4px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
 
 /* Year totals row inside Export */
-.mil-year-totals {
+#section-mileage .mil-year-totals {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 10px;
@@ -1747,52 +1762,52 @@ body {
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-dim);
 }
-.mil-year-totals .yt-cell { text-align: center; }
-.mil-year-totals .yt-cell .l {
+#section-mileage .mil-year-totals .yt-cell { text-align: center; }
+#section-mileage .mil-year-totals .yt-cell .l {
   font-size: 9px; color: var(--muted);
   letter-spacing: .1em; text-transform: uppercase;
   margin-bottom: 3px;
 }
-.mil-year-totals .yt-cell .v {
+#section-mileage .mil-year-totals .yt-cell .v {
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 800; font-size: 20px;
   color: var(--white);
 }
-.mil-year-totals .yt-cell.acc .v { color: var(--green); }
-.mil-year-totals .yt-cell.tax .v { color: var(--amber); }
+#section-mileage .mil-year-totals .yt-cell.acc .v { color: var(--green); }
+#section-mileage .mil-year-totals .yt-cell.tax .v { color: var(--amber); }
 
 /* — Confirm modal (delete confirmations) — */
-.mil-modal-bg {
+#section-mileage .mil-modal-bg {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.65);
+  background: var(--overlay);
   display: none; align-items: center; justify-content: center;
   z-index: 1500;
   animation: fadeIn .15s ease;
 }
-.mil-modal-bg.show { display: flex; }
-.mil-modal {
+#section-mileage .mil-modal-bg.show { display: flex; }
+#section-mileage .mil-modal {
   width: 100%; max-width: 380px; margin: 20px;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 24px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+  box-shadow: 0 20px 50px var(--shadow-heavy);
 }
-.mil-modal h3 {
+#section-mileage .mil-modal h3 {
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 700; font-size: 17px;
   letter-spacing: .06em; text-transform: uppercase;
   margin-bottom: 8px;
 }
-.mil-modal p { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
-.mil-modal .mm-actions { display: flex; justify-content: flex-end; gap: 8px; }
+#section-mileage .mil-modal p { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+#section-mileage .mil-modal .mm-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .btn-danger {
   background: var(--red); border-color: var(--red); color: var(--white); font-weight: 700;
 }
 .btn-danger:hover { background: #c84545; border-color: #c84545; color: var(--white); }
 
 /* Inline edit input (for client distances) */
-.mil-edit-mi {
+#section-mileage .mil-edit-mi {
   width: 64px;
   padding: 3px 6px;
   background: var(--black);
@@ -1804,20 +1819,20 @@ body {
   text-align: right;
   outline: none;
 }
-.mil-edit-mi:focus { border-color: var(--green); }
+#section-mileage .mil-edit-mi:focus { border-color: var(--green); }
 
 /* Responsive collapses */
 @media (max-width: 880px) {
-  .mil-kpis { grid-template-columns: 1fr 1fr; }
-  .mil-form { grid-template-columns: 1fr; }
-  .mil-export-grid { grid-template-columns: 1fr; }
-  .mil-month-split { grid-template-columns: 1fr; }
-  .mil-add-client-form { grid-template-columns: 1fr; }
+#section-mileage .mil-kpis { grid-template-columns: 1fr 1fr; }
+#section-mileage .mil-form { grid-template-columns: 1fr; }
+#section-mileage .mil-export-grid { grid-template-columns: 1fr; }
+#section-mileage .mil-month-split { grid-template-columns: 1fr; }
+#section-mileage .mil-add-client-form { grid-template-columns: 1fr; }
 }
 @media (max-width: 520px) {
-  .mil-kpis { grid-template-columns: 1fr; }
-  .mil-tabs { width: 100%; overflow-x: auto; }
-  .mil-tab { flex: 1; white-space: nowrap; }
+#section-mileage .mil-kpis { grid-template-columns: 1fr; }
+#section-mileage .mil-tabs { width: 100%; overflow-x: auto; }
+#section-mileage .mil-tab { flex: 1; white-space: nowrap; }
 }
 /* ╔═══════════════════════════════════════════════════════════════════╗
    ║                                                                   ║
@@ -1852,8 +1867,7 @@ body {
 #section-clients .cli-refresh:hover:not(:disabled) { color: var(--green); border-color: var(--green); }
 #section-clients .cli-refresh:disabled { opacity: .5; cursor: not-allowed; }
 #section-clients .cli-refresh svg { transition: transform .4s ease; }
-#section-clients .cli-refresh.spinning svg { animation: cliSpin 1s linear infinite; }
-@keyframes cliSpin { to { transform: rotate(360deg); } }
+#section-clients .cli-refresh.spinning svg { animation: spin 1s linear infinite; }
 
 #section-clients .cli-last-sync { font-size: 11px; color: var(--muted); margin-left: auto; }
 
@@ -1907,8 +1921,8 @@ body {
   text-transform: uppercase; white-space: nowrap;
 }
 #section-clients .cli-st-active  { background: var(--green-glow); color: var(--green);  border: 1px solid var(--border); }
-#section-clients .cli-st-winding { background: var(--amber-dim);  color: var(--amber);  border: 1px solid rgba(224,154,46,0.3); }
-#section-clients .cli-st-new     { background: var(--blue-dim);   color: var(--blue);   border: 1px solid rgba(74,158,221,0.3); }
+#section-clients .cli-st-winding { background: var(--amber-dim);  color: var(--amber);  border: 1px solid var(--amber-border); }
+#section-clients .cli-st-new     { background: var(--blue-dim);   color: var(--blue);   border: 1px solid var(--blue-border); }
 
 /* — Hours-remaining pills (green ≥2 / amber 1–1.99 / red <1) — */
 #section-clients .cli-hp {
@@ -1917,8 +1931,8 @@ body {
   font-weight: 700; letter-spacing: .03em; min-width: 50px; text-align: center;
 }
 #section-clients .cli-hp-hi   { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
-#section-clients .cli-hp-md   { background: var(--amber-dim);  color: var(--amber); border: 1px solid rgba(224,154,46,0.3); }
-#section-clients .cli-hp-lo   { background: var(--red-dim);    color: var(--red);   border: 1px solid rgba(224,82,82,0.3); }
+#section-clients .cli-hp-md   { background: var(--amber-dim);  color: var(--amber); border: 1px solid var(--amber-border); }
+#section-clients .cli-hp-lo   { background: var(--red-dim);    color: var(--red);   border: 1px solid var(--red-border); }
 #section-clients .cli-hp-none { color: var(--muted); font-family: 'Instrument Sans', sans-serif; font-size: 11px; font-weight: 500; }
 
 /* — Avatar (matches prf-cav) — */
@@ -1965,7 +1979,7 @@ body {
   font-size: 13px; vertical-align: middle;
 }
 #section-clients .cli-tbl tbody tr:last-child td { border-bottom: none; }
-#section-clients .cli-tbl tbody tr:hover td { background: rgba(255,255,255,0.015); }
+#section-clients .cli-tbl tbody tr:hover td { background: var(--row-hover); }
 #section-clients .cli-tbl tbody td.num {
   text-align: right; font-family: 'Barlow Condensed', sans-serif;
   font-size: 14px; font-weight: 600;
@@ -2055,7 +2069,7 @@ body {
 
 /* — Modal (mirrors prf-modal pattern; separate ID so modules stay independent) — */
 #section-clients .cli-modal-bg {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+  position: fixed; inset: 0; background: var(--overlay);
   display: none; align-items: center; justify-content: center;
   z-index: 1500; animation: fadeIn .15s ease;
 }
@@ -2064,7 +2078,7 @@ body {
   width: 100%; max-width: 480px; margin: 20px;
   background: var(--card); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 24px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+  box-shadow: 0 20px 50px var(--shadow-heavy);
   max-height: 90vh; overflow-y: auto;
 }
 #section-clients .cli-modal h3 {
@@ -2094,15 +2108,17 @@ body {
 #section-clients .cli-form-grp textarea { resize: vertical; min-height: 70px; }
 #section-clients .cli-mm-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
 
-/* — Profitability section: "Manage in Directory" link (Phase 5 surgery) — */
-.prf-manage-link {
+/* ╔═══════════════════════════════════════════════════════════════════╗
+   ║   PROFITABILITY — "Manage in Directory" link (Phase 5)             ║
+   ╚═══════════════════════════════════════════════════════════════════╝ */
+#section-profitability .prf-manage-link {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 7px 14px; border-radius: 999px;
   background: transparent; color: var(--muted);
   border: 1px solid var(--border-dim); font-family: 'Instrument Sans', sans-serif;
   font-size: 12px; cursor: pointer; transition: all .15s;
 }
-.prf-manage-link:hover { color: var(--green); border-color: var(--green); background: var(--green-glow); }
+#section-profitability .prf-manage-link:hover { color: var(--green); border-color: var(--green); background: var(--green-glow); }
 
 /* — Mobile/tablet adjustments — */
 @media (max-width: 760px) {
@@ -2140,7 +2156,7 @@ body {
 #section-timesheets .tsh-refresh:hover:not(:disabled) { color: var(--green); border-color: var(--green); }
 #section-timesheets .tsh-refresh:disabled { opacity: .5; cursor: not-allowed; }
 #section-timesheets .tsh-refresh svg { transition: transform .4s ease; }
-#section-timesheets .tsh-refresh.spinning svg { animation: cliSpin 1s linear infinite; }
+#section-timesheets .tsh-refresh.spinning svg { animation: spin 1s linear infinite; }
 #section-timesheets .tsh-last-sync { font-size: 11px; color: var(--muted); margin-left: auto; }
 
 /* — Tabs (mirrors Mileage .mil-tab) — */
@@ -2293,7 +2309,7 @@ body {
   padding: 10px 12px; border-bottom: 1px solid var(--border-dim); vertical-align: middle;
 }
 #section-timesheets .tsh-tbl tbody tr:last-child td { border-bottom: none; }
-#section-timesheets .tsh-tbl tbody tr:hover td { background: rgba(255,255,255,0.015); }
+#section-timesheets .tsh-tbl tbody tr:hover td { background: var(--row-hover); }
 #section-timesheets .tsh-tbl tbody td.num {
   text-align: right; font-family: 'Barlow Condensed', sans-serif;
   font-weight: 600; font-size: 14px;
@@ -2306,7 +2322,7 @@ body {
   font-size: 10px; font-weight: 700; letter-spacing: .04em;
 }
 #section-timesheets .tsh-eng-pill.philip { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
-#section-timesheets .tsh-eng-pill.jack   { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(155,109,255,0.3); }
+#section-timesheets .tsh-eng-pill.jack   { background: var(--purple-dim); color: var(--purple); border: 1px solid var(--purple-border); }
 #section-timesheets .tsh-eng-pill.system { background: var(--border-dim); color: var(--muted); border: 1px solid var(--border-dim); }
 
 /* — Work Type pill (category) — */
@@ -2315,9 +2331,9 @@ body {
   font-size: 10px; font-weight: 700; letter-spacing: .04em; white-space: nowrap;
 }
 #section-timesheets .tsh-wt-remote    { background: var(--green-glow);  color: var(--green);  border: 1px solid var(--border); }
-#section-timesheets .tsh-wt-onsite    { background: var(--blue-dim);    color: var(--blue);   border: 1px solid rgba(74,158,221,0.3); }
-#section-timesheets .tsh-wt-project   { background: var(--amber-dim);   color: var(--amber);  border: 1px solid rgba(224,154,46,0.3); }
-#section-timesheets .tsh-wt-maint     { background: var(--purple-dim);  color: var(--purple);  border: 1px solid rgba(155,109,255,0.3); }
+#section-timesheets .tsh-wt-onsite    { background: var(--blue-dim);    color: var(--blue);   border: 1px solid var(--blue-border); }
+#section-timesheets .tsh-wt-project   { background: var(--amber-dim);   color: var(--amber);  border: 1px solid var(--amber-border); }
+#section-timesheets .tsh-wt-maint     { background: var(--purple-dim);  color: var(--purple);  border: 1px solid var(--purple-border); }
 #section-timesheets .tsh-wt-misc      { background: var(--border-dim);  color: var(--muted);  border: 1px solid var(--border-dim); }
 #section-timesheets .tsh-wt-pcsetup   { background: var(--teal-dim);    color: var(--teal);   border: 1px solid rgba(45,212,191,0.2); }
 
@@ -2421,7 +2437,7 @@ body {
 
 /* — Modal (mirrors CLI modal — independent element IDs) — */
 #section-timesheets .tsh-modal-bg {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+  position: fixed; inset: 0; background: var(--overlay);
   display: none; align-items: center; justify-content: center;
   z-index: 1500; animation: fadeIn .15s ease;
 }
@@ -2430,7 +2446,7 @@ body {
   width: 100%; max-width: 520px; margin: 20px;
   background: var(--card); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 24px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+  box-shadow: 0 20px 50px var(--shadow-heavy);
   max-height: 90vh; overflow-y: auto;
 }
 #section-timesheets .tsh-modal h3 {
@@ -2551,7 +2567,7 @@ body {
 }
 #section-settings .set-badge-role {
   background: var(--blue-dim); color: var(--blue);
-  border: 1px solid rgba(74,158,221,0.3);
+  border: 1px solid var(--blue-border);
 }
 #section-settings .set-badge-status {
   background: var(--green-glow); color: var(--green);
@@ -2707,7 +2723,7 @@ body {
 #section-compliance .cmp-refresh:hover:not(:disabled) { color: var(--green); border-color: var(--green); }
 #section-compliance .cmp-refresh:disabled { opacity: .5; cursor: not-allowed; }
 #section-compliance .cmp-refresh svg { transition: transform .4s ease; }
-#section-compliance .cmp-refresh.spinning svg { animation: cliSpin 1s linear infinite; }
+#section-compliance .cmp-refresh.spinning svg { animation: spin 1s linear infinite; }
 #section-compliance .cmp-last-sync { font-size: 11px; color: var(--muted); margin-left: auto; }
 
 /* ─── Tabs ─────────────────────────────────────────────────────────── */
@@ -2821,9 +2837,9 @@ body {
   letter-spacing: .04em; white-space: nowrap;
 }
 #section-compliance .cmp-sp-current  { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
-#section-compliance .cmp-sp-due-soon { background: var(--amber-dim);  color: var(--amber); border: 1px solid rgba(224,154,46,0.3); }
-#section-compliance .cmp-sp-overdue  { background: var(--red-dim);    color: var(--red);   border: 1px solid rgba(224,82,82,0.3); }
-#section-compliance .cmp-sp-expired  { background: var(--red-dim);    color: var(--red);   border: 1px solid rgba(224,82,82,0.3); opacity: 0.7; }
+#section-compliance .cmp-sp-due-soon { background: var(--amber-dim);  color: var(--amber); border: 1px solid var(--amber-border); }
+#section-compliance .cmp-sp-overdue  { background: var(--red-dim);    color: var(--red);   border: 1px solid var(--red-border); }
+#section-compliance .cmp-sp-expired  { background: var(--red-dim);    color: var(--red);   border: 1px solid var(--red-border); opacity: 0.7; }
 #section-compliance .cmp-sp-not-started { background: var(--border-dim); color: var(--muted); border: 1px solid var(--border-dim); }
 
 /* ─── Category pill ────────────────────────────────────────────────── */
@@ -2941,7 +2957,7 @@ body {
   vertical-align: middle;
 }
 #section-compliance .cmp-tbl tbody tr:last-child td { border-bottom: none; }
-#section-compliance .cmp-tbl tbody tr:hover td { background: rgba(255,255,255,0.015); }
+#section-compliance .cmp-tbl tbody tr:hover td { background: var(--row-hover); }
 
 /* ─── Icon button (edit/delete) ────────────────────────────────────── */
 #section-compliance .cmp-iconbtn {
@@ -2955,7 +2971,7 @@ body {
 
 /* ─── Modal ────────────────────────────────────────────────────────── */
 #section-compliance .cmp-modal-bg {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+  position: fixed; inset: 0; background: var(--overlay);
   display: none; align-items: center; justify-content: center;
   z-index: 1500; animation: fadeIn .15s ease;
 }
@@ -2964,7 +2980,7 @@ body {
   width: 100%; max-width: 520px; margin: 20px;
   background: var(--card); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 24px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+  box-shadow: 0 20px 50px var(--shadow-heavy);
   max-height: 90vh; overflow-y: auto;
 }
 #section-compliance .cmp-modal h3 {
@@ -3073,7 +3089,7 @@ body {
       </div>
     </div>
 
-    <nav class="sb-nav">
+    <nav class="sb-nav" role="navigation" aria-label="Main navigation">
       <div class="sb-nav-label">Main</div>
       <div class="sb-link active" data-section="overview"     onclick="navTo('overview')">
         <span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" ><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></span><span class="lbl">Overview</span>
@@ -3166,15 +3182,15 @@ body {
         <h1>CLIENT <span>PROFITABILITY</span></h1>
         <p>Service-by-service cost &amp; margin analysis — reconciled to Xero.</p>
         <div class="prf-head-actions">
-          <!-- Phase 5: client CRUD moved to Directory. The underlying functions
-               (prfOpenClientModal, prfSaveClient, prfDoDeleteClient) remain in
-               the JS below in case of rollback, but their UI hooks are gone. -->
+          <!-- Phase 5: client CRUD moved to Directory (Phase 5).
+               Orphaned functions cleaned up in Phase 9. Service-line
+               CRUD (Add/Edit/Delete service rows) remains here. -->
           <button class="prf-manage-link" type="button" onclick="navTo('clients')" title="Add, edit or delete clients in the Directory">
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
             Manage clients in Directory
             <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </button>
-          <button class="prf-refresh" id="prfRefresh" type="button" onclick="prfRefreshData()" title="Reload from SharePoint">
+          <button class="prf-refresh" id="prfRefresh" type="button" onclick="prfRefreshData()" title="Reload from SharePoint" aria-label="Reload from SharePoint">
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
             Refresh
           </button>
@@ -3187,9 +3203,8 @@ body {
       </div>
 
       <!-- ═══ PROFITABILITY MODAL ═══ -->
-      <!-- Used for: Add Client, Edit Client, and confirm Delete dialogs.   -->
-      <!-- Body content is rebuilt by prfOpenClientModal / prfConfirm etc.  -->
-      <div class="prf-modal-bg" id="prfModalBg" onclick="if(event.target===this)prfCloseModal()">
+      <!-- Used for: confirm Delete service dialogs + seed data confirmation. -->
+      <div class="prf-modal-bg" id="prfModalBg" role="dialog" aria-modal="true" onclick="if(event.target===this)prfCloseModal()">
         <div class="prf-modal" id="prfModal">
           <h3 id="prfModalTitle">—</h3>
           <div id="prfModalBody"></div>
@@ -3478,7 +3493,7 @@ body {
       </div>
 
       <!-- Confirm-delete modal (used for both journeys and clients) -->
-      <div class="mil-modal-bg" id="milModalBg" onclick="if(event.target===this)milCloseModal()">
+      <div class="mil-modal-bg" id="milModalBg" role="dialog" aria-modal="true" onclick="if(event.target===this)milCloseModal()">
         <div class="mil-modal">
           <h3 id="milModalTitle">Confirm Delete</h3>
           <p id="milModalBody">Are you sure?</p>
@@ -3493,7 +3508,7 @@ body {
            Richer than the delete-confirm modal: it carries a date picker
            and a dynamic summary line. Kept separate so the simple confirm
            pattern (text-only body, single confirm callback) stays clean. -->
-      <div class="mil-modal-bg" id="milClaimModalBg" onclick="if(event.target===this)milCloseClaimModal()">
+      <div class="mil-modal-bg" id="milClaimModalBg" role="dialog" aria-modal="true" onclick="if(event.target===this)milCloseClaimModal()">
         <div class="mil-modal">
           <h3 id="milClaimModalTitle">Mark as Claimed</h3>
           <p id="milClaimModalBody">—</p>
@@ -3566,7 +3581,7 @@ body {
 
       <!-- ═══ DIRECTORY MODAL ═══ -->
       <!-- Used for: Add Client, Edit Client, and confirm Delete dialogs. -->
-      <div class="cli-modal-bg" id="cliModalBg" onclick="if(event.target===this)cliCloseModal()">
+      <div class="cli-modal-bg" id="cliModalBg" role="dialog" aria-modal="true" onclick="if(event.target===this)cliCloseModal()">
         <div class="cli-modal" id="cliModal">
           <h3 id="cliModalTitle">—</h3>
           <div id="cliModalBody"></div>
@@ -3711,7 +3726,7 @@ body {
       </div>
 
       <!-- ═══ TIMESHEETS MODAL ═══ -->
-      <div class="tsh-modal-bg" id="tshModalBg" onclick="if(event.target===this)tshCloseModal()">
+      <div class="tsh-modal-bg" id="tshModalBg" role="dialog" aria-modal="true" onclick="if(event.target===this)tshCloseModal()">
         <div class="tsh-modal" id="tshModal">
           <h3 id="tshModalTitle">—</h3>
           <div id="tshModalBody"></div>
@@ -3850,7 +3865,7 @@ body {
       </div>
 
       <!-- ─── Modal (edit / confirm) ───────────────────────────────── -->
-      <div class="cmp-modal-bg" id="cmpModalBg" onclick="if(event.target===this)cmpCloseModal()">
+      <div class="cmp-modal-bg" id="cmpModalBg" role="dialog" aria-modal="true" onclick="if(event.target===this)cmpCloseModal()">
         <div class="cmp-modal">
           <h3 id="cmpModalTitle">—</h3>
           <div id="cmpModalBody"></div>
@@ -3941,7 +3956,7 @@ body {
             <h3>Portal Info</h3>
           </div>
           <div class="set-card-body">
-            <div class="set-row"><span class="set-label">Version</span><span class="set-value">Phase 7 — May 2026</span></div>
+            <div class="set-row"><span class="set-label">Version</span><span class="set-value">Phase 9 — May 2026</span></div>
             <div class="set-row"><span class="set-label">Hosting</span><span class="set-value">GitHub Pages</span></div>
             <div class="set-row"><span class="set-label">Auth Library</span><span class="set-value">MSAL.js v3 (jsDelivr CDN)</span></div>
             <div class="set-row"><span class="set-label">API</span><span class="set-value">Microsoft Graph v1.0</span></div>
@@ -3968,7 +3983,7 @@ body {
 <!-- ╔═══════════════════════════════════════════════════════════════════╗
      ║   TOAST STACK                                                     ║
      ╚═══════════════════════════════════════════════════════════════════╝ -->
-<div id="toastStack"></div>
+<div id="toastStack" aria-live="polite" role="status"></div>
 
 
 <script>
@@ -3997,7 +4012,15 @@ const CONFIG = {
   // — Scopes requested at sign-in —
   // Sites.ReadWrite.All — required for SharePoint list access.
   // User.Read           — required to display the signed-in user's name.
-  SCOPES:       ['User.Read', 'Sites.ReadWrite.All']
+  SCOPES:       ['User.Read', 'Sites.ReadWrite.All'],
+
+  // — Graph API pagination (Phase 9) —
+  GRAPH_PAGE_SIZE:    999,     // items per page request
+  GRAPH_SAFETY_LIMIT: 5000,   // max items to fetch before breaking
+
+  // — Shared runtime state (Phase 9) —
+  siteId:      null,           // resolved once by resolveSiteId()
+  _listsCache: null            // resolved once by fetchAllLists()
 };
 
 // — Section labels shown in the top bar (must match section-* IDs) —
@@ -4134,6 +4157,8 @@ function navTo(sectionKey) {
   // — Update active state on sidebar links —
   document.querySelectorAll('.sb-link').forEach(l => {
     l.classList.toggle('active', l.dataset.section === sectionKey);
+    if (l.dataset.section === sectionKey) l.setAttribute('aria-current', 'page');
+    else l.removeAttribute('aria-current');
   });
 
   // — Show only the matching section, hide the rest —
@@ -4235,6 +4260,66 @@ function escapeHtml(s) {
 function initialsFor(name) {
   if (!name) return '—';
   return name.trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase();
+}
+
+/**
+ * Escape a string for use inside an inline onclick attribute value.
+ * Handles backslashes, quotes, and HTML special chars.
+ * Phase 9: consolidated from cliJsAttr, tshJsAttr, cmpJsAttr.
+ */
+function jsAttr(s) {
+  return String(s)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/**
+ * Format an ISO date string for display: "22 May 2026".
+ * Phase 9: consolidated from milFmtDate, tshFmtDate, cmpFmtDate.
+ */
+function fmtDate(isoStr) {
+  if (!isoStr) return '—';
+  const d = new Date(isoStr.length === 10 ? isoStr + 'T00:00:00' : isoStr);
+  if (isNaN(d)) return isoStr;
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+/**
+ * Today's date as YYYY-MM-DD.
+ * Phase 9: consolidated from milTodayIso, tshToday, cmpToday.
+ */
+function today() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+/**
+ * Resolve the SharePoint siteId. Called once; all modules share the result.
+ * Caches in CONFIG.siteId so subsequent calls are instant.
+ * Phase 9: replaces per-module siteId resolution.
+ */
+async function resolveSiteId() {
+  if (CONFIG.siteId) return CONFIG.siteId;
+  const sitePath = '/sites/' + CONFIG.SP_HOST + ':' + CONFIG.SP_SITE;
+  const site = await graphFetch(sitePath);
+  CONFIG.siteId = site.id;
+  return CONFIG.siteId;
+}
+
+/**
+ * Fetch all lists for the resolved site. Cached after first call.
+ * Returns the raw array from Graph so modules can pick what they need.
+ * Phase 9: replaces per-module list discovery calls.
+ */
+async function fetchAllLists() {
+  const siteId = await resolveSiteId();
+  if (CONFIG._listsCache) return CONFIG._listsCache;
+  const res = await graphFetch('/sites/' + siteId + '/lists?$select=id,displayName,name');
+  CONFIG._listsCache = res.value || [];
+  return CONFIG._listsCache;
 }
 
 
@@ -4378,12 +4463,9 @@ function ovwNormaliseDriver(raw) {
 async function ovwResolveListIds() {
   if (OVW.siteId && OVW.listIds.journeys && OVW.listIds.services && OVW.listIds.clients && OVW.listIds.timesheets && OVW.listIds.ssaClients) return;
 
-  const sitePath = `/sites/${CONFIG.SP_HOST}:${CONFIG.SP_SITE}`;
-  const site = await graphFetch(sitePath);
-  OVW.siteId = site.id;
-
-  const lists = await graphFetch(`/sites/${OVW.siteId}/lists?$select=id,displayName,name`);
-  for (const l of (lists.value || [])) {
+  OVW.siteId = await resolveSiteId();
+  const allLists = await fetchAllLists();
+  for (const l of allLists) {
     if (l.displayName === 'MileageJourneys' || l.name === 'MileageJourneys') OVW.listIds.journeys    = l.id;
     if (l.displayName === 'GeckoServices'   || l.name === 'GeckoServices')   OVW.listIds.services    = l.id;
     if (l.displayName === 'GeckoClients'    || l.name === 'GeckoClients')    OVW.listIds.clients     = l.id;
@@ -4450,12 +4532,12 @@ async function ovwLoadClients() {
 async function ovwLoadTimesheetEntries() {
   if (!OVW.listIds.timesheets) { OVW.tshEntries = []; return; }
   let allItems = [];
-  let nextUrl = `/sites/${OVW.siteId}/lists/${OVW.listIds.timesheets}/items?$expand=fields&$top=999`;
+  let nextUrl = `/sites/${OVW.siteId}/lists/${OVW.listIds.timesheets}/items?$expand=fields&$top=${CONFIG.GRAPH_PAGE_SIZE}`;
   while (nextUrl) {
     const res = await graphFetch(nextUrl);
     allItems = allItems.concat(res.value || []);
     nextUrl = res['@odata.nextLink'] || null;
-    if (allItems.length > 5000) break;
+    if (allItems.length > CONFIG.GRAPH_SAFETY_LIMIT) break;
   }
   OVW.tshEntries = allItems.map(it => {
     const f = it.fields || {};
@@ -4990,12 +5072,9 @@ const prfCatClass = cat => 'prf-ct-' + (PRF_CATS.find(c => c.key === cat) ? cat 
 async function prfResolveListIds() {
   if (PRF.siteId && PRF.listIds.clients && PRF.listIds.services) return;
 
-  const sitePath = `/sites/${CONFIG.SP_HOST}:${CONFIG.SP_SITE}`;
-  const site = await graphFetch(sitePath);
-  PRF.siteId = site.id;
-
-  const lists = await graphFetch(`/sites/${PRF.siteId}/lists?$select=id,displayName,name`);
-  for (const l of (lists.value || [])) {
+  PRF.siteId = await resolveSiteId();
+  const allLists = await fetchAllLists();
+  for (const l of allLists) {
     if (l.displayName === 'GeckoClients'  || l.name === 'GeckoClients')  PRF.listIds.clients  = l.id;
     if (l.displayName === 'GeckoServices' || l.name === 'GeckoServices') PRF.listIds.services = l.id;
   }
@@ -5307,9 +5386,7 @@ function prfRenderCard(client) {
           <div class="prf-cnum keep"><div class="v prf-vg">${prfFmt(t.gp)}</div><div class="l">Profit</div></div>
           <span class="prf-mpill ${prfMpClass(t.margin)} keep">${prfFmtPct(t.margin)}</span>
         </div>
-        <!-- Phase 5: per-card Edit/Delete client buttons removed.
-             Client metadata is now managed in the Directory section.
-             Service-level Add/Edit/Delete (in the table below) is unchanged. -->
+        <!-- Client metadata managed in Directory (Phase 5). Service CRUD unchanged. -->
         <div class="prf-chev">▼</div>
       </div>
 
@@ -5521,124 +5598,10 @@ function prfCloseModal() {
 // ESC-to-close + the close handler is wired up once in initProfitability
 
 
-// ─── Add / Edit Client (modal) ────────────────────────────────────────
-function prfOpenClientModal(id = null) {
-  const isEdit = !!id;
-  const client = isEdit ? PRF.clients.find(c => c.id === id) : { name: '', status: 'Active', contractStart: '', notes: '' };
-  if (isEdit && !client) { toast('Client not found', 'error'); return; }
-
-  const body = `
-    <div class="prf-form-grp">
-      <label>Client Name</label>
-      <input type="text" id="prfClName" value="${escapeHtml(client.name || '')}" placeholder="e.g. ALS Locksmiths" autocomplete="off">
-    </div>
-    <div class="prf-form-grp">
-      <label>Status</label>
-      <select id="prfClStatus">
-        <option value="Active"${client.status === 'Active' ? ' selected' : ''}>Active</option>
-        <option value="Winding"${client.status === 'Winding' ? ' selected' : ''}>Winding Down</option>
-        <option value="New"${client.status === 'New' ? ' selected' : ''}>New</option>
-      </select>
-    </div>
-    <div class="prf-form-grp">
-      <label>Contract Start (optional)</label>
-      <input type="date" id="prfClStart" value="${escapeHtml(client.contractStart || '')}">
-    </div>
-    <div class="prf-form-grp">
-      <label>Notes (optional)</label>
-      <textarea id="prfClNotes" rows="3">${escapeHtml(client.notes || '')}</textarea>
-    </div>
-    <div class="prf-mm-actions">
-      <button class="btn btn-ghost" type="button" onclick="prfCloseModal()">Cancel</button>
-      <button class="btn btn-primary" type="button" onclick="prfSaveClient(${isEdit ? `'${id}'` : 'null'})">${isEdit ? 'Save' : 'Add Client'}</button>
-    </div>`;
-  prfOpenModal(isEdit ? 'Edit Client' : 'Add Client', body);
-  setTimeout(() => document.getElementById('prfClName')?.focus(), 50);
-}
-
-async function prfSaveClient(id) {
-  const name   = document.getElementById('prfClName').value.trim();
-  const status = document.getElementById('prfClStatus').value;
-  const start  = document.getElementById('prfClStart').value;
-  const notes  = document.getElementById('prfClNotes').value.trim();
-  if (!name) { toast('Client name is required', 'warning'); return; }
-
-  // Detect rename — services link by ClientName plain text, so any rename
-  // requires us to also update every linked service row to keep the join intact.
-  const existing = id ? PRF.clients.find(c => c.id === id) : null;
-  const oldName  = existing?.name || null;
-  const renamed  = oldName && oldName !== name;
-
-  // Block duplicate names (other than the row being edited)
-  if (PRF.clients.some(c => c.name.toLowerCase() === name.toLowerCase() && c.id !== id)) {
-    toast(`A client named "${name}" already exists`, 'warning', 4000);
-    return;
-  }
-
-  showLoading(true);
-  try {
-    if (id) {
-      await prfPatchClient(id, { Title: name, Status: status, ContractStart: start || null, Notes: notes });
-      // If renamed, cascade ClientName update to every linked service row
-      if (renamed) {
-        const linked = PRF.services.filter(s => s.clientName === oldName);
-        await Promise.all(linked.map(s => prfPatchService(s.id, { ClientName: name })));
-        if (linked.length > 0) {
-          toast(`Renamed — ${linked.length} service${linked.length === 1 ? '' : 's'} re-linked`, 'info', 3500);
-        }
-      }
-      toast(`Updated "${name}"`, 'success');
-    } else {
-      await prfCreateClient({ name, status, contractStart: start, notes });
-      toast(`Added "${name}"`, 'success');
-    }
-    prfCloseModal();
-    await prfRefreshData(true);
-  } catch (err) {
-    console.error('Save client failed:', err);
-    toast('Could not save client: ' + (err.message || 'unknown'), 'error', 5000);
-  } finally {
-    showLoading(false);
-  }
-}
-
-
-// ─── Confirm Delete Client ────────────────────────────────────────────
-function prfConfirmDeleteClient(id) {
-  const client = PRF.clients.find(c => c.id === id);
-  if (!client) return;
-  const linked = prfClientServices(client.name);
-  const body = `
-    <p>Delete <strong>${escapeHtml(client.name)}</strong>${linked.length > 0 ? ` and all <strong>${linked.length} linked service${linked.length === 1 ? '' : 's'}</strong>` : ''}? This cannot be undone.</p>
-    <div class="prf-mm-actions">
-      <button class="btn btn-ghost" type="button" onclick="prfCloseModal()">Cancel</button>
-      <button class="btn btn-danger" type="button" onclick="prfDoDeleteClient('${id}')">Delete</button>
-    </div>`;
-  prfOpenModal('Confirm Delete', body);
-}
-async function prfDoDeleteClient(id) {
-  const client = PRF.clients.find(c => c.id === id);
-  if (!client) return;
-  const linked = prfClientServices(client.name);
-  showLoading(true);
-  try {
-    // Delete services first, then client (so an interrupted delete doesn't leave orphaned services)
-    for (const s of linked) {
-      try { await prfDeleteService(s.id); } catch (e) { console.warn('Delete service failed', e); }
-    }
-    await prfDeleteClient(id);
-    PRF.openCards.delete(id);
-    toast(`Deleted "${client.name}"`, 'success');
-    prfCloseModal();
-    await prfRefreshData(true);
-  } catch (err) {
-    console.error('Delete client failed:', err);
-    toast('Could not delete client: ' + (err.message || 'unknown'), 'error', 5000);
-  } finally {
-    showLoading(false);
-  }
-}
-
+// Phase 9: client CRUD functions (prfOpenClientModal, prfSaveClient,
+// prfConfirmDeleteClient, prfDoDeleteClient) removed — client editing is
+// now exclusively in the Directory module (cliOpenClientModal, cliSaveClient,
+// cliDoDeleteClient). Service-line CRUD below is unchanged.
 
 // ─── Inline Add / Edit Service ────────────────────────────────────────
 function prfAddServiceInline(clientId) {
@@ -5866,8 +5829,7 @@ async function prfDoSeed() {
       try {
         await prfCreateClient(entry.client);
         okClients++;
-      } catch (e) {
-        console.warn('Seed client failed:', entry.client.name, e);
+      } catch (err) { console.warn('Seed client failed:', entry.client.name, e);
         fails++;
         continue; // skip its services if the client itself failed
       }
@@ -5883,8 +5845,7 @@ async function prfDoSeed() {
             notes:      s.note
           }).then(() => okServices++).catch(e => { console.warn('Seed service failed:', s.name, e); fails++; })
         ));
-      } catch (e) {
-        console.warn('Seed services batch failed for', entry.client.name, e);
+      } catch (err) { console.warn('Seed services batch failed for', entry.client.name, e);
       }
     }
     if (fails === 0) {
@@ -5916,7 +5877,6 @@ async function initProfitability() {
 
   await prfRefreshData(true);
 }
-
 
 
 /* ╔═══════════════════════════════════════════════════════════════════╗
@@ -6080,11 +6040,11 @@ function milComputeTaxYear(today = new Date()) {
 const milFmt = v => '£' + (Number(v) || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 const milFmtMiles = v => Number(v || 0).toLocaleString('en-GB', { maximumFractionDigits: 1 });
 
+// Phase 9: milFmtDate consolidated into shared fmtDate().
+// Mileage uses '' for empty dates (not '—'), so wrap the shared helper.
 function milFmtDate(iso) {
   if (!iso) return '';
-  const d = new Date(iso);
-  if (isNaN(d)) return iso;
-  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  return fmtDate(iso);
 }
 
 
@@ -6156,14 +6116,9 @@ function milRecomputeAll() {
 async function milResolveListIds() {
   if (MIL.siteId && MIL.listIds.journeys && MIL.listIds.clients) return;
 
-  // Resolve the site
-  const sitePath = `/sites/${CONFIG.SP_HOST}:${CONFIG.SP_SITE}`;
-  const site = await graphFetch(sitePath);
-  MIL.siteId = site.id;
-
-  // Resolve both lists by display name
-  const lists = await graphFetch(`/sites/${MIL.siteId}/lists?$select=id,displayName,name`);
-  for (const l of (lists.value || [])) {
+  MIL.siteId = await resolveSiteId();
+  const allLists = await fetchAllLists();
+  for (const l of allLists) {
     if (l.displayName === 'MileageJourneys' || l.name === 'MileageJourneys') MIL.listIds.journeys = l.id;
     if (l.displayName === 'MileageClients'  || l.name === 'MileageClients')  MIL.listIds.clients  = l.id;
   }
@@ -6237,8 +6192,7 @@ async function milSeedClientsIfEmpty() {
         method: 'POST',
         body:   JSON.stringify({ fields: { Title: c.name, TypicalMiles: c.miles } })
       });
-    } catch (e) {
-      console.warn('Seed failed for', c.name, e);
+    } catch (err) { console.warn('Seed failed for', c.name, e);
     }
   }
   await milLoadClients();
@@ -6662,8 +6616,7 @@ async function milAddJourney(ev) {
         await Promise.all(changes
           .filter(c => c.id !== res.id) // server already has the right value for the new one
           .map(c => milPatchJourneyAmount(c.id, c.newAmount, c.newRate)));
-      } catch (e) {
-        console.warn('Recompute patch failed (non-fatal):', e);
+      } catch (err) { console.warn('Recompute patch failed (non-fatal):', e);
         toast('Journey saved, but rate recalc could not sync — refresh to retry', 'warning', 5000);
       }
     }
@@ -6708,7 +6661,7 @@ async function milDoDeleteJourney(id) {
     if (changes.length > 0) {
       try {
         await Promise.all(changes.map(c => milPatchJourneyAmount(c.id, c.newAmount, c.newRate)));
-      } catch (e) { console.warn('Post-delete recompute failed:', e); }
+      } catch (err) { console.warn('Post-delete recompute failed:', err); }
     }
     milRenderAll();
     toast('Journey deleted', 'success');
@@ -6832,10 +6785,6 @@ function milUpdateClaimToolsState() {
 
 
 // ── Date helper for default-to-today on claim modal ───────────────────
-function milTodayIso() {
-  const t = new Date();
-  return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
-}
 
 
 // ── Claim modal: open / close / confirm ───────────────────────────────
@@ -6884,7 +6833,7 @@ function milShowClaimModal(bodyText, ids) {
   document.getElementById('milClaimModalBody').textContent  = bodyText;
   // Default the date picker to today, but the user can change it before confirming
   const dateEl = document.getElementById('milClaimDate');
-  dateEl.value  = milTodayIso();
+  dateEl.value  = today();
   const btn = document.getElementById('milClaimModalConfirm');
   btn.textContent = ids.length > 1 ? `Mark ${ids.length} Claimed` : 'Mark Claimed';
   btn.onclick = () => {
@@ -6892,7 +6841,7 @@ function milShowClaimModal(bodyText, ids) {
     // The date input returns '' when the browser considers the value invalid
     // (e.g. 31st April, which doesn't exist). Fall back to today in that case.
     const pickedDate = dateEl.value;
-    const claimedOn  = pickedDate || milTodayIso();
+    const claimedOn  = pickedDate || today();
     milCloseClaimModal();
     milDoClaim(ids, claimedOn);
   };
@@ -7127,8 +7076,7 @@ async function milRefreshData(silent = false) {
         if (!silent) {
           toast(`Recalculated ${drift.length} journey${drift.length === 1 ? '' : 's'} to match HMRC rates`, 'info', 4000);
         }
-      } catch (e) {
-        console.warn('Auto-recompute patch failed (non-fatal):', e);
+      } catch (err) { console.warn('Auto-recompute patch failed (non-fatal):', e);
         if (!silent) toast('Recalculated locally, but some rows could not sync — try Refresh again', 'warning', 5000);
       }
     }
@@ -7275,21 +7223,12 @@ const cliKey = name => (name || '').replace(/\s+/g, ' ').trim().toLowerCase();
 
 /**
  * Escape a string so it's safe to embed inside a single-quoted JS string
- * inside an HTML attribute, e.g. `onclick="fn('${cliJsAttr(name)}')"`.
+ * inside an HTML attribute, e.g. `onclick="fn('${jsAttr(name)}')"`.
  * Order matters: escape backslashes first, then quotes, then the
  * HTML-attribute-breaking characters. We avoid escapeHtml() here because
  * its `&#39;` for apostrophes would be decoded back to `'` by the browser
  * and break the JS string literal.
  */
-function cliJsAttr(s) {
-  return String(s)
-    .replace(/\\/g, '\\\\')
-    .replace(/'/g, "\\'")
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
 /** Hours-remaining pill class. Trust the source value; don't recompute. */
 function cliHoursClass(h) {
   if (h === null || h === undefined || h === '' || !isFinite(h)) return null;
@@ -7318,12 +7257,9 @@ function cliStatusLabel(status) {
 async function cliResolveListIds() {
   if (CLI.siteId && CLI.listIds.geckoClients && CLI.listIds.ssaClients && CLI.listIds.services) return;
 
-  const sitePath = `/sites/${CONFIG.SP_HOST}:${CONFIG.SP_SITE}`;
-  const site = await graphFetch(sitePath);
-  CLI.siteId = site.id;
-
-  const lists = await graphFetch(`/sites/${CLI.siteId}/lists?$select=id,displayName,name`);
-  for (const l of (lists.value || [])) {
+  CLI.siteId = await resolveSiteId();
+  const allLists = await fetchAllLists();
+  for (const l of allLists) {
     // GeckoClients — Phase 3 list (writable)
     if (l.displayName === 'GeckoClients'  || l.name === 'GeckoClients')  CLI.listIds.geckoClients = l.id;
     // Clients — pre-existing list (read-only). Match by displayName 'Clients'
@@ -7426,7 +7362,7 @@ async function cliDeleteClientApi(id) {
 }
 // Cascade rename: when a GeckoClient's name changes, every linked
 // GeckoServices row's ClientName must update to keep the join intact.
-// (Mirrors the cascade in prfSaveClient.) Uses CLI's own service list
+// Cascade service renames when a client is renamed. Uses CLI's own service list
 // for ID lookup, which we'll then refresh from SharePoint.
 async function cliCascadeServiceRename(oldName, newName) {
   // We need actual service IDs, which we have on PRF.services if loaded;
@@ -7723,7 +7659,7 @@ function cliRenderTableRow(r) {
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 012-2h2a2 2 0 012 2v2"/></svg>
           </button>
         ` : `
-          <button class="cli-iconbtn" type="button" title="Add to profitability (creates a GeckoClients row)" onclick="cliOpenClientModalFromName('${cliJsAttr(r.name)}')">
+          <button class="cli-iconbtn" type="button" title="Add to profitability (creates a GeckoClients row)" onclick="cliOpenClientModalFromName('${jsAttr(r.name)}')">
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
         `}
@@ -7791,7 +7727,7 @@ function cliRenderCard(r) {
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 012-2h2a2 2 0 012 2v2"/></svg>
           </button>
         ` : `
-          <button class="cli-iconbtn" type="button" title="Add to profitability" onclick="cliOpenClientModalFromName('${cliJsAttr(r.name)}')">
+          <button class="cli-iconbtn" type="button" title="Add to profitability" onclick="cliOpenClientModalFromName('${jsAttr(r.name)}')">
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
         `}
@@ -7928,7 +7864,7 @@ async function cliSaveClient(id) {
 
   // Detect rename — services link by ClientName plain text, so any rename
   // requires us to also update every linked service row to keep the join intact.
-  // (Same logic as prfSaveClient — we own the same write path.)
+  // Write path for client save — Directory owns client CRUD since Phase 5.
   const existing = id ? CLI.geckoClients.find(c => c.id === id) : null;
   const oldName  = existing?.name || null;
   const renamed  = oldName && oldName !== name;
@@ -8006,8 +7942,7 @@ async function cliDoDeleteClient(id) {
     for (const it of linked) {
       try {
         await graphFetch(`/sites/${CLI.siteId}/lists/${CLI.listIds.services}/items/${it.id}`, { method: 'DELETE' });
-      } catch (e) {
-        console.warn('Delete service failed (continuing):', e);
+      } catch (err) { console.warn('Delete service failed (continuing):', e);
       }
     }
     await cliDeleteClientApi(id);
@@ -8105,22 +8040,7 @@ const tshEngClass = eng => {
   return '';
 };
 
-/** Safe string for onclick attributes — mirrors cliJsAttr */
-function tshJsAttr(s) {
-  return String(s)
-    .replace(/\\/g, '\\\\')
-    .replace(/'/g, "\\'")
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-/** Today as YYYY-MM-DD */
-function tshToday() {
-  const d = new Date();
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-}
-
+/** Safe string for onclick attributes — uses shared jsAttr() */
 /** Monday of the current week */
 function tshWeekStart() {
   const d = new Date();
@@ -8137,29 +8057,14 @@ function tshMonthStart() {
   return new Date(d.getFullYear(), d.getMonth(), 1);
 }
 
-/** Format date for display */
-function tshFmtDate(isoStr) {
-  if (!isoStr) return '—';
-  const d = new Date(isoStr + 'T00:00:00');
-  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-
 
 // ─── SharePoint helpers — resolve site + list IDs ─────────────────────
 async function tshResolveListIds() {
   if (TSH.siteId && TSH.listIds.timesheets && TSH.listIds.clients) return;
 
-  // Reuse siteId from CLI if already resolved
-  if (CLI.siteId) {
-    TSH.siteId = CLI.siteId;
-  } else {
-    const sitePath = `/sites/${CONFIG.SP_HOST}:${CONFIG.SP_SITE}`;
-    const site = await graphFetch(sitePath);
-    TSH.siteId = site.id;
-  }
-
-  const lists = await graphFetch(`/sites/${TSH.siteId}/lists?$select=id,displayName,name`);
-  for (const l of (lists.value || [])) {
+  TSH.siteId = await resolveSiteId();
+  const allLists = await fetchAllLists();
+  for (const l of allLists) {
     if (l.displayName === 'Timesheets' || l.name === 'Timesheets') TSH.listIds.timesheets = l.id;
     if (l.displayName === 'Clients'    || l.name === 'Clients')    TSH.listIds.clients    = l.id;
   }
@@ -8193,13 +8098,13 @@ async function tshLoadEntries() {
   // plain $expand=fields, then do a second targeted pass using the /columns
   // endpoint to extract Work Type values that were missed.
   let allItems = [];
-  let nextUrl = `/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items?$expand=fields&$top=999`;
+  let nextUrl = `/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items?$expand=fields&$top=${CONFIG.GRAPH_PAGE_SIZE}`;
   while (nextUrl) {
     const res = await graphFetch(nextUrl);
     allItems = allItems.concat(res.value || []);
     nextUrl = res['@odata.nextLink'] || null;
     // Safety valve: stop after 5000 items to avoid infinite loops
-    if (allItems.length > 5000) break;
+    if (allItems.length > CONFIG.GRAPH_SAFETY_LIMIT) break;
   }
   TSH.entries = allItems.map(it => {
     const f = it.fields || {};
@@ -8628,7 +8533,7 @@ function tshRenderLog() {
     // Truncate long descriptions for the table
     const descShort = descText.length > 80 ? descText.substring(0, 80) + '…' : descText;
     return `<tr>
-      <td>${tshFmtDate(e.date)}</td>
+      <td>${fmtDate(e.date)}</td>
       <td><span class="tsh-eng-pill ${engCls}">${escapeHtml(e.engineer)}</span></td>
       <td>${escapeHtml(e.clientName)}</td>
       <td class="col-desc">${escapeHtml(descShort)}${ateraStr}</td>
@@ -8701,7 +8606,7 @@ function tshRenderSsa() {
         <div class="tsh-ssa-bar-fill ${fillCls}" style="width:${usedPct}%"></div>
       </div>
       <div class="tsh-ssa-actions">
-        <button class="tsh-ssa-link" type="button" onclick="tshViewEntries('${tshJsAttr(c.name)}')">View entries</button>
+        <button class="tsh-ssa-link" type="button" onclick="tshViewEntries('${jsAttr(c.name)}')">View entries</button>
         <button class="tsh-ssa-link" type="button" onclick="navTo('clients')">Jump to Directory</button>
       </div>
     </div>`;
@@ -8917,7 +8822,7 @@ function tshConfirmDelete(entryId) {
 
   const body = `
     <p>Delete this timesheet entry?</p>
-    <p style="color:var(--white);">${tshFmtDate(e.date)} — ${escapeHtml(e.clientName)} — ${tshFmtHours(e.hours)} (${escapeHtml(e.engineer)})</p>
+    <p style="color:var(--white);">${fmtDate(e.date)} — ${escapeHtml(e.clientName)} — ${tshFmtHours(e.hours)} (${escapeHtml(e.engineer)})</p>
     <p style="font-size:11px;">This will also adjust the client's SSA hours if applicable. This action cannot be undone.</p>
     <div class="tsh-mm-actions">
       <button class="btn btn-ghost" type="button" onclick="tshCloseModal()">Cancel</button>
@@ -8962,7 +8867,7 @@ async function initTimesheets() {
 
   // Set default date to today
   const dateInput = document.getElementById('tshDate');
-  if (dateInput) dateInput.value = tshToday();
+  if (dateInput) dateInput.value = today();
 
   // Modal: close on ESC
   document.addEventListener('keydown', e => {
@@ -9026,29 +8931,7 @@ const CMP_ICONS = {
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 
-/** Safe string for onclick attributes — mirrors cliJsAttr / tshJsAttr */
-function cmpJsAttr(s) {
-  return String(s)
-    .replace(/\\/g, '\\\\')
-    .replace(/'/g, "\\'")
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-/** Format date for display */
-function cmpFmtDate(isoStr) {
-  if (!isoStr) return '—';
-  const d = new Date(isoStr + 'T00:00:00');
-  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-
-/** Today as YYYY-MM-DD */
-function cmpToday() {
-  const d = new Date();
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-}
-
+/** Safe string for onclick attributes — uses shared jsAttr() */
 /**
  * Compute status from DueDate and CompletedDate.
  * Returns: 'Overdue' | 'Due Soon' | 'Current' | 'Not Started'
@@ -9105,7 +8988,7 @@ function cmpDueLabel(dueDate) {
   if (days === 0) return 'Due today';
   if (days === 1) return 'Due tomorrow';
   if (days <= 30) return `${days}d remaining`;
-  return cmpFmtDate(dueDate);
+  return fmtDate(dueDate);
 }
 
 
@@ -9114,17 +8997,9 @@ function cmpDueLabel(dueDate) {
 async function cmpResolveListIds() {
   if (CMP.siteId && CMP.listIds.compliance && CMP.listIds.geckoClients) return;
 
-  // Reuse siteId from other modules if already resolved
-  if (CLI.siteId)      { CMP.siteId = CLI.siteId; }
-  else if (TSH.siteId) { CMP.siteId = TSH.siteId; }
-  else {
-    const sitePath = `/sites/${CONFIG.SP_HOST}:${CONFIG.SP_SITE}`;
-    const site = await graphFetch(sitePath);
-    CMP.siteId = site.id;
-  }
-
-  const lists = await graphFetch(`/sites/${CMP.siteId}/lists?$select=id,displayName,name`);
-  for (const l of (lists.value || [])) {
+  CMP.siteId = await resolveSiteId();
+  const allLists = await fetchAllLists();
+  for (const l of allLists) {
     if (l.displayName === 'GeckoCompliance'  || l.name === 'GeckoCompliance')  CMP.listIds.compliance   = l.id;
     if (l.displayName === 'GeckoClients'     || l.name === 'GeckoClients')     CMP.listIds.geckoClients = l.id;
   }
@@ -9137,12 +9012,12 @@ async function cmpResolveListIds() {
 
 async function cmpLoadItems() {
   let allItems = [];
-  let nextUrl = `/sites/${CMP.siteId}/lists/${CMP.listIds.compliance}/items?$expand=fields&$top=999`;
+  let nextUrl = `/sites/${CMP.siteId}/lists/${CMP.listIds.compliance}/items?$expand=fields&$top=${CONFIG.GRAPH_PAGE_SIZE}`;
   while (nextUrl) {
     const res = await graphFetch(nextUrl);
     allItems = allItems.concat(res.value || []);
     nextUrl = res['@odata.nextLink'] || null;
-    if (allItems.length > 2000) break; // safety
+    if (allItems.length > CONFIG.GRAPH_SAFETY_LIMIT) break; // safety
   }
 
   CMP.items = allItems.map(it => {
@@ -9353,7 +9228,7 @@ function cmpRenderDashboardItem(item) {
   // Expanded details
   let details = '';
   if (item.completedDate) {
-    details += `<div class="cmp-item-detail"><strong>Last completed:</strong> ${cmpFmtDate(item.completedDate)}</div>`;
+    details += `<div class="cmp-item-detail"><strong>Last completed:</strong> ${fmtDate(item.completedDate)}</div>`;
   }
   if (item.recurring) {
     details += `<div class="cmp-item-detail"><strong>Recurrence:</strong> Every ${item.frequencyMonths} month${item.frequencyMonths !== 1 ? 's' : ''}</div>`;
@@ -9443,19 +9318,19 @@ function cmpRenderFilters() {
   const catChips = ['all', ...CMP_CAT_ORDER].map(c => {
     const active = CMP.filter.category === c ? ' active' : '';
     const label = c === 'all' ? 'All' : c;
-    return `<button class="cmp-chip${active}" type="button" onclick="cmpFilterCat('${cmpJsAttr(c)}')">${escapeHtml(label)}</button>`;
+    return `<button class="cmp-chip${active}" type="button" onclick="cmpFilterCat('${jsAttr(c)}')">${escapeHtml(label)}</button>`;
   }).join('');
 
   const statusChips = ['all', 'Current', 'Due Soon', 'Overdue', 'Not Started'].map(s => {
     const active = CMP.filter.status === s ? ' active' : '';
     const label = s === 'all' ? 'All' : s;
-    return `<button class="cmp-chip${active}" type="button" onclick="cmpFilterStatus('${cmpJsAttr(s)}')">${escapeHtml(label)}</button>`;
+    return `<button class="cmp-chip${active}" type="button" onclick="cmpFilterStatus('${jsAttr(s)}')">${escapeHtml(label)}</button>`;
   }).join('');
 
   const ownerChips = ['all', 'Philip', 'Jack', 'Both'].map(o => {
     const active = CMP.filter.owner === o ? ' active' : '';
     const label = o === 'all' ? 'All' : o;
-    return `<button class="cmp-chip${active}" type="button" onclick="cmpFilterOwner('${cmpJsAttr(o)}')">${escapeHtml(label)}</button>`;
+    return `<button class="cmp-chip${active}" type="button" onclick="cmpFilterOwner('${jsAttr(o)}')">${escapeHtml(label)}</button>`;
   }).join('');
 
   el.innerHTML = `
@@ -9501,7 +9376,7 @@ function cmpRenderTable() {
     <td style="font-weight:600">${escapeHtml(item.title)}</td>
     <td><span class="cmp-cat ${cmpCatClass(item.category)}">${escapeHtml(item.category)}</span></td>
     <td><span class="cmp-sp ${cmpStatusClass(item.status)}">${escapeHtml(item.status)}</span></td>
-    <td style="font-family:'Barlow Condensed',sans-serif;font-weight:600">${cmpFmtDate(item.dueDate)}</td>
+    <td style="font-family:'Barlow Condensed',sans-serif;font-weight:600">${fmtDate(item.dueDate)}</td>
     <td class="col-owner">${escapeHtml(item.owner)}</td>
     <td class="col-client">${item.clientName ? escapeHtml(item.clientName) : '<span style="color:var(--muted)">Company</span>'}</td>
     <td>
@@ -9785,7 +9660,7 @@ async function cmpMarkComplete(id) {
   const item = CMP.items.find(i => i.id === id);
   if (!item) { toast('Item not found', 'error'); return; }
 
-  const today = cmpToday();
+  const today = today();
   const fields = {
     CompletedDate: today
   };
@@ -9804,7 +9679,7 @@ async function cmpMarkComplete(id) {
         method: 'PATCH',
         body: JSON.stringify(fields)
       });
-      toast(`Renewed — next due ${cmpFmtDate(newDue)}`, 'success');
+      toast(`Renewed — next due ${fmtDate(newDue)}`, 'success');
       await cmpRefreshData(true);
     } catch (err) {
       console.error('Mark complete failed:', err);
@@ -9991,7 +9866,7 @@ async function setLoadProfilePhoto() {
 
 /** Clear localStorage and sign out — wipes cached tokens + state */
 function setClearAndSignOut() {
-  try { localStorage.clear(); } catch (e) { /* ignore */ }
+  try { localStorage.clear(); } catch (err) { /* ignore */ }
   signOut();
 }
 
