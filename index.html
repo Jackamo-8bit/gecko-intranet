@@ -8012,7 +8012,12 @@ const TSH = {
   dateRange:   'month',       // 'week' | 'month' | 'all'
   sortBy:      'date',
   sortDir:     'desc',
-  lastSync:    null
+  lastSync:    null,
+  // Phase 9 fix: discovered internal column names for write operations.
+  // SharePoint mangles display names with spaces into _x0020_ variants,
+  // but the exact internal name depends on how/when the column was created.
+  // These are resolved at first data load by inspecting response field keys.
+  fieldNames:  { workType: null, hoursSpent: null }
 };
 
 // ─── Work Type pill class mapping ────────────────────────────────────
@@ -8070,6 +8075,27 @@ async function tshResolveListIds() {
   }
   if (!TSH.listIds.timesheets) throw new Error('Timesheets list not found in SharePoint site');
   if (!TSH.listIds.clients)    throw new Error('Clients list not found in SharePoint site');
+
+  // ── Discover actual internal column names for write operations ──────
+  // SharePoint mangles display names (e.g. "Work Type" → "Work_x0020_Type"
+  // or "WorkType" depending on creation method). We query the list's columns
+  // once and cache the correct internal names so writes don't fail.
+  if (!TSH.fieldNames.workType) {
+    try {
+      const cols = await graphFetch(`/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/columns?$select=name,displayName`);
+      for (const col of (cols.value || [])) {
+        const dn = (col.displayName || '').toLowerCase().replace(/\s+/g, '');
+        if (dn === 'worktype')                 TSH.fieldNames.workType   = col.name;
+        if (dn === 'hoursspent' || dn === 'hours') TSH.fieldNames.hoursSpent = col.name;
+      }
+    } catch (err) {
+      console.warn('Could not discover column names — falling back to defaults:', err);
+    }
+    // Fallbacks if discovery didn't find them
+    if (!TSH.fieldNames.workType)   TSH.fieldNames.workType   = 'WorkType';
+    if (!TSH.fieldNames.hoursSpent) TSH.fieldNames.hoursSpent = 'HoursSpent';
+    console.log('TSH field names resolved:', TSH.fieldNames);
+  }
 }
 
 
@@ -8219,9 +8245,10 @@ async function tshCreateEntry(data) {
     ClientLookupId: data.clientLookupId,
     Engineer:       data.engineer,
     Date:           data.date,
-    Work_x0020_Type: data.workType,
-    HoursSpent:     data.hours
+    [TSH.fieldNames.hoursSpent]: data.hours
   };
+  // Use the discovered internal name for Work Type (avoids _x0020_ mismatch)
+  if (data.workType) fields[TSH.fieldNames.workType] = data.workType;
   if (data.workDescription) fields.WorkDescription = data.workDescription;
   return graphFetch(`/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items`, {
     method: 'POST', body: JSON.stringify({ fields })
@@ -8782,8 +8809,8 @@ async function tshSaveEdit(entryId, oldHours) {
       Title: newDesc,
       Engineer: newEng,
       Date: newDate,
-      Work_x0020_Type: newWorkType,
-      HoursSpent: newHours
+      [TSH.fieldNames.workType]: newWorkType,
+      [TSH.fieldNames.hoursSpent]: newHours
     };
     if (newWorkDesc !== undefined) patch.WorkDescription = newWorkDesc;
 
