@@ -5726,7 +5726,7 @@ async function ovwLoadTimesheetEntries() {
   }
   OVW.tshEntries = allItems.map(it => {
     const f = it.fields || {};
-    if (f.Archived) return null;
+    if (tshIsTrue(f.Archived)) return null;
     let hours = 0;
     for (const k of ['HoursSpent', 'Hours_x0020_Spent', 'Hours Spent']) {
       if (f[k] !== undefined && f[k] !== null) { hours = Number(f[k]) || 0; break; }
@@ -9967,7 +9967,7 @@ const TSH = {
   // SharePoint mangles display names with spaces into _x0020_ variants,
   // but the exact internal name depends on how/when the column was created.
   // These are resolved at first data load by inspecting response field keys.
-  fieldNames:  { workType: null, hoursSpent: null }
+  fieldNames:  { workType: null, hoursSpent: null, workDescription: null }
 };
 
 // ─── Work Type pill class mapping ────────────────────────────────────
@@ -9996,6 +9996,25 @@ const tshEngClass = eng => {
 };
 
 /** Safe string for onclick attributes — uses shared jsAttr() */
+function tshFieldValue(fields, names, fallback = '') {
+  for (const name of names) {
+    if (!name) continue;
+    if (fields[name] !== undefined && fields[name] !== null) return fields[name];
+  }
+  return fallback;
+}
+
+function tshIsTrue(value) {
+  if (value === true) return true;
+  if (value === false || value === undefined || value === null || value === '') return false;
+  if (typeof value === 'number') return value !== 0;
+  if (typeof value === 'string') {
+    const normalised = value.trim().toLowerCase();
+    return normalised === 'true' || normalised === 'yes' || normalised === '1';
+  }
+  return Boolean(value);
+}
+
 /** Monday of the current week */
 function tshWeekStart() {
   const d = new Date();
@@ -10030,13 +10049,15 @@ async function tshResolveListIds() {
   // SharePoint mangles display names (e.g. "Work Type" → "Work_x0020_Type"
   // or "WorkType" depending on creation method). We query the list's columns
   // once and cache the correct internal names so writes don't fail.
-  if (!TSH.fieldNames.workType) {
+  if (!TSH.fieldNames.workType || !TSH.fieldNames.hoursSpent || !TSH.fieldNames.workDescription) {
     try {
       const cols = await graphFetch(`/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/columns?$select=name,displayName`);
       for (const col of (cols.value || [])) {
         const dn = (col.displayName || '').toLowerCase().replace(/\s+/g, '');
-        if (dn === 'worktype')                 TSH.fieldNames.workType   = col.name;
-        if (dn === 'hoursspent' || dn === 'hours') TSH.fieldNames.hoursSpent = col.name;
+        const cn = (col.name || '').toLowerCase().replace(/[_\s]/g, '');
+        if (dn === 'worktype' || cn === 'worktype') TSH.fieldNames.workType = col.name;
+        if (dn === 'hoursspent' || dn === 'hours' || cn === 'hoursspent') TSH.fieldNames.hoursSpent = col.name;
+        if (dn === 'workdescription' || cn === 'workdescription') TSH.fieldNames.workDescription = col.name;
       }
     } catch (err) {
       console.warn('Could not discover column names — falling back to defaults:', err);
@@ -10044,6 +10065,7 @@ async function tshResolveListIds() {
     // Fallbacks if discovery didn't find them
     if (!TSH.fieldNames.workType)   TSH.fieldNames.workType   = 'WorkType';
     if (!TSH.fieldNames.hoursSpent) TSH.fieldNames.hoursSpent = 'HoursSpent';
+    if (!TSH.fieldNames.workDescription) TSH.fieldNames.workDescription = 'WorkDescription';
     console.log('TSH field names resolved:', TSH.fieldNames);
   }
 }
@@ -10106,8 +10128,13 @@ async function tshLoadEntries() {
       }
     }
 
-    // Work Description (long notes field)
-    const workDescription = f.WorkDescription || f.Work_x0020_Description || f['Work Description'] || '';
+    // Work Description (confirmed internal name: WorkDescription). Fall back
+    // to Title so older/partial rows still remain visible in the dashboard.
+    const workDescription = String(tshFieldValue(
+      f,
+      [TSH.fieldNames.workDescription, 'WorkDescription', 'Work_x0020_Description', 'Work Description'],
+      f.Title || ''
+    ) || '');
 
     // Internal Notes
     const internalNotes = f.InternalNotes || f.Internal_x0020_Notes || f['Internal Notes'] || '';
@@ -10127,7 +10154,7 @@ async function tshLoadEntries() {
       workDescription,
       internalNotes,
       ateraId:         ateraId ? Number(ateraId) : null,
-      archived:        f.Archived || false
+      archived:        tshIsTrue(f.Archived)
     };
   }).filter(e => !e.archived); // Only show non-archived in the portal
 }
@@ -10199,7 +10226,7 @@ async function tshCreateEntry(data) {
   };
   // Use the discovered internal name for Work Type (avoids _x0020_ mismatch)
   if (data.workType) fields[TSH.fieldNames.workType] = data.workType;
-  if (data.workDescription) fields.WorkDescription = data.workDescription;
+  fields[TSH.fieldNames.workDescription] = data.workDescription || data.description || '';
   return graphFetch(`/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items`, {
     method: 'POST', body: JSON.stringify({ fields })
   });
@@ -10695,6 +10722,7 @@ function tshCloseModal() {
 function tshOpenEditModal(entryId) {
   const e = TSH.entries.find(x => String(x.id) === String(entryId));
   if (!e) { toast('Entry not found', 'error'); return; }
+  const editDescription = e.description || e.workDescription || '';
 
   const workTypes = ['Remote Support', 'Onsite Support', 'Project Work', 'Maintenance', 'Misc', 'PC Set Up'];
   const wtOpts = workTypes.map(wt =>
@@ -10728,7 +10756,7 @@ function tshOpenEditModal(entryId) {
     </div>
     <div class="tsh-form-grp">
       <label>Description</label>
-      <input type="text" id="tshEditDesc" value="${escapeHtml(e.description)}">
+      <input type="text" id="tshEditDesc" value="${escapeHtml(editDescription)}">
     </div>
     <div class="tsh-form-grp">
       <label>Work Description / Notes</label>
@@ -10762,7 +10790,7 @@ async function tshSaveEdit(entryId, oldHours) {
       [TSH.fieldNames.workType]: newWorkType,
       [TSH.fieldNames.hoursSpent]: newHours
     };
-    if (newWorkDesc !== undefined) patch.WorkDescription = newWorkDesc;
+    patch[TSH.fieldNames.workDescription] = newWorkDesc || newDesc;
 
     await tshPatchEntry(entryId, patch);
 
