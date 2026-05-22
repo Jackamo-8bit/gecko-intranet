@@ -5145,7 +5145,7 @@ async function initOverview() {
    ║                                                                   ║
    ║   SharePoint lists used:                                          ║
    ║     GeckoClients  — Title, Status, ContractStart, Notes,          ║
-   ║                     XeroActual (Phase 5 cols ignored here)        ║
+   ║                     XeroHistory (Phase 10 — JSON per-month)        ║
    ║     GeckoServices — Title, ClientName, Category, CostPerMonth,    ║
    ║                     SellPerMonth, Notes                           ║
    ║                                                                   ║
@@ -5157,7 +5157,7 @@ const PRF = {
   loading:     false,
   siteId:      null,                            // resolved on first init
   listIds:     { clients: null, services: null },
-  clients:     [],   // [{ id, name, status, contractStart, notes, xeroActual, xeroMonth }]
+  clients:     [],   // [{ id, name, status, contractStart, notes, xeroHistory }]
   services:    [],   // [{ id, clientName, name, category, cost, sell, notes }]
   filterCat:   'all',
   search:      '',
@@ -5226,14 +5226,16 @@ async function prfLoadClients() {
   const res = await graphFetch(url);
   PRF.clients = (res.value || []).map(it => {
     const f = it.fields || {};
+    // Phase 10: XeroHistory stores JSON like {"2026-04":265.51,"2026-03":248.00}
+    let xh = {};
+    try { if (f.XeroHistory) xh = JSON.parse(f.XeroHistory); } catch { xh = {}; }
     return {
       id:            it.id,
       name:          f.Title || '',
       status:        f.Status || 'Active',
       contractStart: f.ContractStart ? f.ContractStart.split('T')[0] : '',
       notes:         f.Notes || '',
-      xeroActual:    (f.XeroActual === null || f.XeroActual === undefined || f.XeroActual === '') ? null : Number(f.XeroActual),
-      xeroMonth:     f.XeroMonth || null
+      xeroHistory:   xh   // { 'YYYY-MM': amount, ... } — all months preserved
     };
   })
   .filter(c => c.name)
@@ -5360,9 +5362,10 @@ function prfGrandTotals() {
   const selMonth = PRF.selectedMonth || prfCurrentMonth();
   PRF.clients.forEach(c => {
     if (c.status !== 'Winding') activeClients++;
-    // Phase 10: only count Xero data if it matches the selected month
-    if (c.xeroActual !== null && !isNaN(c.xeroActual) && c.xeroMonth === selMonth) {
-      xero += c.xeroActual; xeroCount++;
+    // Phase 10: only count Xero data for the selected month (from XeroHistory)
+    const xVal = prfGetXero(c, selMonth);
+    if (xVal !== null && !isNaN(xVal)) {
+      xero += xVal; xeroCount++;
     }
     PRF.services.filter(s => s.clientName === c.name).forEach(s => {
       cost += s.cost; sell += s.sell;
@@ -5514,11 +5517,11 @@ function prfRenderCard(client) {
     ? `<div class="prf-ret-notice">⚡ Retainer revenue (${prfFmt(retainers.reduce((a, s) => a + s.sell, 0))}/mo) — product cost £0. Labour cost not allocated.</div>`
     : '';
 
-  // Xero reconciliation row — Phase 10: only show data if xeroMonth matches selected month
+  // Xero reconciliation row — Phase 10: read from XeroHistory for selected month
   const selMonth = PRF.selectedMonth || prfCurrentMonth();
-  const xeroMatchesMonth = client.xeroMonth === selMonth;
-  const xeroVal = (client.xeroActual !== null && xeroMatchesMonth) ? client.xeroActual : '';
-  const xeroStatus = xeroMatchesMonth ? prfXeroStatus(t.sell, client.xeroActual) : { cls: 'prf-xsp', text: 'No data this month', delta: '' };
+  const xeroVal = prfGetXero(client, selMonth);
+  const xeroValStr = xeroVal !== null ? xeroVal : '';
+  const xeroStatus = xeroVal !== null ? prfXeroStatus(t.sell, xeroVal) : { cls: 'prf-xsp', text: 'No data this month', delta: '' };
 
   return `
     <div class="${cls.join(' ')}" data-cats="${cats}" data-client-id="${client.id}" data-client-name="${escapeHtml(client.name).toLowerCase()}">
@@ -5562,7 +5565,7 @@ function prfRenderCard(client) {
                   <span class="prf-xcalc">Calculated: <strong>${prfFmtForce(t.sell)}</strong></span>
                   <span style="font-size:10px;color:var(--muted)">Xero actual:</span>
                   <input class="prf-xinput" type="number" step="0.01" placeholder="0.00"
-                         value="${xeroVal}"
+                         value="${xeroValStr}"
                          data-client-id="${client.id}"
                          oninput="prfUpdateXeroPreview(this)"
                          onblur="prfSaveXero('${client.id}',this.value)">
@@ -5669,14 +5672,13 @@ async function prfSaveXero(id, raw) {
     if (isNaN(n)) return;
     v = n;
   }
-  if (v === client.xeroActual) return; // no change
+  const monthStr = PRF.selectedMonth || prfCurrentMonth();
+  const current = prfGetXero(client, monthStr);
+  if (v === current) return; // no change
   try {
-    const monthStr = PRF.selectedMonth || prfCurrentMonth();
-    await prfPatchClient(id, { XeroActual: v, XeroMonth: v === null ? null : monthStr });
-    client.xeroActual = v;
-    client.xeroMonth  = v === null ? null : monthStr;
+    prfSetXeroLocal(client, monthStr, v);
+    await prfSaveXeroHistory(id, client.xeroHistory);
     // Re-render summary strip + grand total to reflect new Xero total
-    const t = prfGrandTotals();
     const sum = document.querySelector('.prf-sum-strip');
     const gt  = document.querySelector('.prf-gtot');
     if (sum) sum.outerHTML = prfRenderSummary();
@@ -5693,6 +5695,37 @@ async function prfSaveXero(id, raw) {
 function prfCurrentMonth() {
   const d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+/**
+ * Phase 10: get the Xero actual for a client in a given month.
+ * Returns null if no data for that month.
+ */
+function prfGetXero(client, month) {
+  if (!client.xeroHistory || typeof client.xeroHistory !== 'object') return null;
+  const v = client.xeroHistory[month];
+  return (v === undefined || v === null) ? null : Number(v);
+}
+
+/**
+ * Phase 10: set the Xero actual for a client in a given month (in memory).
+ * Pass null to clear that month's entry.
+ */
+function prfSetXeroLocal(client, month, value) {
+  if (!client.xeroHistory) client.xeroHistory = {};
+  if (value === null || value === undefined) {
+    delete client.xeroHistory[month];
+  } else {
+    client.xeroHistory[month] = value;
+  }
+}
+
+/**
+ * Phase 10: save the full XeroHistory JSON to SharePoint for a client.
+ */
+async function prfSaveXeroHistory(clientId, xeroHistory) {
+  const json = JSON.stringify(xeroHistory || {});
+  return prfPatchClient(clientId, { XeroHistory: json });
 }
 
 const PRF_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -5721,7 +5754,7 @@ function prfUpdateMonthUI() {
 
 /**
  * After month changes, update each client's Xero reconciliation row to show
- * data only if client.xeroMonth matches the selected month.
+ * data for the selected month from XeroHistory.
  * Does NOT re-render the full section — just updates the Xero input values
  * and status badges in-place for responsiveness.
  */
@@ -5730,20 +5763,18 @@ function prfApplyXeroForMonth() {
   PRF.clients.forEach(c => {
     const input = document.querySelector(`.prf-xinput[data-client-id="${c.id}"]`);
     if (!input) return;
-    const xeroRow = input.closest('.prf-xrow');
     const stEl  = document.querySelector(`[data-xst="${c.id}"]`);
     const dlEl  = document.querySelector(`[data-xdelta="${c.id}"]`);
     const t     = prfClientTotals(c.name);
+    const xVal  = prfGetXero(c, selMonth);
 
-    if (c.xeroMonth && c.xeroMonth === selMonth) {
-      // Show saved xero data for this month
-      input.value = c.xeroActual !== null ? c.xeroActual : '';
+    if (xVal !== null) {
+      input.value = xVal;
       input.disabled = false;
-      const status = prfXeroStatus(t.sell, c.xeroActual);
+      const status = prfXeroStatus(t.sell, xVal);
       if (stEl) { stEl.className = 'prf-xst ' + status.cls; stEl.textContent = status.text; }
       if (dlEl) dlEl.innerHTML = status.delta;
     } else {
-      // No xero data for this month — show placeholder
       input.value = '';
       input.disabled = false;
       if (stEl) { stEl.className = 'prf-xst prf-xsp'; stEl.textContent = 'No data this month'; }
@@ -6001,10 +6032,9 @@ async function prfImportXeroCsv(file) {
     // Apply matched values to client objects + save to SharePoint
     const savePromises = [];
     for (const { client, total } of matched) {
-      client.xeroActual = total;
-      client.xeroMonth  = detectedMonth;
+      prfSetXeroLocal(client, detectedMonth, total);
       savePromises.push(
-        prfPatchClient(client.id, { XeroActual: total, XeroMonth: detectedMonth })
+        prfSaveXeroHistory(client.id, client.xeroHistory)
           .catch(err => console.error(`Failed to save Xero for ${client.name}:`, err))
       );
     }
@@ -6038,11 +6068,11 @@ async function prfAssignUnmatched(xeroName, clientId) {
   if (!client) return;
 
   entry.assignedTo = clientId;
-  client.xeroActual = entry.total;
-  client.xeroMonth  = PRF.xeroMonth || PRF.selectedMonth || prfCurrentMonth();
+  const month = PRF.xeroMonth || PRF.selectedMonth || prfCurrentMonth();
+  prfSetXeroLocal(client, month, entry.total);
 
   try {
-    await prfPatchClient(client.id, { XeroActual: entry.total, XeroMonth: client.xeroMonth });
+    await prfSaveXeroHistory(client.id, client.xeroHistory);
 
     // Update the Xero row for this client in the DOM
     const input = document.querySelector(`.prf-xinput[data-client-id="${client.id}"]`);
@@ -6076,12 +6106,12 @@ async function prfAssignUnmatched(xeroName, clientId) {
 }
 
 /**
- * Clear all Xero data for the current month — resets XeroActual/XeroMonth
- * on all clients.
+ * Clear all Xero data for the selected month — removes that month's entry
+ * from each client's XeroHistory JSON.
  */
 async function prfClearXeroData() {
   const month = PRF.selectedMonth || prfCurrentMonth();
-  const affected = PRF.clients.filter(c => c.xeroMonth === month && c.xeroActual !== null);
+  const affected = PRF.clients.filter(c => prfGetXero(c, month) !== null);
   if (affected.length === 0) {
     toast('No Xero data to clear for ' + prfMonthLabel(month), 'warning', 2500);
     return;
@@ -6089,11 +6119,11 @@ async function prfClearXeroData() {
 
   showLoading(true);
   try {
-    const saves = affected.map(c =>
-      prfPatchClient(c.id, { XeroActual: null, XeroMonth: null })
-        .then(() => { c.xeroActual = null; c.xeroMonth = null; })
-        .catch(err => console.error(`Clear Xero for ${c.name} failed:`, err))
-    );
+    const saves = affected.map(c => {
+      prfSetXeroLocal(c, month, null);
+      return prfSaveXeroHistory(c.id, c.xeroHistory)
+        .catch(err => console.error(`Clear Xero for ${c.name} failed:`, err));
+    });
     await Promise.all(saves);
     PRF.xeroImported = false;
     PRF.xeroUnmatched = [];
@@ -6111,7 +6141,7 @@ async function prfClearXeroData() {
 
 function prfRenderXeroImport() {
   const month = PRF.selectedMonth || prfCurrentMonth();
-  const matchedCount = PRF.clients.filter(c => c.xeroMonth === month && c.xeroActual !== null).length;
+  const matchedCount = PRF.clients.filter(c => prfGetXero(c, month) !== null).length;
   const unmatchedCount = PRF.xeroUnmatched.filter(u => !u.assignedTo).length;
 
   let statsHtml = '';
@@ -6223,8 +6253,9 @@ function prfExportCsv() {
 
   PRF.clients.forEach(c => {
     const t = prfClientTotals(c.name);
-    const xAct = (c.xeroActual !== null && c.xeroMonth === month) ? c.xeroActual : '';
-    const xMon = c.xeroMonth || '';
+    const xVal = prfGetXero(c, month);
+    const xAct = xVal !== null ? xVal : '';
+    const xMon = xVal !== null ? month : '';
     const variance = (xAct !== '' && t.sell > 0) ? (xAct - t.sell).toFixed(2) : '';
     const marginPct = t.sell > 0 ? (t.margin * 100).toFixed(1) + '%' : '0.0%';
 
@@ -7885,7 +7916,7 @@ async function initMileage() {
    ║   │ This module reads from TWO SharePoint lists:                │ ║
    ║   │                                                             │ ║
    ║   │   GeckoClients — Phase 3 list, OWNED by this portal:        │ ║
-   ║   │     Title, Status, ContractStart, Notes, XeroActual         │ ║
+   ║   │     Title, Status, ContractStart, Notes, XeroHistory       │ ║
    ║   │     Read AND write (Add/Edit/Delete client metadata).       │ ║
    ║   │                                                             │ ║
    ║   │   Clients      — pre-existing list, READ-ONLY from here:    │ ║
