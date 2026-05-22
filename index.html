@@ -841,6 +841,15 @@ body {
   font-size: 9px; color: var(--muted);
   text-transform: uppercase; letter-spacing: .08em;
 }
+/* Phase 10: sub-value for variance/actual vs expected */
+#section-profitability .prf-sum-sub {
+  font-size: 11px; font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600; letter-spacing: .02em; margin-top: 1px;
+}
+#section-profitability .prf-sum-sub.pos { color: var(--green); }
+#section-profitability .prf-sum-sub.neg { color: var(--red); }
+#section-profitability .prf-sum-sub.neutral { color: var(--muted); }
+#section-profitability .prf-sum-sub.amber { color: var(--amber); }
 
 /* — Filter / search bar — */
 #section-profitability .prf-ctrl {
@@ -5426,15 +5435,59 @@ function prfRenderSeedBanner() {
 
 function prfRenderSummary() {
   const t = prfGrandTotals();
+  const hasXero = t.xeroCount > 0;
+  const selMonth = PRF.selectedMonth || prfCurrentMonth();
+
+  // Variance: Xero actual revenue vs expected total revenue
+  const variance = hasXero ? t.xero - t.sell : 0;
+  const variancePct = hasXero && t.sell > 0 ? ((t.xero - t.sell) / t.sell * 100) : 0;
+  const varCls = variance >= 0 ? 'pos' : 'neg';
+  const varSign = variance >= 0 ? '+' : '';
+
+  // Xero-derived margin (Xero revenue minus expected costs)
+  const xeroGp = hasXero ? t.xero - t.cost : 0;
+  const xeroMargin = hasXero && t.xero > 0 ? xeroGp / t.xero : 0;
+
+  // Sub-text for each KPI (only shown when Xero data exists for this month)
+  const xeroSub = hasXero
+    ? `<div class="prf-sum-sub amber">Xero: ${prfFmt(t.xero)}</div>`
+    : `<div class="prf-sum-sub neutral">No Xero data</div>`;
+
+  const gpSub = hasXero
+    ? `<div class="prf-sum-sub ${xeroGp >= t.gp ? 'pos' : 'neg'}">Xero: ${prfFmt(xeroGp)}</div>`
+    : '';
+
+  const marginSub = hasXero
+    ? `<div class="prf-sum-sub ${xeroMargin >= t.margin ? 'pos' : 'neg'}">Xero: ${prfFmtPct(xeroMargin)}</div>`
+    : '';
+
+  const varianceSub = hasXero
+    ? `<div class="prf-sum-sub ${varCls}">${varSign}${prfFmt(variance)} (${varSign}${variancePct.toFixed(1)}%)</div>`
+    : '';
+
   return `
     <div class="prf-sum-strip">
       <div class="prf-sum-s"><div class="prf-sum-v">${t.activeClients}</div><div class="prf-sum-l">Active Clients</div></div>
-      <div class="prf-sum-s"><div class="prf-sum-v">${prfFmt(t.sellStack)}</div><div class="prf-sum-l">Stack Revenue</div></div>
-      <div class="prf-sum-s"><div class="prf-sum-v">${prfFmt(t.cost)}</div><div class="prf-sum-l">Stack Cost</div></div>
-      <div class="prf-sum-s"><div class="prf-sum-v" style="color:var(--green)">${prfFmt(t.gp)}</div><div class="prf-sum-l">Gross Profit</div></div>
-      <div class="prf-sum-s"><div class="prf-sum-v">${prfFmtPct(t.margin)}</div><div class="prf-sum-l">Margin %</div></div>
-      <div class="prf-sum-s"><div class="prf-sum-v" style="color:var(--purple)">${prfFmt(t.sellRet)}</div><div class="prf-sum-l">Retainer Revenue</div></div>
-      <div class="prf-sum-s"><div class="prf-sum-v" style="color:var(--amber)">${prfFmt(t.xero)}</div><div class="prf-sum-l">Xero Billing (${t.xeroCount})</div></div>
+      <div class="prf-sum-s">
+        <div class="prf-sum-v">${prfFmt(t.sell)}</div><div class="prf-sum-l">Expected Revenue</div>
+        ${xeroSub}
+      </div>
+      <div class="prf-sum-s">
+        <div class="prf-sum-v">${prfFmt(t.cost)}</div><div class="prf-sum-l">Total Cost</div>
+      </div>
+      <div class="prf-sum-s">
+        <div class="prf-sum-v" style="color:var(--green)">${prfFmt(t.gp)}</div><div class="prf-sum-l">Expected Profit</div>
+        ${gpSub}
+      </div>
+      <div class="prf-sum-s">
+        <div class="prf-sum-v">${prfFmtPct(t.margin)}</div><div class="prf-sum-l">Expected Margin</div>
+        ${marginSub}
+      </div>
+      <div class="prf-sum-s">
+        <div class="prf-sum-v" style="color:var(--amber)">${hasXero ? prfFmt(t.xero) : '—'}</div>
+        <div class="prf-sum-l">Xero Actual (${t.xeroCount})</div>
+        ${varianceSub}
+      </div>
     </div>`;
 }
 
@@ -5616,19 +5669,26 @@ function prfRenderRowActions(svcId) {
 
 function prfRenderGrandTotal() {
   const t = prfGrandTotals();
+  const hasXero = t.xeroCount > 0;
+  const selMonth = PRF.selectedMonth || prfCurrentMonth();
+  const xeroGp = hasXero ? t.xero - t.cost : 0;
+  const xeroMargin = hasXero && t.xero > 0 ? xeroGp / t.xero : 0;
+  const variance = hasXero ? t.xero - t.sell : 0;
+  const varSign = variance >= 0 ? '+' : '';
+
   return `
     <div class="prf-gtot">
       <div class="prf-gtlbl">
         <strong>GRAND TOTAL — <span>ALL CLIENTS</span></strong>
-        <p>All revenue streams included. Retainer cost = £0 (labour not allocated). Xero billing only counts clients where you've entered an actual figure.</p>
+        <p>Expected = from service lines (GeckoServices). Xero Actual = invoiced revenue for ${prfMonthLabel(selMonth)}. Variance shows the difference.</p>
       </div>
       <div class="prf-gtstats">
         <div class="prf-gtst"><span class="v" style="color:var(--red)">${prfFmt(t.cost)}</span><span class="l">Total Cost</span></div>
-        <div class="prf-gtst"><span class="v">${prfFmt(t.sell)}</span><span class="l">Total Revenue</span></div>
-        <div class="prf-gtst"><span class="v" style="color:var(--green)">${prfFmt(t.gp)}</span><span class="l">Gross Profit</span></div>
-        <div class="prf-gtst"><span class="v" style="color:var(--green)">${prfFmtPct(t.margin)}</span><span class="l">Margin %</span></div>
-        <div class="prf-gtst"><span class="v" style="color:var(--purple)">${prfFmt(t.sellRet)}</span><span class="l">Retainer Rev.</span></div>
-        <div class="prf-gtst"><span class="v" style="color:var(--amber)">${prfFmt(t.xero)}</span><span class="l">Xero Billing</span></div>
+        <div class="prf-gtst"><span class="v">${prfFmt(t.sell)}</span><span class="l">Expected Rev.</span></div>
+        <div class="prf-gtst"><span class="v" style="color:var(--amber)">${hasXero ? prfFmt(t.xero) : '—'}</span><span class="l">Xero Actual</span></div>
+        <div class="prf-gtst"><span class="v" style="color:${variance >= 0 ? 'var(--green)' : 'var(--red)'}">${hasXero ? varSign + prfFmt(variance) : '—'}</span><span class="l">Variance</span></div>
+        <div class="prf-gtst"><span class="v" style="color:var(--green)">${prfFmt(t.gp)}</span><span class="l">Expected Profit</span></div>
+        <div class="prf-gtst"><span class="v" style="color:var(--green)">${prfFmtPct(t.margin)}</span><span class="l">Expected Margin</span></div>
       </div>
     </div>`;
 }
