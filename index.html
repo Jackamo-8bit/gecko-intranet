@@ -1117,6 +1117,121 @@ body {
 #section-profitability .prf-xdp { color: var(--amber); }
 #section-profitability .prf-xdn { color: var(--red); }
 
+/* — Xero CSV Import card (Phase 10) — */
+#section-profitability .prf-xero-import {
+  background: var(--card); border: 1px solid var(--border-dim);
+  border-radius: var(--radius); padding: 16px 20px;
+  display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;
+}
+#section-profitability .prf-xero-import h4 {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-size: 13px; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--white); margin-bottom: 10px;
+  display: flex; align-items: center; gap: 7px;
+}
+#section-profitability .prf-xero-import h4 svg { color: var(--amber); }
+#section-profitability .prf-drop-zone {
+  flex: 1; min-width: 240px;
+  border: 2px dashed var(--border); border-radius: 10px;
+  padding: 22px 18px; text-align: center; cursor: pointer;
+  transition: all .2s ease; position: relative;
+}
+#section-profitability .prf-drop-zone:hover,
+#section-profitability .prf-drop-zone.drag-over {
+  border-color: var(--green); background: var(--green-glow);
+}
+#section-profitability .prf-drop-zone .dz-text {
+  font-size: 12px; color: var(--muted); margin-bottom: 8px;
+}
+#section-profitability .prf-drop-zone .dz-text strong { color: var(--white); }
+#section-profitability .prf-drop-zone .dz-browse {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 12px; border-radius: var(--radius-sm);
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--muted); font-size: 11px; cursor: pointer;
+  font-family: 'Instrument Sans', sans-serif; transition: all .15s;
+}
+#section-profitability .prf-drop-zone .dz-browse:hover { color: var(--green); border-color: var(--green); }
+#section-profitability .prf-drop-zone input[type="file"] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer;
+}
+#section-profitability .prf-xero-stats {
+  min-width: 160px; font-size: 12px;
+}
+#section-profitability .prf-xero-stats .xs-month {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 16px;
+  font-weight: 700; color: var(--green); letter-spacing: .04em;
+  text-transform: uppercase; margin-bottom: 4px;
+}
+#section-profitability .prf-xero-stats .xs-line {
+  color: var(--muted); font-size: 11px; margin-bottom: 2px;
+}
+#section-profitability .prf-xero-stats .xs-line strong { color: var(--white); }
+#section-profitability .prf-xero-actions {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px;
+}
+#section-profitability .prf-xero-actions label {
+  font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 5px; cursor: pointer;
+}
+#section-profitability .prf-xero-actions label input[type="checkbox"] { accent-color: var(--green); }
+#section-profitability .prf-xero-unmatched {
+  width: 100%; margin-top: 6px; padding-top: 10px;
+  border-top: 1px solid var(--border-dim);
+}
+#section-profitability .prf-xero-unmatched .xu-title {
+  font-size: 11px; color: var(--amber); font-weight: 600; margin-bottom: 6px;
+  display: flex; align-items: center; gap: 5px;
+}
+#section-profitability .prf-xero-unmatched .xu-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 5px;
+  font-size: 12px; color: var(--white);
+}
+#section-profitability .prf-xero-unmatched .xu-row .xu-amt {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  color: var(--muted); font-size: 13px; min-width: 70px;
+}
+#section-profitability .prf-xero-unmatched .xu-row select {
+  padding: 3px 8px; border-radius: 6px;
+  background: var(--dark); border: 1px solid var(--border);
+  color: var(--white); font-size: 11px;
+  font-family: 'Instrument Sans', sans-serif; outline: none;
+}
+#section-profitability .prf-xero-unmatched .xu-row select:focus { border-color: var(--green); }
+
+/* — Month selector (Phase 10) — */
+#section-profitability .prf-month-sel {
+  display: flex; align-items: center; gap: 4px; margin-right: 8px;
+}
+#section-profitability .prf-month-sel .prf-month-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 6px;
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--muted); cursor: pointer; font-size: 12px;
+  transition: all .15s; padding: 0;
+}
+#section-profitability .prf-month-sel .prf-month-btn:hover { color: var(--green); border-color: var(--green); }
+#section-profitability .prf-month-sel .prf-month-label {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 14px;
+  font-weight: 700; color: var(--green); letter-spacing: .04em;
+  text-transform: uppercase; min-width: 100px; text-align: center;
+}
+
+/* — Export CSV button (Phase 10) — */
+#section-profitability .prf-export-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: var(--radius-sm);
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--muted); font-size: 12px; cursor: pointer;
+  font-family: 'Instrument Sans', sans-serif;
+  transition: all .15s ease;
+}
+#section-profitability .prf-export-btn:hover { color: var(--green); border-color: var(--green); }
+
+/* — Xero month-mismatch notice in reconciliation row (Phase 10) — */
+#section-profitability .prf-xero-nodata {
+  font-size: 10px; color: var(--muted); font-style: italic;
+}
+
 /* — Grand total card (bottom of section) — */
 #section-profitability .prf-gtot {
   background: var(--card); border: 1px solid var(--green-line);
@@ -3190,6 +3305,21 @@ body {
             Manage clients in Directory
             <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </button>
+          <!-- Phase 10: Month selector -->
+          <div class="prf-month-sel" id="prfMonthSel">
+            <button class="prf-month-btn" type="button" onclick="prfChangeMonth(-1)" title="Previous month">
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <span class="prf-month-label" id="prfMonthLabel">—</span>
+            <button class="prf-month-btn" type="button" onclick="prfChangeMonth(1)" title="Next month">
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+          <!-- Phase 10: Export CSV -->
+          <button class="prf-export-btn" type="button" onclick="prfExportCsv()" title="Download profitability data as CSV">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
           <button class="prf-refresh" id="prfRefresh" type="button" onclick="prfRefreshData()" title="Reload from SharePoint" aria-label="Reload from SharePoint">
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
             Refresh
@@ -3956,7 +4086,7 @@ body {
             <h3>Portal Info</h3>
           </div>
           <div class="set-card-body">
-            <div class="set-row"><span class="set-label">Version</span><span class="set-value">Phase 9 — May 2026</span></div>
+            <div class="set-row"><span class="set-label">Version</span><span class="set-value">Phase 10 — May 2026</span></div>
             <div class="set-row"><span class="set-label">Hosting</span><span class="set-value">GitHub Pages</span></div>
             <div class="set-row"><span class="set-label">Auth Library</span><span class="set-value">MSAL.js v3 (jsDelivr CDN)</span></div>
             <div class="set-row"><span class="set-label">API</span><span class="set-value">Microsoft Graph v1.0</span></div>
@@ -5027,12 +5157,19 @@ const PRF = {
   loading:     false,
   siteId:      null,                            // resolved on first init
   listIds:     { clients: null, services: null },
-  clients:     [],   // [{ id, name, status, contractStart, notes, xeroActual }]
+  clients:     [],   // [{ id, name, status, contractStart, notes, xeroActual, xeroMonth }]
   services:    [],   // [{ id, clientName, name, category, cost, sell, notes }]
   filterCat:   'all',
   search:      '',
   openCards:   new Set(),                        // client IDs of expanded cards (preserved across re-renders)
-  modalCb:     null                              // active modal confirm callback
+  modalCb:     null,                             // active modal confirm callback
+  // Phase 10: Xero CSV import state
+  selectedMonth:  null,         // 'YYYY-MM' for the month selector (defaults to current month)
+  xeroImported:   false,        // true after a CSV has been processed this session
+  xeroMonth:      null,         // 'YYYY-MM' of the currently imported CSV month
+  xeroUnmatched:  [],           // [{ xeroName, total, assignedTo }] — contacts that didn't auto-match
+  xeroData:       {},           // { normalisedClientName: totalExVat } — parsed CSV data
+  includeDrafts:  false         // whether to include Draft invoices in the import
 };
 
 // Categories — single source of truth for pill colours, filter buttons, dropdowns
@@ -5095,7 +5232,8 @@ async function prfLoadClients() {
       status:        f.Status || 'Active',
       contractStart: f.ContractStart ? f.ContractStart.split('T')[0] : '',
       notes:         f.Notes || '',
-      xeroActual:    (f.XeroActual === null || f.XeroActual === undefined || f.XeroActual === '') ? null : Number(f.XeroActual)
+      xeroActual:    (f.XeroActual === null || f.XeroActual === undefined || f.XeroActual === '') ? null : Number(f.XeroActual),
+      xeroMonth:     f.XeroMonth || null
     };
   })
   .filter(c => c.name)
@@ -5219,9 +5357,13 @@ function prfClientTotals(clientName) {
 }
 function prfGrandTotals() {
   let cost = 0, sell = 0, sellRet = 0, xero = 0, xeroCount = 0, activeClients = 0;
+  const selMonth = PRF.selectedMonth || prfCurrentMonth();
   PRF.clients.forEach(c => {
     if (c.status !== 'Winding') activeClients++;
-    if (c.xeroActual !== null && !isNaN(c.xeroActual)) { xero += c.xeroActual; xeroCount++; }
+    // Phase 10: only count Xero data if it matches the selected month
+    if (c.xeroActual !== null && !isNaN(c.xeroActual) && c.xeroMonth === selMonth) {
+      xero += c.xeroActual; xeroCount++;
+    }
     PRF.services.filter(s => s.clientName === c.name).forEach(s => {
       cost += s.cost; sell += s.sell;
       if (s.category === 'retainer') sellRet += s.sell;
@@ -5245,8 +5387,9 @@ function prfRenderAll() {
     return;
   }
 
-  // — Normal render: KPIs + filter bar + legend + cards + grand total —
+  // — Normal render: Xero import + KPIs + filter bar + legend + cards + grand total —
   wrap.innerHTML =
+    prfRenderXeroImport() +
     prfRenderSummary() +
     prfRenderControls() +
     prfRenderLegend() +
@@ -5255,6 +5398,9 @@ function prfRenderAll() {
 
   // Apply current filter/search after re-render
   prfApplyFilters();
+
+  // Phase 10: update month selector label
+  prfUpdateMonthUI();
 }
 
 function prfRenderSeedBanner() {
@@ -5368,9 +5514,11 @@ function prfRenderCard(client) {
     ? `<div class="prf-ret-notice">⚡ Retainer revenue (${prfFmt(retainers.reduce((a, s) => a + s.sell, 0))}/mo) — product cost £0. Labour cost not allocated.</div>`
     : '';
 
-  // Xero reconciliation row
-  const xeroVal = client.xeroActual !== null ? client.xeroActual : '';
-  const xeroStatus = prfXeroStatus(t.sell, client.xeroActual);
+  // Xero reconciliation row — Phase 10: only show data if xeroMonth matches selected month
+  const selMonth = PRF.selectedMonth || prfCurrentMonth();
+  const xeroMatchesMonth = client.xeroMonth === selMonth;
+  const xeroVal = (client.xeroActual !== null && xeroMatchesMonth) ? client.xeroActual : '';
+  const xeroStatus = xeroMatchesMonth ? prfXeroStatus(t.sell, client.xeroActual) : { cls: 'prf-xsp', text: 'No data this month', delta: '' };
 
   return `
     <div class="${cls.join(' ')}" data-cats="${cats}" data-client-id="${client.id}" data-client-name="${escapeHtml(client.name).toLowerCase()}">
@@ -5523,8 +5671,10 @@ async function prfSaveXero(id, raw) {
   }
   if (v === client.xeroActual) return; // no change
   try {
-    await prfPatchClient(id, { XeroActual: v });
+    const monthStr = PRF.selectedMonth || prfCurrentMonth();
+    await prfPatchClient(id, { XeroActual: v, XeroMonth: v === null ? null : monthStr });
     client.xeroActual = v;
+    client.xeroMonth  = v === null ? null : monthStr;
     // Re-render summary strip + grand total to reflect new Xero total
     const t = prfGrandTotals();
     const sum = document.querySelector('.prf-sum-strip');
@@ -5536,6 +5686,576 @@ async function prfSaveXero(id, raw) {
     console.error('Save Xero failed:', err);
     toast('Could not save Xero figure: ' + (err.message || 'unknown'), 'error', 5000);
   }
+}
+
+
+// ─── Phase 10: Month selector ─────────────────────────────────────────
+function prfCurrentMonth() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+const PRF_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function prfMonthLabel(ym) {
+  if (!ym) return '—';
+  const [y, m] = ym.split('-').map(Number);
+  return PRF_MONTHS[m - 1] + ' ' + y;
+}
+
+function prfChangeMonth(delta) {
+  const cur = PRF.selectedMonth || prfCurrentMonth();
+  let [y, m] = cur.split('-').map(Number);
+  m += delta;
+  if (m < 1)  { m = 12; y--; }
+  if (m > 12) { m = 1;  y++; }
+  PRF.selectedMonth = y + '-' + String(m).padStart(2, '0');
+  prfUpdateMonthUI();
+  prfApplyXeroForMonth();
+}
+
+function prfUpdateMonthUI() {
+  const label = document.getElementById('prfMonthLabel');
+  if (label) label.textContent = prfMonthLabel(PRF.selectedMonth || prfCurrentMonth());
+}
+
+/**
+ * After month changes, update each client's Xero reconciliation row to show
+ * data only if client.xeroMonth matches the selected month.
+ * Does NOT re-render the full section — just updates the Xero input values
+ * and status badges in-place for responsiveness.
+ */
+function prfApplyXeroForMonth() {
+  const selMonth = PRF.selectedMonth || prfCurrentMonth();
+  PRF.clients.forEach(c => {
+    const input = document.querySelector(`.prf-xinput[data-client-id="${c.id}"]`);
+    if (!input) return;
+    const xeroRow = input.closest('.prf-xrow');
+    const stEl  = document.querySelector(`[data-xst="${c.id}"]`);
+    const dlEl  = document.querySelector(`[data-xdelta="${c.id}"]`);
+    const t     = prfClientTotals(c.name);
+
+    if (c.xeroMonth && c.xeroMonth === selMonth) {
+      // Show saved xero data for this month
+      input.value = c.xeroActual !== null ? c.xeroActual : '';
+      input.disabled = false;
+      const status = prfXeroStatus(t.sell, c.xeroActual);
+      if (stEl) { stEl.className = 'prf-xst ' + status.cls; stEl.textContent = status.text; }
+      if (dlEl) dlEl.innerHTML = status.delta;
+    } else {
+      // No xero data for this month — show placeholder
+      input.value = '';
+      input.disabled = false;
+      if (stEl) { stEl.className = 'prf-xst prf-xsp'; stEl.textContent = 'No data this month'; }
+      if (dlEl) dlEl.innerHTML = '';
+    }
+  });
+  // Update summary strip + grand total
+  const sum = document.querySelector('.prf-sum-strip');
+  const gt  = document.querySelector('.prf-gtot');
+  if (sum) sum.outerHTML = prfRenderSummary();
+  if (gt)  gt.outerHTML  = prfRenderGrandTotal();
+}
+
+
+// ─── Phase 10: CSV parser ─────────────────────────────────────────────
+
+/**
+ * Parse a CSV string into an array of objects. Handles quoted fields
+ * (with commas and newlines inside quotes). Assumes first row is header.
+ */
+function prfParseCsv(text) {
+  // Normalise line endings
+  const raw = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const rows = [];
+  let i = 0;
+  const len = raw.length;
+
+  function parseField() {
+    if (i >= len || raw[i] === '\n') return '';
+    if (raw[i] === '"') {
+      // Quoted field
+      i++; // skip opening quote
+      let val = '';
+      while (i < len) {
+        if (raw[i] === '"') {
+          if (i + 1 < len && raw[i + 1] === '"') {
+            val += '"'; i += 2;
+          } else {
+            i++; // skip closing quote
+            break;
+          }
+        } else {
+          val += raw[i]; i++;
+        }
+      }
+      return val;
+    } else {
+      let val = '';
+      while (i < len && raw[i] !== ',' && raw[i] !== '\n') {
+        val += raw[i]; i++;
+      }
+      return val;
+    }
+  }
+
+  function parseRow() {
+    const fields = [];
+    while (i < len && raw[i] !== '\n') {
+      fields.push(parseField());
+      if (i < len && raw[i] === ',') i++; // skip comma
+    }
+    if (i < len && raw[i] === '\n') i++; // skip newline
+    return fields;
+  }
+
+  // Parse header
+  const header = parseRow();
+  // Parse data rows
+  while (i < len) {
+    if (raw[i] === '\n') { i++; continue; } // skip blank lines
+    const fields = parseRow();
+    if (fields.length === 0 || (fields.length === 1 && fields[0] === '')) continue;
+    const obj = {};
+    header.forEach((h, idx) => { obj[h.trim()] = (fields[idx] || '').trim(); });
+    rows.push(obj);
+  }
+  return rows;
+}
+
+
+// ─── Phase 10: Name matching algorithm ────────────────────────────────
+
+/**
+ * Normalise a name for matching: strip suffixes, collapse whitespace,
+ * remove "and"/ampersands, lowercase.
+ */
+function prfXeroNormaliseName(name) {
+  if (!name) return '';
+  let n = name.trim();
+  // Strip common suffixes (case-insensitive)
+  n = n.replace(/\s+(Ltd|Limited|PLC|Inc)\.?$/i, '');
+  // Remove parenthetical company suffixes like "(UK)"
+  n = n.replace(/\s*\(UK\)\s*/gi, ' ');
+  // Collapse whitespace
+  n = n.replace(/\s+/g, ' ').trim();
+  // Lowercase
+  n = n.toLowerCase();
+  // Remove ampersands and "and" — normalise to just space
+  n = n.replace(/\s*&\s*/g, ' ').replace(/\band\b/g, ' ');
+  // Re-collapse whitespace after removals
+  n = n.replace(/\s+/g, ' ').trim();
+  return n;
+}
+
+/**
+ * Compute Levenshtein edit distance between two strings.
+ */
+function prfLevenshtein(a, b) {
+  const m = a.length, n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+  const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] = a[i - 1] === b[j - 1]
+        ? dp[i - 1][j - 1]
+        : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+    }
+  }
+  return dp[m][n];
+}
+
+/**
+ * Match a Xero ContactName against the list of portal clients.
+ * Returns the matched client object, or null if no match found.
+ */
+function prfXeroMatchName(xeroName, portalClients) {
+  const xNorm = prfXeroNormaliseName(xeroName);
+  if (!xNorm) return null;
+
+  // Build normalised map of portal clients
+  const pMap = portalClients.map(c => ({
+    client: c,
+    norm: prfXeroNormaliseName(c.name)
+  }));
+
+  // 1. Exact normalised match
+  const exact = pMap.find(p => p.norm === xNorm);
+  if (exact) return exact.client;
+
+  // 2. "starts with" in both directions
+  const startsWith = pMap.find(p =>
+    xNorm.startsWith(p.norm) || p.norm.startsWith(xNorm)
+  );
+  if (startsWith) return startsWith.client;
+
+  // 3. Fuzzy match (edit distance ≤ 3)
+  let best = null, bestDist = 4;
+  for (const p of pMap) {
+    // Only try fuzzy on names of somewhat similar length to avoid nonsense matches
+    if (Math.abs(p.norm.length - xNorm.length) > 5) continue;
+    const d = prfLevenshtein(xNorm, p.norm);
+    if (d < bestDist) { bestDist = d; best = p.client; }
+  }
+  return best;
+}
+
+
+// ─── Phase 10: Xero CSV Import flow ───────────────────────────────────
+
+/**
+ * Process a Xero CSV file: parse, detect month, match names, populate
+ * Xero reconciliation fields, save to SharePoint.
+ */
+async function prfImportXeroCsv(file) {
+  if (!file) return;
+  showLoading(true);
+
+  try {
+    const text = await file.text();
+    const rows = prfParseCsv(text);
+    if (rows.length === 0) {
+      toast('CSV appears to be empty — no data rows found.', 'error', 4000);
+      showLoading(false);
+      return;
+    }
+
+    // Verify required columns exist
+    const first = rows[0];
+    if (!('ContactName' in first) || !('LineAmount' in first) || !('InvoiceDate' in first) || !('Status' in first)) {
+      toast('CSV missing required columns (ContactName, LineAmount, InvoiceDate, Status). Is this a Xero invoice export?', 'error', 5000);
+      showLoading(false);
+      return;
+    }
+
+    // Auto-detect the most common month from InvoiceDate (DD/MM/YYYY)
+    const monthCounts = {};
+    rows.forEach(r => {
+      const d = r.InvoiceDate || '';
+      const parts = d.split('/');
+      if (parts.length === 3) {
+        const key = parts[2] + '-' + parts[1]; // YYYY-MM
+        monthCounts[key] = (monthCounts[key] || 0) + 1;
+      }
+    });
+    let detectedMonth = null;
+    let maxCount = 0;
+    for (const [m, c] of Object.entries(monthCounts)) {
+      if (c > maxCount) { maxCount = c; detectedMonth = m; }
+    }
+    if (!detectedMonth) {
+      toast('Could not detect invoice month from CSV dates.', 'error', 4000);
+      showLoading(false);
+      return;
+    }
+
+    // Set the selected month to the detected CSV month
+    PRF.selectedMonth = detectedMonth;
+    PRF.xeroMonth = detectedMonth;
+    prfUpdateMonthUI();
+
+    // Filter rows: by detected month + status (exclude Drafts unless toggled on)
+    const filteredRows = rows.filter(r => {
+      // Filter by month
+      const parts = (r.InvoiceDate || '').split('/');
+      if (parts.length !== 3) return false;
+      const rowMonth = parts[2] + '-' + parts[1];
+      if (rowMonth !== detectedMonth) return false;
+
+      // Filter by status
+      const status = (r.Status || '').trim();
+      if (status === 'Draft' && !PRF.includeDrafts) return false;
+
+      return true;
+    });
+
+    // Sum LineAmount per ContactName (handles credit notes with negative amounts)
+    const perContact = {};
+    filteredRows.forEach(r => {
+      const name = (r.ContactName || '').trim();
+      if (!name) return;
+      const amt = parseFloat(r.LineAmount) || 0;
+      perContact[name] = (perContact[name] || 0) + amt;
+    });
+
+    // Match against portal clients
+    const matched = [];
+    const unmatched = [];
+
+    for (const [xeroName, total] of Object.entries(perContact)) {
+      const client = prfXeroMatchName(xeroName, PRF.clients);
+      if (client) {
+        matched.push({ client, total: Math.round(total * 100) / 100 });
+      } else {
+        unmatched.push({ xeroName, total: Math.round(total * 100) / 100, assignedTo: null });
+      }
+    }
+
+    PRF.xeroImported = true;
+    PRF.xeroUnmatched = unmatched;
+    PRF.xeroData = perContact;
+
+    // Apply matched values to client objects + save to SharePoint
+    const savePromises = [];
+    for (const { client, total } of matched) {
+      client.xeroActual = total;
+      client.xeroMonth  = detectedMonth;
+      savePromises.push(
+        prfPatchClient(client.id, { XeroActual: total, XeroMonth: detectedMonth })
+          .catch(err => console.error(`Failed to save Xero for ${client.name}:`, err))
+      );
+    }
+
+    // Wait for all saves (fire in parallel)
+    await Promise.all(savePromises);
+
+    // Re-render to show updated values + unmatched contacts
+    prfRenderAll();
+
+    const matchCount = matched.length;
+    const unmatchCount = unmatched.length;
+    toast(`Xero import: ${matchCount} matched, ${unmatchCount} unmatched — ${prfMonthLabel(detectedMonth)}`, unmatchCount > 0 ? 'warning' : 'success', 4000);
+
+  } catch (err) {
+    console.error('Xero CSV import failed:', err);
+    toast('Xero CSV import failed: ' + (err.message || 'unknown error'), 'error', 5000);
+  }
+
+  showLoading(false);
+}
+
+/**
+ * Manually assign an unmatched Xero contact to a portal client.
+ */
+async function prfAssignUnmatched(xeroName, clientId) {
+  if (!clientId) return;
+  const entry = PRF.xeroUnmatched.find(u => u.xeroName === xeroName);
+  if (!entry) return;
+  const client = PRF.clients.find(c => c.id === clientId);
+  if (!client) return;
+
+  entry.assignedTo = clientId;
+  client.xeroActual = entry.total;
+  client.xeroMonth  = PRF.xeroMonth || PRF.selectedMonth || prfCurrentMonth();
+
+  try {
+    await prfPatchClient(client.id, { XeroActual: entry.total, XeroMonth: client.xeroMonth });
+
+    // Update the Xero row for this client in the DOM
+    const input = document.querySelector(`.prf-xinput[data-client-id="${client.id}"]`);
+    if (input) {
+      input.value = entry.total;
+      prfUpdateXeroPreview(input);
+    }
+
+    // Re-render summary + grand total
+    const sum = document.querySelector('.prf-sum-strip');
+    const gt  = document.querySelector('.prf-gtot');
+    if (sum) sum.outerHTML = prfRenderSummary();
+    if (gt)  gt.outerHTML  = prfRenderGrandTotal();
+
+    // Re-render unmatched list (remove assigned one)
+    const unmPanel = document.getElementById('prfXeroUnmatched');
+    if (unmPanel) {
+      const remaining = PRF.xeroUnmatched.filter(u => !u.assignedTo);
+      if (remaining.length === 0) {
+        unmPanel.remove();
+      } else {
+        unmPanel.innerHTML = prfRenderUnmatchedList();
+      }
+    }
+
+    toast(`Assigned ${xeroName} → ${client.name}`, 'success', 2000);
+  } catch (err) {
+    console.error('Assign unmatched failed:', err);
+    toast('Failed to assign: ' + (err.message || 'unknown'), 'error', 4000);
+  }
+}
+
+/**
+ * Clear all Xero data for the current month — resets XeroActual/XeroMonth
+ * on all clients.
+ */
+async function prfClearXeroData() {
+  const month = PRF.selectedMonth || prfCurrentMonth();
+  const affected = PRF.clients.filter(c => c.xeroMonth === month && c.xeroActual !== null);
+  if (affected.length === 0) {
+    toast('No Xero data to clear for ' + prfMonthLabel(month), 'warning', 2500);
+    return;
+  }
+
+  showLoading(true);
+  try {
+    const saves = affected.map(c =>
+      prfPatchClient(c.id, { XeroActual: null, XeroMonth: null })
+        .then(() => { c.xeroActual = null; c.xeroMonth = null; })
+        .catch(err => console.error(`Clear Xero for ${c.name} failed:`, err))
+    );
+    await Promise.all(saves);
+    PRF.xeroImported = false;
+    PRF.xeroUnmatched = [];
+    PRF.xeroData = {};
+    prfRenderAll();
+    toast(`Cleared Xero data for ${affected.length} clients — ${prfMonthLabel(month)}`, 'success', 3000);
+  } catch (err) {
+    toast('Failed to clear Xero data: ' + (err.message || 'unknown'), 'error', 4000);
+  }
+  showLoading(false);
+}
+
+
+// ─── Phase 10: Xero Import UI rendering ───────────────────────────────
+
+function prfRenderXeroImport() {
+  const month = PRF.selectedMonth || prfCurrentMonth();
+  const matchedCount = PRF.clients.filter(c => c.xeroMonth === month && c.xeroActual !== null).length;
+  const unmatchedCount = PRF.xeroUnmatched.filter(u => !u.assignedTo).length;
+
+  let statsHtml = '';
+  if (PRF.xeroImported) {
+    statsHtml = `
+      <div class="prf-xero-stats">
+        <div class="xs-month">${prfMonthLabel(PRF.xeroMonth || month)}</div>
+        <div class="xs-line"><strong>${matchedCount}</strong> clients matched</div>
+        ${unmatchedCount > 0 ? `<div class="xs-line" style="color:var(--amber)"><strong>${unmatchedCount}</strong> unmatched</div>` : '<div class="xs-line" style="color:var(--green)">All matched</div>'}
+      </div>`;
+  }
+
+  let unmatchedHtml = '';
+  const unm = PRF.xeroUnmatched.filter(u => !u.assignedTo);
+  if (unm.length > 0) {
+    unmatchedHtml = `<div class="prf-xero-unmatched" id="prfXeroUnmatched">${prfRenderUnmatchedList()}</div>`;
+  }
+
+  return `
+    <div class="prf-xero-import" id="prfXeroImportCard">
+      <div style="flex:1;min-width:250px">
+        <h4>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Xero Reconciliation
+        </h4>
+        <div class="prf-drop-zone" id="prfDropZone"
+             ondragover="event.preventDefault();this.classList.add('drag-over')"
+             ondragleave="this.classList.remove('drag-over')"
+             ondrop="event.preventDefault();this.classList.remove('drag-over');prfHandleDrop(event)">
+          <div class="dz-text"><strong>Drag &amp; drop</strong> a Xero CSV here, or</div>
+          <button type="button" class="dz-browse" onclick="document.getElementById('prfCsvFile').click()">Browse…</button>
+          <input type="file" id="prfCsvFile" accept=".csv" onchange="prfHandleFileInput(this)">
+        </div>
+        <div class="prf-xero-actions">
+          <label><input type="checkbox" ${PRF.includeDrafts ? 'checked' : ''} onchange="PRF.includeDrafts=this.checked"> Include Draft invoices</label>
+          ${PRF.xeroImported ? `
+            <button class="prf-refresh" type="button" onclick="document.getElementById('prfCsvFile').value='';document.getElementById('prfCsvFile').click()" style="padding:4px 10px;font-size:11px">Re-import</button>
+            <button class="prf-refresh" type="button" onclick="prfClearXeroData()" style="padding:4px 10px;font-size:11px;color:var(--red)">Clear Xero Data</button>
+          ` : ''}
+        </div>
+      </div>
+      ${statsHtml}
+      ${unmatchedHtml}
+    </div>`;
+}
+
+function prfRenderUnmatchedList() {
+  const unm = PRF.xeroUnmatched.filter(u => !u.assignedTo);
+  if (unm.length === 0) return '';
+
+  const clientOpts = PRF.clients
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`)
+    .join('');
+
+  const rows = unm.map(u => {
+    return `<div class="xu-row">
+      <span>${escapeHtml(u.xeroName)}</span>
+      <span class="xu-amt">${prfFmt(u.total)}</span>
+      <span>—</span>
+      <select onchange="prfAssignUnmatched(${jsAttr(u.xeroName)},this.value)">
+        <option value="">Assign to client…</option>
+        ${clientOpts}
+      </select>
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="xu-title">
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      ${unm.length} Xero contact${unm.length !== 1 ? 's' : ''} not matched:
+    </div>
+    ${rows}`;
+}
+
+
+// ─── Phase 10: Drop zone event handlers ───────────────────────────────
+
+function prfHandleDrop(e) {
+  const files = e.dataTransfer?.files;
+  if (files && files.length > 0) {
+    const file = files[0];
+    if (!file.name.endsWith('.csv')) {
+      toast('Please drop a .csv file', 'warning', 3000);
+      return;
+    }
+    prfImportXeroCsv(file);
+  }
+}
+
+function prfHandleFileInput(input) {
+  if (input.files && input.files.length > 0) {
+    prfImportXeroCsv(input.files[0]);
+  }
+}
+
+
+// ─── Phase 10: CSV Export ─────────────────────────────────────────────
+
+function prfExportCsv() {
+  if (PRF.clients.length === 0) {
+    toast('No client data to export.', 'warning', 2500);
+    return;
+  }
+
+  const month = PRF.selectedMonth || prfCurrentMonth();
+  const header = 'Client,Status,Cost/mo,Revenue/mo,Gross Profit,Margin %,Xero Actual,Xero Month,Variance';
+  const csvRows = [header];
+
+  PRF.clients.forEach(c => {
+    const t = prfClientTotals(c.name);
+    const xAct = (c.xeroActual !== null && c.xeroMonth === month) ? c.xeroActual : '';
+    const xMon = c.xeroMonth || '';
+    const variance = (xAct !== '' && t.sell > 0) ? (xAct - t.sell).toFixed(2) : '';
+    const marginPct = t.sell > 0 ? (t.margin * 100).toFixed(1) + '%' : '0.0%';
+
+    // Escape fields that might contain commas
+    const escapeCsv = v => {
+      const s = String(v);
+      return s.includes(',') || s.includes('"') ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+
+    csvRows.push([
+      escapeCsv(c.name),
+      escapeCsv(c.status || 'Active'),
+      t.cost.toFixed(2),
+      t.sell.toFixed(2),
+      t.gp.toFixed(2),
+      marginPct,
+      xAct !== '' ? Number(xAct).toFixed(2) : '',
+      xMon,
+      variance
+    ].join(','));
+  });
+
+  const csvContent = csvRows.join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `gecko-profitability-${month}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('CSV exported: gecko-profitability-' + month + '.csv', 'success', 2500);
 }
 
 
@@ -5867,6 +6587,9 @@ async function prfDoSeed() {
 async function initProfitability() {
   if (PRF.initialised) return;
   PRF.initialised = true;
+
+  // Phase 10: default month selector to current month
+  if (!PRF.selectedMonth) PRF.selectedMonth = prfCurrentMonth();
 
   // Modal: close on ESC (only when this section's modal is open)
   document.addEventListener('keydown', e => {
