@@ -5781,11 +5781,13 @@ function prfApplyXeroForMonth() {
       if (dlEl) dlEl.innerHTML = '';
     }
   });
-  // Update summary strip + grand total
+  // Update summary strip + grand total + Xero import card
   const sum = document.querySelector('.prf-sum-strip');
   const gt  = document.querySelector('.prf-gtot');
+  const xic = document.getElementById('prfXeroImportCard');
   if (sum) sum.outerHTML = prfRenderSummary();
   if (gt)  gt.outerHTML  = prfRenderGrandTotal();
+  if (xic) xic.outerHTML = prfRenderXeroImport();
 }
 
 
@@ -6141,16 +6143,19 @@ async function prfClearXeroData() {
 
 function prfRenderXeroImport() {
   const month = PRF.selectedMonth || prfCurrentMonth();
-  const matchedCount = PRF.clients.filter(c => prfGetXero(c, month) !== null).length;
+  const clientsWithData = PRF.clients.filter(c => prfGetXero(c, month) !== null);
+  const matchedCount = clientsWithData.length;
   const unmatchedCount = PRF.xeroUnmatched.filter(u => !u.assignedTo).length;
 
+  // Always show stats for the selected month if there's any data
   let statsHtml = '';
-  if (PRF.xeroImported) {
+  if (matchedCount > 0 || PRF.xeroImported) {
     statsHtml = `
       <div class="prf-xero-stats">
-        <div class="xs-month">${prfMonthLabel(PRF.xeroMonth || month)}</div>
-        <div class="xs-line"><strong>${matchedCount}</strong> clients matched</div>
-        ${unmatchedCount > 0 ? `<div class="xs-line" style="color:var(--amber)"><strong>${unmatchedCount}</strong> unmatched</div>` : '<div class="xs-line" style="color:var(--green)">All matched</div>'}
+        <div class="xs-month">${prfMonthLabel(month)}</div>
+        <div class="xs-line"><strong>${matchedCount}</strong> clients with Xero data</div>
+        <div class="xs-line">Total: <strong>${prfFmt(clientsWithData.reduce((a, c) => a + (prfGetXero(c, month) || 0), 0))}</strong></div>
+        ${unmatchedCount > 0 ? `<div class="xs-line" style="color:var(--amber)"><strong>${unmatchedCount}</strong> unmatched</div>` : ''}
       </div>`;
   }
 
