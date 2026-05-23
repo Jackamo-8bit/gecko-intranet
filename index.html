@@ -5371,7 +5371,7 @@ body::before {
               </div>
             </div>
             <div class="tsh-field full" id="tshNotesWrap" style="display:none;">
-              <label for="tshNotes">Work Description / Notes</label>
+              <label for="tshNotes">Detailed Notes</label>
               <textarea class="tsh-textarea" id="tshNotes" placeholder="Optional longer description, follow-up actions…"></textarea>
             </div>
             <div class="tsh-field full" style="margin-top:-8px;">
@@ -11026,7 +11026,7 @@ const TSH = {
   // SharePoint mangles display names with spaces into _x0020_ variants,
   // but the exact internal name depends on how/when the column was created.
   // These are resolved at first data load by inspecting response field keys.
-  fieldNames:  { workType: null, hoursSpent: null, workDescription: null }
+  fieldNames:  { workType: null, hoursSpent: null, workDescription: null, internalNotes: null }
 };
 
 // ─── Work Type pill class mapping ────────────────────────────────────
@@ -11108,7 +11108,7 @@ async function tshResolveListIds() {
   // SharePoint mangles display names (e.g. "Work Type" → "Work_x0020_Type"
   // or "WorkType" depending on creation method). We query the list's columns
   // once and cache the correct internal names so writes don't fail.
-  if (!TSH.fieldNames.workType || !TSH.fieldNames.hoursSpent || !TSH.fieldNames.workDescription) {
+  if (!TSH.fieldNames.workType || !TSH.fieldNames.hoursSpent || !TSH.fieldNames.workDescription || !TSH.fieldNames.internalNotes) {
     try {
       const cols = await graphFetch(`/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/columns?$select=name,displayName`);
       for (const col of (cols.value || [])) {
@@ -11117,6 +11117,7 @@ async function tshResolveListIds() {
         if (dn === 'worktype' || cn === 'worktype') TSH.fieldNames.workType = col.name;
         if (dn === 'hoursspent' || dn === 'hours' || cn === 'hoursspent') TSH.fieldNames.hoursSpent = col.name;
         if (dn === 'workdescription' || cn === 'workdescription') TSH.fieldNames.workDescription = col.name;
+        if (dn === 'internalnotes' || cn === 'internalnotes') TSH.fieldNames.internalNotes = col.name;
       }
     } catch (err) {
       console.warn('Could not discover column names — falling back to defaults:', err);
@@ -11125,6 +11126,7 @@ async function tshResolveListIds() {
     if (!TSH.fieldNames.workType)   TSH.fieldNames.workType   = 'WorkType';
     if (!TSH.fieldNames.hoursSpent) TSH.fieldNames.hoursSpent = 'HoursSpent';
     if (!TSH.fieldNames.workDescription) TSH.fieldNames.workDescription = 'WorkDescription';
+    if (!TSH.fieldNames.internalNotes) TSH.fieldNames.internalNotes = 'InternalNotes';
     console.log('TSH field names resolved:', TSH.fieldNames);
   }
 }
@@ -11275,7 +11277,7 @@ async function tshLoadSsaClients() {
 
 // ─── CRUD — create entry ─────────────────────────────────────────────
 async function tshCreateEntry(data) {
-  // data: { clientLookupId, engineer, date, hours, workType, description, workDescription }
+  // data: { clientLookupId, engineer, date, hours, workType, description, internalNotes }
   const fields = {
     Title:          data.description,
     ClientLookupId: data.clientLookupId,
@@ -11285,7 +11287,9 @@ async function tshCreateEntry(data) {
   };
   // Use the discovered internal name for Work Type (avoids _x0020_ mismatch)
   if (data.workType) fields[TSH.fieldNames.workType] = data.workType;
-  fields[TSH.fieldNames.workDescription] = data.workDescription || data.description || '';
+  // The visible Description field is the actual SharePoint WorkDescription.
+  fields[TSH.fieldNames.workDescription] = data.description || '';
+  if (data.internalNotes) fields[TSH.fieldNames.internalNotes] = data.internalNotes;
   return graphFetch(`/sites/${TSH.siteId}/lists/${TSH.listIds.timesheets}/items`, {
     method: 'POST', body: JSON.stringify({ fields })
   });
@@ -11457,7 +11461,7 @@ async function tshAddEntry(ev) {
     const workType = document.getElementById('tshWorkType').value;
     const desc = document.getElementById('tshDesc').value.trim();
     const billable = document.getElementById('tshBillable').checked;
-    const workDesc = document.getElementById('tshNotes').value.trim();
+    const internalNotes = document.getElementById('tshNotes').value.trim();
 
     if (!clientId || !date || !hours || !desc) {
       toast('Please fill in all required fields', 'warning');
@@ -11472,7 +11476,7 @@ async function tshAddEntry(ev) {
       hours,
       workType,
       description: desc,
-      workDescription: workDesc
+      internalNotes
     });
 
     // Update HoursUsed on Clients list if billable
@@ -11781,7 +11785,7 @@ function tshCloseModal() {
 function tshOpenEditModal(entryId) {
   const e = TSH.entries.find(x => String(x.id) === String(entryId));
   if (!e) { toast('Entry not found', 'error'); return; }
-  const editDescription = e.description || e.workDescription || '';
+  const editDescription = e.workDescription || e.description || '';
 
   const workTypes = ['Remote Support', 'Onsite Support', 'Project Work', 'Maintenance', 'Misc', 'PC Set Up'];
   const wtOpts = workTypes.map(wt =>
@@ -11818,8 +11822,8 @@ function tshOpenEditModal(entryId) {
       <input type="text" id="tshEditDesc" value="${escapeHtml(editDescription)}">
     </div>
     <div class="tsh-form-grp">
-      <label>Work Description / Notes</label>
-      <textarea id="tshEditWorkDesc">${escapeHtml(e.workDescription)}</textarea>
+      <label>Detailed Notes</label>
+      <textarea id="tshEditWorkDesc">${escapeHtml(e.internalNotes || '')}</textarea>
     </div>
     <div class="tsh-mm-actions">
       <button class="btn btn-ghost" type="button" onclick="tshCloseModal()">Cancel</button>
@@ -11834,7 +11838,7 @@ async function tshSaveEdit(entryId, oldHours) {
   const newDate = document.getElementById('tshEditDate').value;
   const newEng = document.getElementById('tshEditEng').value;
   const newWorkType = document.getElementById('tshEditWorkType').value;
-  const newWorkDesc = document.getElementById('tshEditWorkDesc').value.trim();
+  const newInternalNotes = document.getElementById('tshEditWorkDesc').value.trim();
 
   if (!newDesc || !newDate || !newHours) {
     toast('Please fill in all required fields', 'warning');
@@ -11849,7 +11853,8 @@ async function tshSaveEdit(entryId, oldHours) {
       [TSH.fieldNames.workType]: newWorkType,
       [TSH.fieldNames.hoursSpent]: newHours
     };
-    patch[TSH.fieldNames.workDescription] = newWorkDesc || newDesc;
+    patch[TSH.fieldNames.workDescription] = newDesc;
+    patch[TSH.fieldNames.internalNotes] = newInternalNotes;
 
     await tshPatchEntry(entryId, patch);
 
