@@ -4443,6 +4443,70 @@ body::before {
   }
 }
 
+/* Light-mode contrast pass for dark header/action bands. */
+:root[data-theme="light"] {
+  --muted: #405247;
+}
+
+:root[data-theme="light"] body {
+  background:
+    linear-gradient(180deg, rgba(82,176,46,0.08), transparent 280px),
+    radial-gradient(circle at 80% -10%, rgba(74,158,221,0.13), transparent 32%),
+    linear-gradient(135deg, #edf3ee 0%, #f7faf7 46%, #e6eee8 100%);
+}
+
+:root[data-theme="light"] .top-bar {
+  background: rgba(20,29,26,0.82);
+  border-bottom-color: rgba(255,255,255,0.20);
+}
+
+:root[data-theme="light"] .top-bar h2,
+:root[data-theme="light"] .top-bar .meta {
+  color: rgba(246,252,247,0.90);
+}
+
+:root[data-theme="light"] .section-head {
+  background:
+    linear-gradient(135deg, rgba(82,176,46,0.22), rgba(74,158,221,0.10) 45%, rgba(255,255,255,0.035)),
+    rgba(28,39,35,0.94);
+  border-color: rgba(82,176,46,0.30);
+}
+
+:root[data-theme="light"] .section-head h1,
+:root[data-theme="light"] .section-head p,
+:root[data-theme="light"] .section-head .prf-last-sync,
+:root[data-theme="light"] .section-head .ovw-last-sync,
+:root[data-theme="light"] .section-head .mil-last-sync,
+:root[data-theme="light"] .section-head .cli-last-sync,
+:root[data-theme="light"] .section-head .tsh-last-sync,
+:root[data-theme="light"] .section-head .cmp-last-sync {
+  color: rgba(246,252,247,0.88);
+}
+
+:root[data-theme="light"] .section-head p,
+:root[data-theme="light"] .section-head .prf-last-sync,
+:root[data-theme="light"] #section-profit-loss #pnlLastSync {
+  font-weight: 600;
+}
+
+:root[data-theme="light"] #section-profit-loss .pnl-btn:not(.primary),
+:root[data-theme="light"] #section-profit-loss .pnl-month-sel {
+  background: rgba(7,12,10,0.58);
+  border-color: rgba(255,255,255,0.18);
+  color: rgba(246,252,247,0.82);
+}
+
+:root[data-theme="light"] #section-profit-loss .pnl-month-label,
+:root[data-theme="light"] #section-profit-loss .pnl-month-btn {
+  color: rgba(246,252,247,0.88);
+}
+
+:root[data-theme="light"] #section-profit-loss .pnl-import-text p,
+:root[data-theme="light"] #section-profit-loss .pnl-kpi .k-note,
+:root[data-theme="light"] #section-profit-loss .pnl-drop,
+:root[data-theme="light"] #section-profit-loss table thead th {
+  color: #405247 !important;
+}
 
 </style>
 </head>
