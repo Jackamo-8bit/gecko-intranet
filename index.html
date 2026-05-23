@@ -5839,6 +5839,8 @@ if (window.matchMedia) {
 
 let msalInstance = null;
 let activeAccount = null;
+const AUTH_REAUTH_KEY = 'gecko.auth.reauthRequired.v1';
+let authExpiredToastShown = false;
 
 function buildMsalConfig() {
   return {
@@ -5859,6 +5861,8 @@ async function signIn() {
   btn.disabled = true;
   showLoading(true);
   try {
+    localStorage.removeItem(AUTH_REAUTH_KEY);
+    authExpiredToastShown = false;
     const result = await msalInstance.loginPopup({
       scopes: CONFIG.SCOPES,
       prompt: 'select_account'
@@ -5892,9 +5896,57 @@ async function signOut() {
   showLogin();
 }
 
+function isInteractionRequiredAuthError(err) {
+  const code = String(err?.errorCode || err?.code || '');
+  const msg = String(err?.message || err || '');
+  return (
+    code.includes('interaction_required') ||
+    code.includes('login_required') ||
+    code.includes('consent_required') ||
+    msg.includes('interaction_required') ||
+    msg.includes('login_required') ||
+    msg.includes('consent_required') ||
+    msg.includes('AADSTS50058') ||
+    msg.includes('AADSTS65001')
+  );
+}
+
+function markAuthExpired(reason = '') {
+  console.warn('Authentication needs re-connection:', reason);
+  const alreadyMarked = localStorage.getItem(AUTH_REAUTH_KEY) === '1';
+  localStorage.setItem(AUTH_REAUTH_KEY, '1');
+  activeAccount = null;
+  if (msalInstance) msalInstance.setActiveAccount(null);
+  showLogin();
+  if (!alreadyMarked && !authExpiredToastShown) {
+    authExpiredToastShown = true;
+    toast('Your Microsoft session expired. Please sign in again to refresh live data.', 'warning', 7000);
+  }
+}
+
+let authResumeCheckAt = 0;
+async function checkAuthOnResume() {
+  if (!msalInstance || !activeAccount || document.hidden) return;
+  const now = Date.now();
+  if (now - authResumeCheckAt < 60000) return;
+  authResumeCheckAt = now;
+  try {
+    await getToken();
+  } catch (err) {
+    if (!String(err?.message || '').includes('sign in again')) {
+      console.warn('Resume auth check failed:', err);
+    }
+  }
+}
+
+window.addEventListener('pageshow', checkAuthOnResume);
+document.addEventListener('visibilitychange', checkAuthOnResume);
+
 /**
  * Acquire an access token for Graph API calls.
- * Tries silent first, falls back to popup if interaction is required.
+ * Background data refreshes must not open popups, especially in iOS PWAs.
+ * If Microsoft requires interaction, return to the sign-in screen so the
+ * next token request is triggered by an explicit user tap.
  * Used by every section that hits SharePoint.
  */
 async function getToken() {
@@ -5904,11 +5956,14 @@ async function getToken() {
       scopes:  CONFIG.SCOPES,
       account: activeAccount
     });
+    localStorage.removeItem(AUTH_REAUTH_KEY);
     return res.accessToken;
   } catch (err) {
-    console.warn('Silent token acquisition failed, falling back to popup:', err);
-    const res = await msalInstance.acquireTokenPopup({ scopes: CONFIG.SCOPES });
-    return res.accessToken;
+    if (isInteractionRequiredAuthError(err)) {
+      markAuthExpired(err.message || err.errorCode || 'silent token failed');
+      throw new Error('Microsoft session expired — sign in again');
+    }
+    throw err;
   }
 }
 
@@ -5933,6 +5988,10 @@ async function graphFetch(path, options = {}) {
   });
   if (!res.ok) {
     const txt = await res.text();
+    if (res.status === 401 || /InvalidAuthenticationToken|Access token has expired|CompactToken/i.test(txt)) {
+      markAuthExpired(`Graph ${res.status}`);
+      throw new Error('Microsoft session expired — sign in again');
+    }
     throw new Error(`Graph ${res.status}: ${txt.slice(0, 200)}`);
   }
   // Some DELETEs return 204 No Content
@@ -12895,7 +12954,9 @@ async function init() {
 
     // — Detect existing session —
     const accounts = msalInstance.getAllAccounts();
-    if (accounts.length > 0) {
+    if (localStorage.getItem(AUTH_REAUTH_KEY) === '1') {
+      showLogin();
+    } else if (accounts.length > 0) {
       activeAccount = accounts[0];
       msalInstance.setActiveAccount(activeAccount);
       onSignedIn();
