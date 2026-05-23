@@ -4456,13 +4456,28 @@ body::before {
 }
 
 :root[data-theme="light"] .top-bar {
-  background: rgba(20,29,26,0.82);
-  border-bottom-color: rgba(255,255,255,0.20);
+  background: rgba(248,251,248,0.94);
+  border-bottom-color: rgba(23,32,27,0.12);
+  box-shadow: 0 10px 28px rgba(36,54,42,0.10);
 }
 
 :root[data-theme="light"] .top-bar h2,
 :root[data-theme="light"] .top-bar .meta {
-  color: rgba(246,252,247,0.90);
+  color: #17201b;
+}
+
+:root[data-theme="light"] .top-bar .meta {
+  background: var(--green-glow);
+  border-color: var(--border);
+  color: #405247;
+  font-weight: 700;
+}
+
+:root[data-theme="light"] .sb-toggle {
+  background: #ffffff;
+  border-color: rgba(23,32,27,0.14);
+  color: #17201b;
+  box-shadow: 0 8px 22px rgba(36,54,42,0.12);
 }
 
 :root[data-theme="light"] .section-head {
@@ -4506,6 +4521,139 @@ body::before {
 :root[data-theme="light"] #section-profit-loss .pnl-drop,
 :root[data-theme="light"] #section-profit-loss table thead th {
   color: #405247 !important;
+}
+
+:root[data-theme="light"] .sidebar {
+  background:
+    linear-gradient(180deg, rgba(82,176,46,0.10), transparent 220px),
+    linear-gradient(145deg, rgba(255,255,255,0.94), rgba(247,250,247,0.88)),
+    #f8fbf8;
+  border-right-color: rgba(82,176,46,0.22);
+  box-shadow: 20px 0 48px rgba(36,54,42,0.10);
+}
+
+:root[data-theme="light"] .sb-brand {
+  border-bottom-color: rgba(23,32,27,0.10);
+}
+
+:root[data-theme="light"] .sb-brand-name,
+:root[data-theme="light"] .user-name,
+:root[data-theme="light"] .sb-system-top {
+  color: #17201b;
+}
+
+:root[data-theme="light"] .sb-brand-sub,
+:root[data-theme="light"] .sb-nav-label,
+:root[data-theme="light"] .user-role,
+:root[data-theme="light"] #signOutBtn,
+:root[data-theme="light"] .sb-system-grid span {
+  color: #52645a;
+}
+
+:root[data-theme="light"] .sb-nav-label {
+  font-weight: 800;
+}
+
+:root[data-theme="light"] .sb-link {
+  color: #31453a;
+}
+
+:root[data-theme="light"] .sb-link .ic {
+  background: rgba(23,32,27,0.055);
+  color: #405247;
+}
+
+:root[data-theme="light"] .sb-link:hover {
+  background: rgba(82,176,46,0.08);
+  border-color: rgba(82,176,46,0.18);
+  color: #17201b;
+}
+
+:root[data-theme="light"] .sb-link.active {
+  background:
+    linear-gradient(90deg, rgba(82,176,46,0.18), rgba(82,176,46,0.065)),
+    #ffffff;
+  border-color: rgba(82,176,46,0.40);
+  color: var(--green);
+  box-shadow: 0 0 0 1px rgba(82,176,46,0.08) inset, 0 12px 24px rgba(36,54,42,0.08);
+}
+
+:root[data-theme="light"] .sb-link.active .lbl,
+:root[data-theme="light"] .sb-link.active .ic {
+  color: var(--green);
+}
+
+:root[data-theme="light"] .sb-link.active .ic {
+  background: var(--green-glow);
+  box-shadow: 0 0 0 1px var(--border) inset;
+}
+
+:root[data-theme="light"] .sb-system-card,
+:root[data-theme="light"] .user-chip {
+  background:
+    linear-gradient(145deg, rgba(82,176,46,0.08), rgba(255,255,255,0.66)),
+    #ffffff;
+  border-color: rgba(82,176,46,0.18);
+}
+
+:root[data-theme="light"] .sb-system-grid span {
+  background: rgba(23,32,27,0.04);
+  border-color: rgba(23,32,27,0.08);
+}
+
+:root[data-theme="light"] .sb-foot {
+  border-top-color: rgba(23,32,27,0.10);
+}
+
+:root[data-theme="light"] input,
+:root[data-theme="light"] select,
+:root[data-theme="light"] textarea,
+:root[data-theme="light"] #section-profitability .prf-srch input,
+:root[data-theme="light"] #section-profitability .prf-xinput,
+:root[data-theme="light"] #section-mileage .mil-input,
+:root[data-theme="light"] #section-mileage .mil-select,
+:root[data-theme="light"] #section-mileage .mil-textarea,
+:root[data-theme="light"] #section-clients .cli-srch input,
+:root[data-theme="light"] #section-clients .cli-form-grp input,
+:root[data-theme="light"] #section-clients .cli-form-grp select,
+:root[data-theme="light"] #section-clients .cli-form-grp textarea,
+:root[data-theme="light"] #section-timesheets .tsh-input,
+:root[data-theme="light"] #section-timesheets .tsh-select,
+:root[data-theme="light"] #section-timesheets .tsh-textarea,
+:root[data-theme="light"] #section-compliance .cmp-input,
+:root[data-theme="light"] #section-compliance .cmp-select,
+:root[data-theme="light"] #section-compliance .cmp-textarea {
+  background-color: #ffffff;
+  border-color: rgba(23,32,27,0.16);
+  color: #17201b;
+}
+
+:root[data-theme="light"] table thead th,
+:root[data-theme="light"] .set-detail-label,
+:root[data-theme="light"] .set-pref-label,
+:root[data-theme="light"] .set-label,
+:root[data-theme="light"] .set-actions-note,
+:root[data-theme="light"] .set-profile-email,
+:root[data-theme="light"] .ovw-ops-head p,
+:root[data-theme="light"] .ovw-op .op-label,
+:root[data-theme="light"] .ovw-op .op-note,
+:root[data-theme="light"] .ovw-actions-text p,
+:root[data-theme="light"] .prf-sum-sub,
+:root[data-theme="light"] .mil-kpi .k-sub,
+:root[data-theme="light"] .tsh-ssa-hint,
+:root[data-theme="light"] .cmp-meta {
+  color: #405247 !important;
+}
+
+:root[data-theme="light"] .badge,
+:root[data-theme="light"] .set-badge,
+:root[data-theme="light"] .pnl-month,
+:root[data-theme="light"] .prf-leg-r,
+:root[data-theme="light"] .prf-li,
+:root[data-theme="light"] .cli-toolbar-meta,
+:root[data-theme="light"] .tsh-last-sync,
+:root[data-theme="light"] .cmp-last-sync {
+  font-weight: 700;
 }
 
 </style>
