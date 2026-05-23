@@ -29,6 +29,9 @@
      ═══════════════════════════════════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.27.0/lib/msal-browser.min.js"></script>
 
+<!-- SheetJS — client-side XLSX reader for Xero Profit & Loss imports. -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
 <style>
 /* ╔═══════════════════════════════════════════════════════════════════╗
    ║                                                                   ║
@@ -4875,13 +4878,13 @@ body::before {
 
       <div class="section-head">
         <h1>PROFIT <span>&amp; LOSS</span></h1>
-        <p>Xero P&amp;L import, operating-profit view and clean CSV export.</p>
+        <p>Xero P&amp;L CSV/XLSX import, operating-profit view and clean CSV export.</p>
         <div class="pnl-actions">
           <button class="pnl-btn primary" type="button" onclick="document.getElementById('pnlCsvFile').click()">
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Import CSV
+            Import CSV/XLSX
           </button>
-          <input type="file" id="pnlCsvFile" accept=".csv,text/csv" onchange="pnlHandleFileInput(this)">
+          <input type="file" id="pnlCsvFile" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onchange="pnlHandleFileInput(this)">
           <div class="pnl-month-sel" id="pnlMonthSel" aria-label="P&L month selector">
             <button class="pnl-month-btn" type="button" onclick="pnlChangeMonth(-1)" title="Previous month">
               <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -8607,13 +8610,13 @@ function pnlParseCsvRows(text) {
 
 function pnlParseXeroCsv(text, fileName = '') {
   const rows = pnlParseCsvRows(text);
-  if (rows.length === 0) throw new Error('No rows found in CSV');
+  if (rows.length === 0) throw new Error('No rows found in import file');
 
   const title = pnlNorm(rows[0]?.[0]) || 'Profit and Loss';
   const company = pnlNorm(rows[1]?.[0]) || 'Gecko IT';
   const periodText = pnlNorm(rows[2]?.[0]);
   const headerIdx = rows.findIndex(r => pnlNorm(r[0]).toLowerCase() === 'account');
-  if (headerIdx === -1) throw new Error('Could not find the Account header row. Export the Xero Profit and Loss as CSV.');
+  if (headerIdx === -1) throw new Error('Could not find the Account header row. Export the Xero Profit and Loss as CSV or XLSX.');
 
   const monthLabel = pnlNorm(rows[headerIdx][1]) || periodText.replace(/^For the month ended\s+/i, '') || 'Imported period';
   const monthKey = pnlMonthKeyFromLabel(monthLabel, periodText);
@@ -8723,13 +8726,13 @@ function pnlRenderImportCard() {
     <div class="pnl-import">
       <div class="pnl-import-text">
         <h3>Xero Profit &amp; Loss Import</h3>
-        <p>Use Xero's Profit and Loss CSV export. The dashboard recalculates totals from account rows, so blank or zero total rows in the export do not matter.</p>
+        <p>Use Xero's Profit and Loss CSV or XLSX export. The dashboard recalculates totals from account rows, so blank or zero total rows in the export do not matter.</p>
       </div>
       <div class="pnl-drop" id="pnlDrop"
            ondragover="event.preventDefault();this.classList.add('drag-over')"
            ondragleave="this.classList.remove('drag-over')"
            ondrop="pnlHandleDrop(event)">
-        <span>Drop P&amp;L CSV here</span>
+        <span>Drop P&amp;L CSV/XLSX here</span>
         <button class="pnl-btn" type="button" onclick="document.getElementById('pnlCsvFile').click()">Browse</button>
       </div>
     </div>`;
@@ -8793,15 +8796,69 @@ function pnlRenderTopMovements() {
     </div>`;
 }
 
+function pnlIsXlsxFile(file) {
+  return /\.xlsx$/i.test(file?.name || '') ||
+    file?.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+}
+
+function pnlLoadScript(src) {
+  return new Promise((resolve, reject) => {
+    if ([...document.scripts].some(s => s.src === src)) {
+      const existing = [...document.scripts].find(s => s.src === src);
+      if (window.XLSX) resolve();
+      else existing.addEventListener('load', resolve, { once: true });
+      existing.addEventListener('error', reject, { once: true });
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = true;
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
+async function pnlEnsureXlsx() {
+  if (window.XLSX) return window.XLSX;
+  const sources = [
+    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+    'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
+  ];
+  for (const src of sources) {
+    try {
+      await pnlLoadScript(src);
+      if (window.XLSX) return window.XLSX;
+    } catch (err) {
+      console.warn('XLSX loader failed:', src, err);
+    }
+  }
+  throw new Error('XLSX support could not load. Try CSV export, or check the device internet connection.');
+}
+
+async function pnlReadImportAsCsv(file) {
+  if (/\.csv$/i.test(file.name) || file.type === 'text/csv') return file.text();
+  if (!pnlIsXlsxFile(file)) {
+    throw new Error('Please import a Xero P&L CSV or XLSX file.');
+  }
+  const xlsx = await pnlEnsureXlsx();
+  const workbook = xlsx.read(await file.arrayBuffer(), { type: 'array', cellDates: true });
+  const sheetName = workbook.SheetNames[0];
+  if (!sheetName) throw new Error('No worksheet found in XLSX file');
+  const sheet = workbook.Sheets[sheetName];
+  return xlsx.utils.sheet_to_csv(sheet, { FS: ',', RS: '\n', blankrows: false });
+}
+
 async function pnlImportCsv(file) {
   if (!file) return;
-  if (!/\.csv$/i.test(file.name)) {
-    toast('Please export the Xero P&L as CSV before importing.', 'warning', 3500);
+  if (!/\.csv$/i.test(file.name) && !pnlIsXlsxFile(file)) {
+    toast('Please export the Xero P&L as CSV or XLSX before importing.', 'warning', 3500);
     return;
   }
   showLoading(true);
   try {
-    const report = pnlParseXeroCsv(await file.text(), file.name);
+    const report = pnlParseXeroCsv(await pnlReadImportAsCsv(file), file.name);
     PNL.reports[report.monthKey] = report;
     PNL.selectedMonth = report.monthKey;
     pnlSaveLocal();
