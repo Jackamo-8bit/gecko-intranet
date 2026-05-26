@@ -3124,6 +3124,57 @@ body {
   font-size: 11px; color: var(--muted);
   word-break: break-all;
 }
+#section-settings .set-status-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 9px; border-radius: 999px;
+  font-size: 10px; font-weight: 800;
+  letter-spacing: .07em; text-transform: uppercase;
+}
+#section-settings .set-status-pill.ok {
+  color: var(--green); background: var(--green-glow); border: 1px solid var(--border);
+}
+#section-settings .set-status-pill.warn {
+  color: var(--amber); background: var(--amber-dim); border: 1px solid var(--amber-border);
+}
+#section-settings .set-status-pill.bad {
+  color: var(--red); background: var(--red-dim); border: 1px solid var(--red-border);
+}
+#section-settings .set-change-list,
+#section-settings .set-watch-list {
+  padding: 8px 18px 14px;
+  display: grid; gap: 8px;
+}
+#section-settings .set-change,
+#section-settings .set-watch {
+  display: grid; grid-template-columns: 92px 1fr;
+  gap: 12px; padding: 9px 0;
+  border-bottom: 1px solid var(--border-dim);
+}
+#section-settings .set-change:last-child,
+#section-settings .set-watch:last-child { border-bottom: none; }
+#section-settings .set-change-date,
+#section-settings .set-watch-tone {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px; font-weight: 800;
+  letter-spacing: .06em; text-transform: uppercase;
+  color: var(--green);
+}
+#section-settings .set-watch-tone.warn { color: var(--amber); }
+#section-settings .set-watch-tone.bad { color: var(--red); }
+#section-settings .set-change-text,
+#section-settings .set-watch-text {
+  color: var(--white); font-size: 13px; line-height: 1.4;
+}
+#section-settings .set-action-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 16px; border-radius: var(--radius-sm);
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all .15s ease;
+  border: 1px solid var(--green);
+  background: var(--green); color: var(--black);
+}
+#section-settings .set-action-btn:hover { background: var(--green-dark); border-color: var(--green-dark); color: var(--white); }
 
 /* ── Personalisation ── */
 #section-settings .set-preferences-card .set-card-body {
@@ -5768,13 +5819,48 @@ body::before {
           </div>
         </div>
 
+        <!-- ── System Health ── -->
+        <div class="set-card">
+          <div class="set-card-head">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 8L9 4l-3 8H2"/></svg>
+            <h3>System Health</h3>
+          </div>
+          <div class="set-card-body" id="setHealthBody">
+            <div class="set-row"><span class="set-label set-muted">Open sections to populate live health checks</span></div>
+          </div>
+        </div>
+
+        <!-- ── Operational Watchlist ── -->
+        <div class="set-card">
+          <div class="set-card-head">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <h3>Operational Watchlist</h3>
+          </div>
+          <div class="set-watch-list" id="setWatchlistBody">
+            <div class="set-watch"><span class="set-watch-tone">Info</span><span class="set-watch-text">Visit Overview, Profitability, Mileage, Timesheets or Compliance to populate watchlist signals.</span></div>
+          </div>
+        </div>
+
+        <!-- ── Changelog ── -->
+        <div class="set-card">
+          <div class="set-card-head">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            <h3>Changelog</h3>
+          </div>
+          <div class="set-change-list" id="setChangelogBody"></div>
+        </div>
+
         <!-- ── Actions ── -->
         <div class="set-actions">
+          <button class="set-action-btn" type="button" onclick="setExportBackup()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export Portal Backup
+          </button>
           <button class="set-signout-btn" type="button" onclick="setClearAndSignOut()">
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             Clear Cache &amp; Sign Out
           </button>
-          <p class="set-actions-note">Clears localStorage and signs out. You will need to sign in again.</p>
+          <p class="set-actions-note">Backup exports SharePoint list data you can access. Clear Cache removes localStorage and signs out.</p>
         </div>
 
       </div>
@@ -13280,8 +13366,166 @@ function renderSettings() {
   }
 
   // — Fetch full profile from Microsoft Graph (async, fills in after load) —
+  setRenderHealth();
+  setRenderWatchlist();
+  setRenderChangelog();
   setLoadProfile();
   setLoadProfilePhoto();
+}
+
+function setHealthPill(tone, label) {
+  return `<span class="set-status-pill ${tone}">${escapeHtml(label)}</span>`;
+}
+
+function setRenderHealth() {
+  const body = document.getElementById('setHealthBody');
+  if (!body) return;
+  const rows = [
+    ['Microsoft session', activeAccount ? setHealthPill('ok', 'Signed in') : setHealthPill('bad', 'Not signed in')],
+    ['SharePoint site', CONFIG.siteId ? setHealthPill('ok', 'Resolved') : setHealthPill('warn', 'Resolves on demand')],
+    ['List catalogue', CONFIG._listsCache?.length ? `${setHealthPill('ok', CONFIG._listsCache.length + ' lists')} ` : setHealthPill('warn', 'Not loaded')],
+    ['P&L storage', PNL?.sharePointReady ? setHealthPill('ok', 'SharePoint') : (PNL?.listId ? setHealthPill('ok', 'List found') : setHealthPill('warn', 'Loads on P&L open'))],
+    ['Profitability data', PRF?.clients?.length ? setHealthPill('ok', `${PRF.clients.length} clients`) : setHealthPill('warn', 'Not loaded')],
+    ['Mileage data', MIL?.journeys?.length ? setHealthPill('ok', `${MIL.journeys.length} journeys`) : setHealthPill('warn', 'Not loaded')],
+    ['Timesheets data', TSH?.entries?.length ? setHealthPill('ok', `${TSH.entries.length} entries`) : setHealthPill('warn', 'Not loaded')],
+    ['Compliance data', CMP?.items?.length ? setHealthPill('ok', `${CMP.items.length} items`) : setHealthPill('warn', 'Not loaded')]
+  ];
+  body.innerHTML = rows.map(([label, value]) =>
+    `<div class="set-row"><span class="set-label">${escapeHtml(label)}</span><span class="set-value">${value}</span></div>`
+  ).join('');
+}
+
+function setRenderWatchlist() {
+  const body = document.getElementById('setWatchlistBody');
+  if (!body) return;
+  const items = [];
+
+  if (PRF?.clients?.length) {
+    const lowMargin = PRF.clients
+      .map(c => ({ client: c, totals: prfClientTotals(c.name) }))
+      .filter(r => r.totals.sell > 0 && r.totals.margin < 0.4)
+      .sort((a, b) => a.totals.margin - b.totals.margin)
+      .slice(0, 3);
+    lowMargin.forEach(r => items.push({
+      tone: 'warn',
+      label: 'Margin',
+      text: `${r.client.name} margin is ${prfFmtPct(r.totals.margin)} on ${prfFmt(r.totals.sell)} expected revenue.`
+    }));
+  }
+
+  if (MIL?.journeys?.length) {
+    const unclaimed = MIL.journeys.filter(j => !j.claimedDate);
+    const amount = unclaimed.reduce((a, j) => a + (Number(j.amount) || 0), 0);
+    if (unclaimed.length) items.push({
+      tone: 'warn',
+      label: 'Mileage',
+      text: `${unclaimed.length} mileage journeys are awaiting claim (${typeof milFmtMoney === 'function' ? milFmtMoney(amount) : pnlFmt(amount)}).`
+    });
+  }
+
+  if (OVW?.ssaClients?.length) {
+    OVW.ssaClients
+      .filter(c => c.hoursRemaining !== null && c.hoursRemaining < 2)
+      .slice(0, 3)
+      .forEach(c => items.push({
+        tone: 'bad',
+        label: 'SSA',
+        text: `${c.name} has ${Number(c.hoursRemaining).toFixed(1)} SSA hours remaining.`
+      }));
+  }
+
+  if (CMP?.items?.length) {
+    const overdue = CMP.items.filter(i => i.status === 'Overdue');
+    const dueSoon = CMP.items.filter(i => i.status === 'Due Soon');
+    if (overdue.length) items.push({ tone: 'bad', label: 'Compliance', text: `${overdue.length} compliance item${overdue.length === 1 ? '' : 's'} overdue.` });
+    else if (dueSoon.length) items.push({ tone: 'warn', label: 'Compliance', text: `${dueSoon.length} compliance item${dueSoon.length === 1 ? '' : 's'} due soon.` });
+  }
+
+  if (items.length === 0) {
+    items.push({
+      tone: 'ok',
+      label: 'Clear',
+      text: 'No obvious issues from currently loaded sections. Visit each section or refresh data for a fuller check.'
+    });
+  }
+
+  body.innerHTML = items.slice(0, 8).map(item =>
+    `<div class="set-watch"><span class="set-watch-tone ${item.tone === 'ok' ? '' : item.tone}">${escapeHtml(item.label)}</span><span class="set-watch-text">${escapeHtml(item.text)}</span></div>`
+  ).join('');
+}
+
+function setRenderChangelog() {
+  const body = document.getElementById('setChangelogBody');
+  if (!body) return;
+  const changes = [
+    ['May 2026', 'P&L imports now support CSV/XLSX, month switching, SharePoint site-wide storage, and summary insights.'],
+    ['May 2026', 'Profitability gained category-aware ranking by profit, revenue, margin, cost, Xero variance, or client name.'],
+    ['May 2026', 'Timesheets description now writes to the SharePoint WorkDescription field.'],
+    ['May 2026', 'Mobile layout, light mode, transparent logo/favicon, and stale Microsoft session recovery were tightened up.'],
+    ['May 2026', 'Settings now includes health checks, watchlist signals, changelog, and portal backup export.']
+  ];
+  body.innerHTML = changes.map(([date, text]) =>
+    `<div class="set-change"><span class="set-change-date">${escapeHtml(date)}</span><span class="set-change-text">${escapeHtml(text)}</span></div>`
+  ).join('');
+}
+
+async function setFetchListItemsForBackup(siteId, listId) {
+  let items = [];
+  let nextUrl = `/sites/${siteId}/lists/${listId}/items?$expand=fields&$top=${CONFIG.GRAPH_PAGE_SIZE}`;
+  while (nextUrl) {
+    const res = await graphFetch(nextUrl);
+    items = items.concat((res.value || []).map(it => ({ id: it.id, fields: it.fields || {} })));
+    nextUrl = res['@odata.nextLink'] || null;
+    if (items.length > CONFIG.GRAPH_SAFETY_LIMIT) break;
+  }
+  return items;
+}
+
+function setDownloadJson(filename, data) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 200);
+}
+
+async function setExportBackup() {
+  showLoading(true);
+  try {
+    const siteId = await resolveSiteId();
+    CONFIG._listsCache = null;
+    const allLists = await fetchAllLists();
+    const wanted = ['GeckoClients', 'GeckoServices', 'MileageJourneys', 'MileageClients', 'Timesheets', 'Clients', 'GeckoCompliance', 'GeckoPnLReports'];
+    const backup = {
+      exportedAt: new Date().toISOString(),
+      portalVersion: 'Phase 10 — May 2026',
+      site: CONFIG.SP_HOST + CONFIG.SP_SITE,
+      lists: {}
+    };
+    for (const name of wanted) {
+      const list = allLists.find(l => l.displayName === name || l.name === name);
+      if (!list) {
+        backup.lists[name] = { found: false, items: [] };
+        continue;
+      }
+      backup.lists[name] = {
+        found: true,
+        id: list.id,
+        items: await setFetchListItemsForBackup(siteId, list.id)
+      };
+    }
+    const date = today();
+    setDownloadJson(`gecko-portal-backup-${date}.json`, backup);
+    toast('Portal backup exported', 'success', 3000);
+    setRenderHealth();
+  } catch (err) {
+    console.error('Portal backup failed:', err);
+    toast('Backup failed: ' + (err.message || 'unknown error'), 'error', 6000);
+  } finally {
+    showLoading(false);
+  }
 }
 
 /**
