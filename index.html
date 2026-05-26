@@ -1665,7 +1665,13 @@ body {
   #section-profit-loss .pnl-summary { grid-template-columns: 1fr; }
   #section-profit-loss .pnl-kpi { border-right: none; }
   #section-profit-loss .pnl-import { padding: 16px; }
-  #section-profit-loss .pnl-drop { min-width: 0; width: 100%; }
+  #section-profit-loss .pnl-drop {
+    min-width: 0; width: 100%;
+    flex-direction: column; align-items: stretch;
+  }
+  #section-profit-loss .pnl-drop .pnl-btn {
+    width: 100%; justify-content: center;
+  }
   #section-profit-loss .pnl-table { min-width: 620px; }
   #section-profit-loss .pnl-card { overflow-x: auto; }
 }
@@ -2726,12 +2732,17 @@ body {
 
 /* — Notes expand link — */
 #section-timesheets .tsh-notes-toggle {
-  background: none; border: none; padding: 0;
-  color: var(--muted); font-size: 11px; font-family: inherit;
-  cursor: pointer; text-decoration: underline; text-decoration-color: var(--border-dim);
-  transition: color .15s;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 34px; padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-dim);
+  background: rgba(255,255,255,0.02);
+  color: var(--muted); font-size: 12px;
+  font-family: 'Instrument Sans', sans-serif; font-weight: 700;
+  cursor: pointer; text-decoration: none;
+  transition: color .15s, border-color .15s, background .15s;
 }
-#section-timesheets .tsh-notes-toggle:hover { color: var(--green); text-decoration-color: var(--green); }
+#section-timesheets .tsh-notes-toggle:hover { color: var(--green); border-color: var(--green); background: var(--green-glow); }
 
 /* — Filter row — */
 #section-timesheets .tsh-filters {
@@ -4385,6 +4396,63 @@ body::before {
     scrollbar-width: none;
   }
 
+  #section-profitability .prf-ctrl {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    align-items: stretch;
+  }
+
+  #section-profitability .prf-cg {
+    display: none;
+  }
+
+  #section-profitability .prf-fbtn,
+  #section-profitability .prf-abtn {
+    min-height: 38px;
+  }
+
+  #section-profitability .prf-sort {
+    order: 2;
+    flex: 1 1 100%;
+  }
+
+  #section-profitability .prf-sort select {
+    flex: 1;
+    width: 100%;
+    min-height: 40px;
+  }
+
+  #section-profitability .prf-srch {
+    order: 5;
+    flex: 1 1 100%;
+  }
+
+  #section-profit-loss .pnl-actions {
+    align-items: stretch;
+  }
+
+  #section-profit-loss .pnl-btn,
+  #section-profit-loss .pnl-month-sel {
+    min-height: 42px;
+  }
+
+  #section-profit-loss .pnl-actions .pnl-btn.primary,
+  #section-profit-loss .pnl-month-sel,
+  #section-profit-loss #pnlLastSync {
+    flex: 1 1 100%;
+  }
+
+  #section-profit-loss .pnl-actions .pnl-btn:not(.primary) {
+    flex: 1 1 calc(50% - 4px);
+    justify-content: center;
+  }
+
+  #section-profit-loss #pnlLastSync {
+    min-height: 22px;
+    display: flex;
+    align-items: center;
+  }
+
   #section-profitability .prf-ctrl::-webkit-scrollbar,
   #section-profitability .prf-leg::-webkit-scrollbar,
   #section-mileage .mil-filter::-webkit-scrollbar,
@@ -4440,6 +4508,12 @@ body::before {
     justify-content: stretch;
   }
 
+  #section-timesheets .tsh-notes-toggle {
+    width: 100%;
+    min-height: 42px;
+    margin-top: 4px;
+  }
+
   #section-mileage .mil-form-actions .btn,
   #section-timesheets .tsh-form-actions .btn,
   #section-compliance .cmp-form-actions .btn,
@@ -4493,6 +4567,17 @@ body::before {
   #section-settings .set-row {
     align-items: flex-start;
     gap: 6px;
+  }
+
+  #section-settings .set-actions {
+    align-items: stretch;
+  }
+
+  #section-settings .set-action-btn,
+  #section-settings .set-signout-btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 42px;
   }
 
   #section-settings .set-value,
@@ -4555,6 +4640,12 @@ body::before {
 
   #section-profitability .prf-sum-strip {
     grid-template-columns: 1fr;
+  }
+
+  #section-settings .set-change,
+  #section-settings .set-watch {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 
   .sb-backdrop.show {
