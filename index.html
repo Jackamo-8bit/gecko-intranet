@@ -1008,6 +1008,20 @@ body {
   color: var(--muted); transition: all .15s;
 }
 #section-profitability .prf-abtn:hover { color: var(--white); border-color: var(--border); }
+#section-profitability .prf-sort {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 9px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .08em;
+}
+#section-profitability .prf-sort select {
+  height: 28px; border-radius: 8px;
+  border: 1px solid var(--border-dim);
+  background: var(--dark); color: var(--white);
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 11px; letter-spacing: 0; text-transform: none;
+  padding: 0 28px 0 10px; outline: none;
+}
+#section-profitability .prf-sort select:focus { border-color: var(--green); }
 #section-profitability .prf-srch { position: relative; }
 #section-profitability .prf-srch input {
   padding: 5px 11px 5px 28px; border-radius: 999px;
@@ -4579,6 +4593,12 @@ body::before {
   color: #405247 !important;
 }
 
+:root[data-theme="light"] #section-profitability .prf-sort select {
+  background: #ffffff;
+  border-color: rgba(23,32,27,0.16);
+  color: #17201b;
+}
+
 :root[data-theme="light"] .sidebar {
   background:
     linear-gradient(180deg, rgba(82,176,46,0.10), transparent 220px),
@@ -7021,6 +7041,7 @@ const PRF = {
   clients:     [],   // [{ id, name, status, contractStart, notes, xeroHistory }]
   services:    [],   // [{ id, clientName, name, category, cost, sell, notes }]
   filterCat:   'all',
+  sortBy:      'profitDesc',
   search:      '',
   openCards:   new Set(),                        // client IDs of expanded cards (preserved across re-renders)
   modalCb:     null,                             // active modal confirm callback
@@ -7208,8 +7229,9 @@ async function prfRefreshData(silent = false) {
 function prfClientServices(clientName) {
   return PRF.services.filter(s => s.clientName === clientName);
 }
-function prfClientTotals(clientName) {
-  const all = prfClientServices(clientName);
+function prfClientTotals(clientName, category = 'all') {
+  const allServices = prfClientServices(clientName);
+  const all = category === 'all' ? allServices : allServices.filter(s => s.category === category);
   const sell    = all.reduce((a, s) => a + s.sell, 0);
   const cost    = all.reduce((a, s) => a + s.cost, 0);
   const sellRet = all.filter(s => s.category === 'retainer').reduce((a, s) => a + s.sell, 0);
@@ -7218,17 +7240,25 @@ function prfClientTotals(clientName) {
   const margin  = sell > 0 ? gp / sell : 0;
   return { sell, cost, sellRet, sellSt, gp, margin, all };
 }
+function prfClientViewTotals(clientName) {
+  return prfClientTotals(clientName, PRF.filterCat || 'all');
+}
 function prfGrandTotals() {
   let cost = 0, sell = 0, sellRet = 0, xero = 0, xeroCount = 0, activeClients = 0;
   const selMonth = PRF.selectedMonth || prfCurrentMonth();
+  const cat = PRF.filterCat || 'all';
   PRF.clients.forEach(c => {
-    if (c.status !== 'Winding') activeClients++;
-    // Phase 10: only count Xero data for the selected month (from XeroHistory)
-    const xVal = prfGetXero(c, selMonth);
-    if (xVal !== null && !isNaN(xVal)) {
-      xero += xVal; xeroCount++;
+    const clientServices = PRF.services.filter(s => s.clientName === c.name && (cat === 'all' || s.category === cat));
+    if (c.status !== 'Winding' && (cat === 'all' || clientServices.length > 0)) activeClients++;
+    // Xero actuals are whole-client invoice figures, so only compare them
+    // against the all-services view. Category filters rank service lines only.
+    if (cat === 'all') {
+      const xVal = prfGetXero(c, selMonth);
+      if (xVal !== null && !isNaN(xVal)) {
+        xero += xVal; xeroCount++;
+      }
     }
-    PRF.services.filter(s => s.clientName === c.name).forEach(s => {
+    clientServices.forEach(s => {
       cost += s.cost; sell += s.sell;
       if (s.category === 'retainer') sellRet += s.sell;
     });
@@ -7236,7 +7266,7 @@ function prfGrandTotals() {
   const sellStack = sell - sellRet;
   const gp        = sell - cost;
   const margin    = sell > 0 ? gp / sell : 0;
-  return { cost, sell, sellStack, sellRet, gp, margin, xero, xeroCount, activeClients };
+  return { cost, sell, sellStack, sellRet, gp, margin, xero, xeroCount, activeClients, category: cat };
 }
 
 
@@ -7289,6 +7319,10 @@ function prfRenderSummary() {
   const t = prfGrandTotals();
   const hasXero = t.xeroCount > 0;
   const selMonth = PRF.selectedMonth || prfCurrentMonth();
+  const scoped = t.category && t.category !== 'all';
+  const scopeNote = scoped
+    ? `<div class="prf-sum-sub neutral">${escapeHtml(PRF_CATS.find(c => c.key === t.category)?.label || t.category)} view</div>`
+    : '';
 
   // Variance: Xero actual revenue vs expected total revenue
   const variance = hasXero ? t.xero - t.sell : 0;
@@ -7303,7 +7337,7 @@ function prfRenderSummary() {
   // Sub-text for each KPI (only shown when Xero data exists for this month)
   const xeroSub = hasXero
     ? `<div class="prf-sum-sub amber">Xero: ${prfFmt(t.xero)}</div>`
-    : `<div class="prf-sum-sub neutral">No Xero data</div>`;
+    : `<div class="prf-sum-sub neutral">${scoped ? 'Whole-client actual only' : 'No Xero data'}</div>`;
 
   const gpSub = hasXero
     ? `<div class="prf-sum-sub ${xeroGp >= t.gp ? 'pos' : 'neg'}">Xero: ${prfFmt(xeroGp)}</div>`
@@ -7322,7 +7356,7 @@ function prfRenderSummary() {
       <div class="prf-sum-s"><div class="prf-sum-v">${t.activeClients}</div><div class="prf-sum-l">Active Clients</div></div>
       <div class="prf-sum-s">
         <div class="prf-sum-v">${prfFmt(t.sell)}</div><div class="prf-sum-l">Expected Revenue</div>
-        ${xeroSub}
+        ${scopeNote || xeroSub}
       </div>
       <div class="prf-sum-s">
         <div class="prf-sum-v">${prfFmt(t.cost)}</div><div class="prf-sum-l">Total Cost</div>
@@ -7349,11 +7383,25 @@ function prfRenderControls() {
     const cls = PRF.filterCat === k ? 'prf-fbtn on' : 'prf-fbtn';
     return `<button class="${cls}" type="button" onclick="prfSetFilter('${k}')">${escapeHtml(label)}</button>`;
   }).join('');
+  const sortOptions = [
+    ['profitDesc', 'Profit high to low'],
+    ['revenueDesc', 'Revenue high to low'],
+    ['marginDesc', 'Margin high to low'],
+    ['costDesc', 'Cost high to low'],
+    ['varianceAsc', 'Closest to Xero'],
+    ['nameAsc', 'Client A-Z']
+  ].map(([value, label]) =>
+    `<option value="${value}"${PRF.sortBy === value ? ' selected' : ''}>${escapeHtml(label)}</option>`
+  ).join('');
   return `
     <div class="prf-ctrl">
       <span class="prf-cl">Filter:</span>
       ${catBtns}
       <div class="prf-cg"></div>
+      <label class="prf-sort">
+        <span>Sort</span>
+        <select onchange="prfSetSort(this.value)">${sortOptions}</select>
+      </label>
       <button class="prf-abtn" type="button" onclick="prfExpandAll()">Expand All</button>
       <button class="prf-abtn" type="button" onclick="prfCollapseAll()">Collapse All</button>
       <div class="prf-srch">
@@ -7380,15 +7428,54 @@ function prfRenderLegend() {
 }
 
 function prfRenderCards() {
+  const clients = prfRankedClients();
   if (PRF.clients.length === 0) {
     return `<div class="prf-empty"><h3>No Clients</h3><p>Add a client to start tracking profitability.</p></div>`;
   }
-  return PRF.clients.map(prfRenderCard).join('');
+  if (clients.length === 0) {
+    const cat = PRF.filterCat === 'all' ? 'current filters' : (PRF_CATS.find(c => c.key === PRF.filterCat)?.label || PRF.filterCat);
+    return `<div class="prf-empty"><h3>No Clients Match</h3><p>No clients have services matching ${escapeHtml(cat)}.</p></div>`;
+  }
+  return clients.map(prfRenderCard).join('');
+}
+
+function prfRankedClients() {
+  const cat = PRF.filterCat || 'all';
+  const month = PRF.selectedMonth || prfCurrentMonth();
+  const q = PRF.search || '';
+  const rows = PRF.clients
+    .filter(c => !q || c.name.toLowerCase().includes(q))
+    .map(c => {
+      const totals = prfClientTotals(c.name, cat);
+      const fullTotals = prfClientTotals(c.name);
+      const xero = prfGetXero(c, month);
+      return { client: c, totals, fullTotals, xero };
+    })
+    .filter(r => cat === 'all' || r.totals.all.length > 0);
+
+  const byName = (a, b) => a.client.name.localeCompare(b.client.name);
+  const sorters = {
+    profitDesc:  (a, b) => (b.totals.gp - a.totals.gp) || byName(a, b),
+    revenueDesc: (a, b) => (b.totals.sell - a.totals.sell) || byName(a, b),
+    marginDesc:  (a, b) => (b.totals.margin - a.totals.margin) || (b.totals.gp - a.totals.gp) || byName(a, b),
+    costDesc:    (a, b) => (b.totals.cost - a.totals.cost) || byName(a, b),
+    varianceAsc: (a, b) => {
+      const av = a.xero === null ? Number.POSITIVE_INFINITY : Math.abs(a.xero - a.fullTotals.sell);
+      const bv = b.xero === null ? Number.POSITIVE_INFINITY : Math.abs(b.xero - b.fullTotals.sell);
+      return (av - bv) || byName(a, b);
+    },
+    nameAsc: byName
+  };
+  return rows.sort(sorters[PRF.sortBy] || sorters.profitDesc).map(r => r.client);
 }
 
 function prfRenderCard(client) {
-  const t = prfClientTotals(client.name);
-  const cats = [...new Set(t.all.map(s => s.category))].join(',');
+  const t = prfClientViewTotals(client.name);
+  const fullTotals = prfClientTotals(client.name);
+  const allServices = prfClientServices(client.name);
+  const cats = [...new Set(allServices.map(s => s.category))].join(',');
+  const scoped = PRF.filterCat && PRF.filterCat !== 'all';
+  const scopeName = scoped ? (PRF_CATS.find(c => c.key === PRF.filterCat)?.label || PRF.filterCat) : '';
   const isOpen = PRF.openCards.has(client.id);
 
   // Status badge
@@ -7411,7 +7498,7 @@ function prfRenderCard(client) {
 
   // Empty service prompt if no services yet
   if (t.all.length === 0) {
-    rows = `<tr><td colspan="7" style="text-align:center;padding:18px;color:var(--muted);font-size:12px;font-style:italic">No services yet — click "Add service" below to start.</td></tr>`;
+    rows = `<tr><td colspan="7" style="text-align:center;padding:18px;color:var(--muted);font-size:12px;font-style:italic">No ${escapeHtml(scopeName || 'services')} lines to show.</td></tr>`;
   }
 
   // Add-service trigger row
@@ -7426,7 +7513,7 @@ function prfRenderCard(client) {
   const selMonth = PRF.selectedMonth || prfCurrentMonth();
   const xeroVal = prfGetXero(client, selMonth);
   const xeroValStr = xeroVal !== null ? xeroVal : '';
-  const xeroStatus = xeroVal !== null ? prfXeroStatus(t.sell, xeroVal) : { cls: 'prf-xsp', text: 'No data this month', delta: '' };
+  const xeroStatus = xeroVal !== null ? prfXeroStatus(fullTotals.sell, xeroVal) : { cls: 'prf-xsp', text: 'No data this month', delta: '' };
 
   return `
     <div class="${cls.join(' ')}" data-cats="${cats}" data-client-id="${client.id}" data-client-name="${escapeHtml(client.name).toLowerCase()}">
@@ -7456,7 +7543,7 @@ function prfRenderCard(client) {
           <tbody data-svc-body="${client.id}">${rows}${addRow}</tbody>
           <tfoot>
             <tr class="prf-trow">
-              <td colspan="2">CLIENT TOTAL — ${escapeHtml(client.name)}</td>
+              <td colspan="2">CLIENT TOTAL — ${escapeHtml(client.name)}${scoped ? ` (${escapeHtml(scopeName)})` : ''}</td>
               <td class="prf-nr">${prfFmt(t.cost)}</td>
               <td class="prf-nr">${prfFmt(t.sell)}</td>
               <td class="prf-nr" style="color:var(--green)">${prfFmt(t.gp)}</td>
@@ -7467,7 +7554,7 @@ function prfRenderCard(client) {
               <td colspan="2"><span class="prf-xlbl">📊 Xero reconciliation — actual invoiced amount (ex VAT)</span></td>
               <td colspan="4">
                 <div class="prf-xctrl">
-                  <span class="prf-xcalc">Calculated: <strong>${prfFmtForce(t.sell)}</strong></span>
+                  <span class="prf-xcalc">Calculated ${scoped ? 'all-client' : ''}: <strong>${prfFmtForce(fullTotals.sell)}</strong></span>
                   <span style="font-size:10px;color:var(--muted)">Xero actual:</span>
                   <input class="prf-xinput" type="number" step="0.01" placeholder="0.00"
                          value="${xeroValStr}"
@@ -7523,6 +7610,8 @@ function prfRenderGrandTotal() {
   const t = prfGrandTotals();
   const hasXero = t.xeroCount > 0;
   const selMonth = PRF.selectedMonth || prfCurrentMonth();
+  const scoped = t.category && t.category !== 'all';
+  const scopeName = scoped ? (PRF_CATS.find(c => c.key === t.category)?.label || t.category) : 'ALL CLIENTS';
   const xeroGp = hasXero ? t.xero - t.cost : 0;
   const xeroMargin = hasXero && t.xero > 0 ? xeroGp / t.xero : 0;
   const variance = hasXero ? t.xero - t.sell : 0;
@@ -7531,8 +7620,8 @@ function prfRenderGrandTotal() {
   return `
     <div class="prf-gtot">
       <div class="prf-gtlbl">
-        <strong>GRAND TOTAL — <span>ALL CLIENTS</span></strong>
-        <p>Expected = from service lines (GeckoServices). Xero Actual = invoiced revenue for ${prfMonthLabel(selMonth)}. Variance shows the difference.</p>
+        <strong>GRAND TOTAL — <span>${escapeHtml(scopeName)}</span></strong>
+        <p>Expected = from ${scoped ? escapeHtml(scopeName) + ' ' : ''}service lines (GeckoServices). Xero Actual is only compared in the all-client view for ${prfMonthLabel(selMonth)}.</p>
       </div>
       <div class="prf-gtstats">
         <div class="prf-gtst"><span class="v" style="color:var(--red)">${prfFmt(t.cost)}</span><span class="l">Total Cost</span></div>
@@ -8210,13 +8299,18 @@ function prfExportCsv() {
 // ─── Filtering / search ───────────────────────────────────────────────
 function prfSetFilter(cat) {
   PRF.filterCat = cat;
-  // Update button on/off state without full re-render
-  document.querySelectorAll('.prf-fbtn').forEach(b => b.classList.remove('on'));
-  const btns = document.querySelectorAll('.prf-fbtn');
-  // Match by label
-  const target = cat === 'all' ? 'All' : (PRF_CATS.find(c => c.key === cat).label + (cat === 'retainer' ? 's' : ''));
-  btns.forEach(b => { if (b.textContent.trim() === target) b.classList.add('on'); });
-  prfApplyFilters();
+  prfRenderAll();
+}
+function prfSetSort(sortBy) {
+  PRF.sortBy = sortBy || 'profitDesc';
+  const cards = document.querySelectorAll('.prf-cc');
+  if (cards.length) {
+    const open = new Set(PRF.openCards);
+    prfRenderAll();
+    PRF.openCards = open;
+  } else {
+    prfRenderAll();
+  }
 }
 function prfSetSearch(q) {
   PRF.search = q.toLowerCase();
