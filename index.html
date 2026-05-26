@@ -8554,17 +8554,22 @@ async function initProfitability() {
    ║                                                                   ║
    ║   PROFIT & LOSS MODULE                                            ║
    ║                                                                   ║
-   ║   Local import/export view for Xero Profit and Loss CSV exports.  ║
-   ║   No SharePoint writes; stores the most recent import in browser   ║
-   ║   localStorage so the report survives refreshes on the same device.║
+   ║   Xero CSV/XLSX import with SharePoint-backed monthly reports.    ║
+   ║   localStorage remains as an offline/cache fallback, but the       ║
+   ║   GeckoPnLReports list is the source of truth across devices.      ║
    ║                                                                   ║
    ╚═══════════════════════════════════════════════════════════════════╝ */
 
 const PNL = {
   initialised: false,
+  loading: false,
   storageKey: 'gecko.pnl.v1',
+  siteId: null,
+  listId: null,
   selectedMonth: null,
-  reports: {}
+  reports: {},
+  itemIds: {},
+  sharePointReady: false
 };
 
 const pnlFmt = v => {
@@ -8713,7 +8718,8 @@ function pnlSaveLocal() {
   try {
     localStorage.setItem(PNL.storageKey, JSON.stringify({
       selectedMonth: PNL.selectedMonth,
-      reports: PNL.reports
+      reports: PNL.reports,
+      itemIds: PNL.itemIds
     }));
   } catch (err) { console.warn('P&L local save failed:', err); }
 }
@@ -8723,6 +8729,7 @@ function pnlLoadLocal() {
     const parsed = raw ? JSON.parse(raw) : null;
     if (parsed?.reports) {
       PNL.reports = parsed.reports || {};
+      PNL.itemIds = parsed.itemIds || {};
       PNL.selectedMonth = parsed.selectedMonth || Object.keys(PNL.reports).sort().at(-1) || pnlCurrentMonth();
       return;
     }
@@ -8730,16 +8737,119 @@ function pnlLoadLocal() {
       const key = parsed.monthKey || pnlMonthKeyFromLabel(parsed.monthLabel, parsed.periodText);
       parsed.monthKey = key;
       PNL.reports = { [key]: parsed };
+      PNL.itemIds = {};
       PNL.selectedMonth = key;
       pnlSaveLocal();
       return;
     }
     PNL.reports = {};
+    PNL.itemIds = {};
     PNL.selectedMonth = pnlCurrentMonth();
   } catch {
     PNL.reports = {};
+    PNL.itemIds = {};
     PNL.selectedMonth = pnlCurrentMonth();
   }
+}
+
+async function pnlResolveListId() {
+  if (PNL.siteId && PNL.listId) return;
+  PNL.siteId = await resolveSiteId();
+  let allLists = await fetchAllLists();
+  let list = allLists.find(l => l.displayName === 'GeckoPnLReports' || l.name === 'GeckoPnLReports');
+  if (!list) {
+    CONFIG._listsCache = null;
+    allLists = await fetchAllLists();
+    list = allLists.find(l => l.displayName === 'GeckoPnLReports' || l.name === 'GeckoPnLReports');
+  }
+  if (!list) throw new Error('GeckoPnLReports list not found in SharePoint site');
+  PNL.listId = list.id;
+}
+
+function pnlCleanReportForStorage(report) {
+  const copy = JSON.parse(JSON.stringify(report || {}));
+  delete copy._spItemId;
+  return copy;
+}
+
+function pnlReportFromSharePointItem(item) {
+  const f = item.fields || {};
+  const raw = f.ReportJson || f.ReportJSON || '';
+  if (!raw) return null;
+  const report = JSON.parse(raw);
+  report.monthKey = report.monthKey || f.MonthKey || pnlMonthKeyFromLabel(report.monthLabel || f.MonthLabel, report.periodText);
+  report.monthLabel = report.monthLabel || f.MonthLabel || pnlMonthLabel(report.monthKey);
+  report.fileName = report.fileName || f.FileName || '';
+  report.importedAt = report.importedAt || f.ImportedAt || item.lastModifiedDateTime || '';
+  report._spItemId = item.id;
+  return report.monthKey && report.sections && report.totals ? report : null;
+}
+
+async function pnlLoadSharePointReports() {
+  await pnlResolveListId();
+  let allItems = [];
+  let nextUrl = `/sites/${PNL.siteId}/lists/${PNL.listId}/items?$expand=fields&$top=${CONFIG.GRAPH_PAGE_SIZE}`;
+  while (nextUrl) {
+    const res = await graphFetch(nextUrl);
+    allItems = allItems.concat(res.value || []);
+    nextUrl = res['@odata.nextLink'] || null;
+    if (allItems.length > CONFIG.GRAPH_SAFETY_LIMIT) break;
+  }
+
+  const reports = {};
+  const itemIds = {};
+  allItems.forEach(item => {
+    try {
+      const report = pnlReportFromSharePointItem(item);
+      if (report?.monthKey) {
+        reports[report.monthKey] = report;
+        itemIds[report.monthKey] = item.id;
+      }
+    } catch (err) {
+      console.warn('Skipping invalid P&L report item:', item.id, err);
+    }
+  });
+
+  PNL.reports = reports;
+  PNL.itemIds = itemIds;
+  if (!PNL.selectedMonth || !PNL.reports[PNL.selectedMonth]) {
+    PNL.selectedMonth = Object.keys(PNL.reports).sort().at(-1) || pnlCurrentMonth();
+  }
+  PNL.sharePointReady = true;
+  pnlSaveLocal();
+}
+
+async function pnlSaveSharePointReport(report) {
+  await pnlResolveListId();
+  const cleanReport = pnlCleanReportForStorage(report);
+  const fields = {
+    Title: `P&L ${report.monthLabel || pnlMonthLabel(report.monthKey)}`,
+    MonthKey: report.monthKey,
+    MonthLabel: report.monthLabel,
+    FileName: report.fileName || '',
+    ImportedAt: report.importedAt || new Date().toISOString(),
+    ReportJson: JSON.stringify(cleanReport)
+  };
+  const existingId = PNL.itemIds[report.monthKey] || report._spItemId;
+  if (existingId) {
+    await graphFetch(`/sites/${PNL.siteId}/lists/${PNL.listId}/items/${existingId}/fields`, {
+      method: 'PATCH',
+      body: JSON.stringify(fields)
+    });
+    report._spItemId = existingId;
+    return existingId;
+  }
+  const created = await graphFetch(`/sites/${PNL.siteId}/lists/${PNL.listId}/items`, {
+    method: 'POST',
+    body: JSON.stringify({ fields })
+  });
+  const id = created?.id;
+  if (id) {
+    report._spItemId = id;
+    PNL.itemIds[report.monthKey] = id;
+    pnlSaveLocal();
+  }
+  return id;
 }
 
 function pnlRender() {
@@ -8962,7 +9072,15 @@ async function pnlImportCsv(file) {
     PNL.selectedMonth = report.monthKey;
     pnlSaveLocal();
     pnlRender();
-    toast('P&L imported: ' + report.monthLabel, 'success', 2500);
+    try {
+      await pnlSaveSharePointReport(report);
+      pnlSaveLocal();
+      pnlRender();
+      toast('P&L saved site-wide: ' + report.monthLabel, 'success', 3000);
+    } catch (syncErr) {
+      console.warn('P&L SharePoint save failed:', syncErr);
+      toast('P&L imported locally, but SharePoint save failed: ' + (syncErr.message || 'unknown error'), 'warning', 6000);
+    }
   } catch (err) {
     console.error('P&L import failed:', err);
     toast('P&L import failed: ' + (err.message || 'unknown error'), 'error', 5000);
@@ -9017,12 +9135,27 @@ function pnlExportCsv() {
   toast('P&L CSV exported', 'success', 2500);
 }
 
-function pnlClearData() {
+async function pnlClearData() {
   const month = PNL.selectedMonth;
+  const itemId = PNL.itemIds[month] || PNL.reports[month]?._spItemId;
   if (month) delete PNL.reports[month];
+  if (month) delete PNL.itemIds[month];
   pnlSaveLocal();
   pnlRender();
-  toast('P&L data cleared for ' + pnlMonthLabel(month), 'success', 2200);
+  if (itemId && PNL.siteId && PNL.listId) {
+    showLoading(true);
+    try {
+      await graphFetch(`/sites/${PNL.siteId}/lists/${PNL.listId}/items/${itemId}`, { method: 'DELETE' });
+      toast('P&L cleared site-wide for ' + pnlMonthLabel(month), 'success', 2500);
+    } catch (err) {
+      console.warn('P&L SharePoint delete failed:', err);
+      toast('P&L cleared locally, but SharePoint delete failed: ' + (err.message || 'unknown error'), 'warning', 6000);
+    } finally {
+      showLoading(false);
+    }
+  } else {
+    toast('P&L data cleared for ' + pnlMonthLabel(month), 'success', 2200);
+  }
 }
 
 function pnlChangeMonth(delta) {
@@ -9036,11 +9169,23 @@ function pnlChangeMonth(delta) {
   pnlRender();
 }
 
-function initProfitLoss() {
+async function initProfitLoss() {
   if (PNL.initialised) return;
   PNL.initialised = true;
   pnlLoadLocal();
   pnlRender();
+  PNL.loading = true;
+  showLoading(true);
+  try {
+    await pnlLoadSharePointReports();
+    pnlRender();
+  } catch (err) {
+    console.warn('P&L SharePoint load failed:', err);
+    toast('P&L using local cache — SharePoint reports could not load: ' + (err.message || 'unknown error'), 'warning', 6000);
+  } finally {
+    PNL.loading = false;
+    showLoading(false);
+  }
 }
 
 
@@ -13026,6 +13171,9 @@ function renderSettings() {
     if (typeof CMP !== 'undefined' && CMP.listIds) {
       if (CMP.listIds.compliance && !lists.find(l => l.id === CMP.listIds.compliance))
         lists.push({ name: 'GeckoCompliance', id: CMP.listIds.compliance });
+    }
+    if (typeof PNL !== 'undefined' && PNL.listId && !lists.find(l => l.id === PNL.listId)) {
+      lists.push({ name: 'GeckoPnLReports', id: PNL.listId });
     }
 
     if (lists.length === 0) {
