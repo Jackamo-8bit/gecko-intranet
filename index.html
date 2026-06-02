@@ -6393,13 +6393,32 @@ function fmtDate(isoStr) {
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+/** Format a Date object as a local YYYY-MM-DD without UTC conversion. */
+function localDateKey(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+/**
+ * Convert a SharePoint/Graph date field into a local YYYY-MM-DD.
+ * Date-only SharePoint columns can arrive as UTC timestamps during BST
+ * (e.g. local 02 Jun midnight as 2026-06-01T23:00:00Z). Splitting at "T"
+ * would show the previous day, so parse and read the local date parts.
+ */
+function spDateToLocalDateKey(value) {
+  if (!value) return '';
+  const raw = String(value);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const d = new Date(raw);
+  if (isNaN(d)) return raw.split('T')[0] || '';
+  return localDateKey(d);
+}
+
 /**
  * Today's date as YYYY-MM-DD.
  * Phase 9: consolidated from milTodayIso, tshToday, cmpToday.
  */
 function today() {
-  const d = new Date();
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  return localDateKey(new Date());
 }
 
 /**
@@ -6599,10 +6618,10 @@ async function ovwLoadJourneys() {
     const f = it.fields || {};
     return {
       driver: ovwNormaliseDriver(f.Driver || ''),
-      date:   f.JourneyDate ? f.JourneyDate.split('T')[0] : '',
+      date:   spDateToLocalDateKey(f.JourneyDate),
       miles:  Number(f.Miles)  || 0,
       amount: Number(f.Amount) || 0,
-      claimedDate: f.ClaimedDate ? String(f.ClaimedDate).split('T')[0] : ''
+      claimedDate: spDateToLocalDateKey(f.ClaimedDate)
     };
   });
 }
@@ -6655,7 +6674,7 @@ async function ovwLoadTimesheetEntries() {
     }
     return {
       engineer: f.Engineer || '',
-      date:     f.Date ? String(f.Date).split('T')[0] : '',
+      date:     spDateToLocalDateKey(f.Date),
       hours
     };
   }).filter(Boolean);
@@ -7292,7 +7311,7 @@ async function prfLoadClients() {
       id:            it.id,
       name:          f.Title || '',
       status:        f.Status || 'Active',
-      contractStart: f.ContractStart ? f.ContractStart.split('T')[0] : '',
+      contractStart: spDateToLocalDateKey(f.ContractStart),
       notes:         f.Notes || '',
       xeroHistory:   xh   // { 'YYYY-MM': amount, ... } — all months preserved
     };
@@ -9736,12 +9755,12 @@ async function milLoadJourneys() {
     // ClaimedDate (Phase 5.5): empty/null = unclaimed. Store as YYYY-MM-DD
     // (no time component) so it can drop straight into <input type="date">
     // and CSV exports without further parsing.
-    const claimedDate = f.ClaimedDate ? String(f.ClaimedDate).split('T')[0] : '';
+    const claimedDate = spDateToLocalDateKey(f.ClaimedDate);
     return {
       id:          it.id,
       destination: f.Title || '',
       driver:      milNormaliseDriver(f.Driver || ''),
-      date:        f.JourneyDate ? f.JourneyDate.split('T')[0] : '',
+      date:        spDateToLocalDateKey(f.JourneyDate),
       miles:       Number(f.Miles) || 0,
       purpose:     f.Purpose || '',
       amount:      Number(f.Amount) || 0,
@@ -10864,7 +10883,7 @@ async function cliLoadGeckoClients() {
       id:            it.id,
       name:          f.Title || '',
       status:        f.Status || 'Active',
-      contractStart: f.ContractStart ? f.ContractStart.split('T')[0] : '',
+      contractStart: spDateToLocalDateKey(f.ContractStart),
       notes:         f.Notes || ''
     };
   }).filter(c => c.name);
@@ -11780,7 +11799,7 @@ async function tshLoadEntries() {
       clientName:      '',   // resolved after ssaClients loads — see tshResolveClientNames()
       clientLookupId:  clientLookupId,
       engineer:        f.Engineer || '',
-      date:            f.Date ? String(f.Date).split('T')[0] : '',
+      date:            spDateToLocalDateKey(f.Date),
       hours,
       workType,
       description:     f.Title || '',
@@ -12288,7 +12307,7 @@ function tshRenderWeekly() {
     const diff = day === 0 ? 6 : day - 1;
     const mon = new Date(d);
     mon.setDate(mon.getDate() - diff);
-    const key = mon.toISOString().split('T')[0];
+    const key = localDateKey(mon);
     if (!weeks.has(key)) weeks.set(key, []);
     weeks.get(key).push(e);
   }
@@ -12688,8 +12707,8 @@ async function cmpLoadItems() {
       }
     }
 
-    const dueDate       = f.DueDate       ? String(f.DueDate).split('T')[0]       : '';
-    const completedDate = f.CompletedDate  ? String(f.CompletedDate).split('T')[0] : '';
+    const dueDate       = f.DueDate       ? spDateToLocalDateKey(f.DueDate)       : '';
+    const completedDate = f.CompletedDate  ? spDateToLocalDateKey(f.CompletedDate) : '';
 
     // Recurring — Yes/No column
     let recurring = true;
