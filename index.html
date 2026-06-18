@@ -3620,6 +3620,178 @@ body {
 }
 
 /* ╔═══════════════════════════════════════════════════════════════════╗
+   ║   ANNUAL LEAVE SECTION (Phase 11)                                ║
+   ║   Scoped under `#section-leave .lev-*` to avoid bleed.           ║
+   ╚═══════════════════════════════════════════════════════════════════╝ */
+
+#section-leave .lev-head-actions { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+#section-leave .lev-refresh,
+#section-leave .lev-month-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  min-height: 32px; padding: 7px 12px;
+  background: var(--card); border: 1px solid var(--border-dim);
+  border-radius: var(--radius-sm); color: var(--muted);
+  font-family: 'Instrument Sans', sans-serif; font-size: 12px; cursor: pointer;
+}
+#section-leave .lev-refresh:hover:not(:disabled),
+#section-leave .lev-month-btn:hover { color: var(--green); border-color: var(--green); }
+#section-leave .lev-refresh:disabled { opacity: .5; cursor: not-allowed; }
+#section-leave .lev-refresh svg { transition: transform .4s ease; }
+#section-leave .lev-refresh.spinning svg { animation: spin 1s linear infinite; }
+#section-leave .lev-last-sync { font-size: 11px; color: var(--muted); }
+#section-leave .lev-month-sel {
+  display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 3px;
+  background: var(--card); border: 1px solid var(--border-dim); border-radius: var(--radius-sm);
+}
+#section-leave .lev-month-label {
+  min-width: 126px; text-align: center; color: var(--white);
+  font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700;
+  letter-spacing: .05em; text-transform: uppercase;
+}
+#section-leave .lev-wrap { display: flex; flex-direction: column; gap: 14px; }
+#section-leave .lev-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+#section-leave .lev-person {
+  background: var(--card); border: 1px solid var(--border-dim); border-radius: var(--radius);
+  overflow: hidden;
+}
+#section-leave .lev-person-head {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 14px 16px; border-bottom: 1px solid var(--border-dim);
+}
+#section-leave .lev-person-name {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 800;
+  letter-spacing: .05em; text-transform: uppercase; color: var(--white);
+}
+#section-leave .lev-year-pill {
+  padding: 4px 9px; border-radius: 999px; background: var(--green-glow);
+  border: 1px solid var(--border); color: var(--green); font-size: 10px; font-weight: 800;
+  letter-spacing: .06em; text-transform: uppercase;
+}
+#section-leave .lev-person-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+#section-leave .lev-stat { padding: 14px 16px; border-right: 1px solid var(--border-dim); }
+#section-leave .lev-stat:last-child { border-right: none; }
+#section-leave .lev-stat .v {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 26px; line-height: 1;
+  font-weight: 800; color: var(--white);
+}
+#section-leave .lev-stat .v.green { color: var(--green); }
+#section-leave .lev-stat .v.amber { color: var(--amber); }
+#section-leave .lev-stat .v.red { color: var(--red); }
+#section-leave .lev-stat .l {
+  margin-top: 5px; color: var(--muted); font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .07em;
+}
+#section-leave .lev-stat .s { margin-top: 3px; color: var(--muted); font-size: 11px; }
+#section-leave .lev-main-grid { display: grid; grid-template-columns: minmax(320px, .72fr) minmax(0, 1.28fr); gap: 14px; align-items: start; }
+#section-leave .lev-card {
+  background: var(--card); border: 1px solid var(--border-dim); border-radius: var(--radius);
+  padding: 16px; overflow: hidden;
+}
+#section-leave .lev-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+#section-leave .lev-card-head h3 {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 800;
+  letter-spacing: .06em; text-transform: uppercase;
+}
+#section-leave .lev-card-head span { color: var(--muted); font-size: 11px; }
+#section-leave .lev-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+#section-leave .lev-field { display: flex; flex-direction: column; gap: 6px; }
+#section-leave .lev-field.full { grid-column: 1 / -1; }
+#section-leave .lev-field label {
+  color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+}
+#section-leave .lev-input,
+#section-leave .lev-select,
+#section-leave .lev-textarea {
+  width: 100%; background: var(--black); border: 1px solid var(--border-dim); border-radius: var(--radius-sm);
+  color: var(--white); font-family: 'Instrument Sans', sans-serif; font-size: 13px; padding: 9px 11px; outline: none;
+}
+#section-leave .lev-input:focus,
+#section-leave .lev-select:focus,
+#section-leave .lev-textarea:focus { border-color: var(--green); }
+#section-leave .lev-textarea { min-height: 74px; resize: vertical; }
+#section-leave .lev-hint { color: var(--muted); font-size: 11px; line-height: 1.45; }
+#section-leave .lev-form-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 8px; align-items: center; }
+#section-leave .lev-calendar { padding: 0; }
+#section-leave .lev-cal-head,
+#section-leave .lev-cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+#section-leave .lev-cal-head { border-bottom: 1px solid var(--border-dim); }
+#section-leave .lev-cal-head span {
+  padding: 10px 8px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
+}
+#section-leave .lev-day {
+  min-height: 104px; padding: 8px; border-right: 1px solid var(--border-dim); border-bottom: 1px solid var(--border-dim);
+  background: rgba(255,255,255,0.012);
+}
+#section-leave .lev-day:nth-child(7n) { border-right: none; }
+#section-leave .lev-day.out { opacity: .42; }
+#section-leave .lev-day.today { box-shadow: 0 0 0 1px var(--green) inset; }
+#section-leave .lev-day-num { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 800; color: var(--white); margin-bottom: 6px; }
+#section-leave .lev-block {
+  display: block; padding: 4px 6px; margin-bottom: 4px; border-radius: 6px;
+  font-size: 10px; font-weight: 700; line-height: 1.25; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; border: 1px solid transparent;
+}
+#section-leave .lev-block.approved { background: var(--green-glow); color: var(--green); border-color: var(--border); }
+#section-leave .lev-block.pending { background: var(--amber-dim); color: var(--amber); border-color: var(--amber-border); }
+#section-leave .lev-block.rejected,
+#section-leave .lev-block.cancelled { background: var(--red-dim); color: var(--red); border-color: var(--red-border); opacity: .82; }
+#section-leave .lev-toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+#section-leave .lev-chip {
+  padding: 6px 12px; border-radius: 999px; background: var(--card);
+  border: 1px solid var(--border-dim); color: var(--muted); font-size: 11px; font-weight: 700; cursor: pointer;
+}
+#section-leave .lev-chip:hover { color: var(--white); border-color: var(--border); }
+#section-leave .lev-chip.active { background: var(--green-glow); color: var(--green); border-color: var(--green); }
+#section-leave .lev-tbl-wrap { overflow-x: auto; border-radius: var(--radius-sm); }
+#section-leave .lev-tbl { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 850px; }
+#section-leave .lev-tbl thead th {
+  text-align: left; padding: 10px 12px; color: var(--muted);
+  font-size: 10px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+#section-leave .lev-tbl tbody td { padding: 11px 12px; border-bottom: 1px solid var(--border-dim); vertical-align: top; }
+#section-leave .lev-tbl tbody tr:hover td { background: var(--row-hover); }
+#section-leave .lev-status {
+  display: inline-flex; padding: 3px 8px; border-radius: 999px; font-size: 10px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .06em;
+}
+#section-leave .lev-status.pending { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber-border); }
+#section-leave .lev-status.approved { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
+#section-leave .lev-status.rejected,
+#section-leave .lev-status.cancelled { background: var(--red-dim); color: var(--red); border: 1px solid var(--red-border); }
+#section-leave .lev-actions { display: flex; gap: 5px; flex-wrap: wrap; }
+#section-leave .lev-iconbtn {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 28px; min-height: 28px;
+  padding: 5px 8px; border-radius: var(--radius-sm); background: transparent; border: 1px solid var(--border-dim);
+  color: var(--muted); font-size: 11px; font-weight: 800; cursor: pointer;
+}
+#section-leave .lev-iconbtn:hover { color: var(--green); border-color: var(--green); }
+#section-leave .lev-iconbtn.danger:hover { color: var(--red); border-color: var(--red); }
+#section-leave .lev-empty { padding: 26px; text-align: center; color: var(--muted); }
+
+@media (max-width: 920px) {
+  #section-leave .lev-kpis,
+  #section-leave .lev-main-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  #section-leave .lev-head-actions { width: 100%; }
+  #section-leave .lev-refresh,
+  #section-leave .lev-month-sel { min-height: 40px; }
+  #section-leave .lev-kpis { gap: 10px; }
+  #section-leave .lev-person-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #section-leave .lev-stat:nth-child(2) { border-right: none; }
+  #section-leave .lev-stat:nth-child(-n+2) { border-bottom: 1px solid var(--border-dim); }
+  #section-leave .lev-form { grid-template-columns: 1fr; }
+  #section-leave .lev-form-actions,
+  #section-leave .lev-form-actions .btn { width: 100%; justify-content: center; }
+  #section-leave .lev-day { min-height: 78px; padding: 6px; }
+  #section-leave .lev-cal-head span { padding: 8px 4px; text-align: center; }
+  #section-leave .lev-block { font-size: 9px; padding: 3px 4px; }
+  #section-leave .lev-toolbar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  #section-leave .lev-toolbar::-webkit-scrollbar { display: none; }
+}
+
+/* ╔═══════════════════════════════════════════════════════════════════╗
    ║   UI POLISH PASS                                                  ║
    ║   Visual-only refinements. No auth, Graph, SharePoint, or data    ║
    ║   workflow code is changed by this layer.                         ║
@@ -3677,6 +3849,8 @@ body::before {
 #section-timesheets .tsh-kpi,
 #section-timesheets .tsh-panel,
 #section-timesheets .tsh-ssa-card,
+#section-leave .lev-person,
+#section-leave .lev-card,
 #section-settings .set-card,
   #section-compliance .cmp-kpi,
   #section-compliance .cmp-panel,
@@ -3698,6 +3872,8 @@ body::before {
 #section-overview .ovw-card:hover,
 #section-profitability .prf-cc:hover,
 #section-clients .cli-card:hover,
+#section-leave .lev-person:hover,
+#section-leave .lev-card:hover,
 #section-compliance .cmp-item:hover {
   border-color: var(--border);
   box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 20px 48px rgba(0,0,0,0.25);
@@ -3809,6 +3985,9 @@ body::before {
 #section-timesheets .tsh-refresh,
 #section-timesheets .tsh-tab,
 #section-timesheets .tsh-chip,
+#section-leave .lev-refresh,
+#section-leave .lev-month-btn,
+#section-leave .lev-chip,
 #section-compliance .cmp-refresh,
 #section-compliance .cmp-tab,
 #section-compliance .cmp-chip,
@@ -3839,6 +4018,9 @@ textarea,
 #section-timesheets .tsh-input,
 #section-timesheets .tsh-select,
 #section-timesheets .tsh-textarea,
+#section-leave .lev-input,
+#section-leave .lev-select,
+#section-leave .lev-textarea,
 #section-compliance .cmp-input,
 #section-compliance .cmp-select,
 #section-compliance .cmp-textarea {
@@ -3855,6 +4037,7 @@ textarea:focus {
 #section-overview .ovw-kpis,
 #section-mileage .mil-kpis,
 #section-timesheets .tsh-kpi-strip,
+#section-leave .lev-kpis,
 #section-compliance .cmp-kpi-strip {
   gap: 12px;
 }
@@ -3862,6 +4045,7 @@ textarea:focus {
 #section-overview .ovw-kpi,
 #section-mileage .mil-kpi,
 #section-timesheets .tsh-kpi,
+#section-leave .lev-stat,
 #section-compliance .cmp-kpi {
   padding: 17px 18px;
 }
@@ -3869,6 +4053,7 @@ textarea:focus {
 #section-overview .ovw-kpi .k-value,
 #section-mileage .mil-kpi .k-value,
 #section-timesheets .tsh-kpi .k-value,
+#section-leave .lev-stat .v,
 #section-compliance .cmp-kpi .k-value {
   letter-spacing: .01em;
 }
@@ -4157,6 +4342,7 @@ body::before {
 #section-mileage .mil-head-actions,
 #section-clients .cli-head-actions,
 #section-timesheets .tsh-head-actions,
+#section-leave .lev-head-actions,
 #section-compliance .cmp-head-actions {
   margin-top: 14px;
 }
@@ -4168,6 +4354,8 @@ body::before {
 #section-mileage .mil-refresh,
 #section-clients .cli-refresh,
 #section-timesheets .tsh-refresh,
+#section-leave .lev-refresh,
+#section-leave .lev-month-sel,
 #section-compliance .cmp-refresh {
   min-height: 34px;
   border-radius: 10px;
@@ -4328,6 +4516,7 @@ body::before {
   #section-mileage .mil-head-actions,
   #section-clients .cli-head-actions,
   #section-timesheets .tsh-head-actions,
+  #section-leave .lev-head-actions,
   #section-compliance .cmp-head-actions {
     width: 100%;
     gap: 8px;
@@ -4340,6 +4529,8 @@ body::before {
   #section-mileage .mil-refresh,
   #section-clients .cli-refresh,
   #section-timesheets .tsh-refresh,
+  #section-leave .lev-refresh,
+  #section-leave .lev-month-sel,
   #section-compliance .cmp-refresh,
   #section-compliance .cmp-head-actions .btn {
     min-height: 40px;
@@ -4390,6 +4581,7 @@ body::before {
   #section-profitability .prf-leg,
   #section-mileage .mil-filter,
   #section-timesheets .tsh-filters,
+  #section-leave .lev-toolbar,
   #section-compliance .cmp-filters {
     display: flex;
     flex-wrap: nowrap;
@@ -4461,6 +4653,7 @@ body::before {
   #section-profitability .prf-leg::-webkit-scrollbar,
   #section-mileage .mil-filter::-webkit-scrollbar,
   #section-timesheets .tsh-filters::-webkit-scrollbar,
+  #section-leave .lev-toolbar::-webkit-scrollbar,
   #section-compliance .cmp-filters::-webkit-scrollbar {
     display: none;
   }
@@ -4501,6 +4694,7 @@ body::before {
 
   #section-mileage .mil-form,
   #section-timesheets .tsh-form,
+  #section-leave .lev-form,
   #section-compliance .cmp-form,
   #section-clients .cli-toolbar {
     grid-template-columns: 1fr !important;
@@ -4508,6 +4702,7 @@ body::before {
 
   #section-mileage .mil-form-actions,
   #section-timesheets .tsh-form-actions,
+  #section-leave .lev-form-actions,
   #section-compliance .cmp-form-actions {
     justify-content: stretch;
   }
@@ -4520,6 +4715,7 @@ body::before {
 
   #section-mileage .mil-form-actions .btn,
   #section-timesheets .tsh-form-actions .btn,
+  #section-leave .lev-form-actions .btn,
   #section-compliance .cmp-form-actions .btn,
   #section-overview .ovw-actions-btns,
   #section-overview .ovw-act-btn {
@@ -4559,6 +4755,8 @@ body::before {
 
   #section-clients .cli-grid,
   #section-timesheets .tsh-ssa-grid,
+  #section-leave .lev-kpis,
+  #section-leave .lev-main-grid,
   #section-settings .set-grid,
   #section-settings .set-profile-details {
     grid-template-columns: 1fr !important;
@@ -4593,6 +4791,7 @@ body::before {
   #section-mileage .mil-tbl,
   #section-clients .cli-tbl,
   #section-timesheets .tsh-tbl,
+  #section-leave .lev-tbl,
   #section-compliance .cmp-tbl,
   #section-profitability .prf-stbl {
     min-width: 680px;
@@ -4601,6 +4800,7 @@ body::before {
   #section-mileage .mil-tbl-wrap,
   #section-clients .cli-tbl-wrap,
   #section-timesheets .tsh-tbl-wrap,
+  #section-leave .lev-tbl-wrap,
   #section-compliance .cmp-tbl-wrap,
   #section-profitability .prf-sbody {
     overflow-x: auto;
@@ -4708,12 +4908,14 @@ body::before {
 :root[data-theme="light"] .section-head .mil-last-sync,
 :root[data-theme="light"] .section-head .cli-last-sync,
 :root[data-theme="light"] .section-head .tsh-last-sync,
+:root[data-theme="light"] .section-head .lev-last-sync,
 :root[data-theme="light"] .section-head .cmp-last-sync {
   color: rgba(246,252,247,0.88);
 }
 
 :root[data-theme="light"] .section-head p,
 :root[data-theme="light"] .section-head .prf-last-sync,
+:root[data-theme="light"] .section-head .lev-last-sync,
 :root[data-theme="light"] #section-profit-loss #pnlLastSync {
   font-weight: 600;
 }
@@ -4842,6 +5044,9 @@ body::before {
 :root[data-theme="light"] #section-timesheets .tsh-input,
 :root[data-theme="light"] #section-timesheets .tsh-select,
 :root[data-theme="light"] #section-timesheets .tsh-textarea,
+:root[data-theme="light"] #section-leave .lev-input,
+:root[data-theme="light"] #section-leave .lev-select,
+:root[data-theme="light"] #section-leave .lev-textarea,
 :root[data-theme="light"] #section-compliance .cmp-input,
 :root[data-theme="light"] #section-compliance .cmp-select,
 :root[data-theme="light"] #section-compliance .cmp-textarea {
@@ -4958,6 +5163,9 @@ body::before {
       <div class="sb-nav-label">Operations</div>
       <div class="sb-link" data-section="timesheets" onclick="navTo('timesheets')">
         <span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" ><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span class="lbl">Timesheets</span>
+      </div>
+      <div class="sb-link" data-section="leave" onclick="navTo('leave')">
+        <span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="m9 16 2 2 4-5"/></svg></span><span class="lbl">Leave</span>
       </div>
       <div class="sb-link" data-section="compliance" onclick="navTo('compliance')">
         <span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" ><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span><span class="lbl">Compliance</span>
@@ -5651,6 +5859,143 @@ body::before {
 
 
     <!-- ═══════════════════════════════════════════════════════════════
+         ANNUAL LEAVE SECTION (Phase 11)
+         — Leave planner for Jack and Philip, backed by SharePoint.
+         — Reads/writes GeckoLeaveRequests and optionally reads
+           GeckoLeaveEntitlements when present.
+         — Lazy-loaded on first nav (see initLeave).
+         ═══════════════════════════════════════════════════════════════ -->
+    <section class="section" id="section-leave">
+      <div class="section-head">
+        <h1>ANNUAL <span>LEAVE</span></h1>
+        <p>Shared leave planner · Tax Year <span id="levTaxYear">—</span> · hours stored, days shown where useful</p>
+        <div class="lev-head-actions">
+          <button class="lev-refresh" id="levRefresh" type="button" onclick="levRefreshData()" title="Reload from SharePoint">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+            Refresh
+          </button>
+          <div class="lev-month-sel" aria-label="Leave calendar month selector">
+            <button class="lev-month-btn" type="button" onclick="levChangeMonth(-1)" title="Previous month">
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <span class="lev-month-label" id="levMonthLabel">—</span>
+            <button class="lev-month-btn" type="button" onclick="levChangeMonth(1)" title="Next month">
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+          <span class="lev-last-sync" id="levLastSync"></span>
+        </div>
+      </div>
+
+      <div class="lev-wrap">
+        <div class="lev-kpis" id="levKpis"></div>
+
+        <div class="lev-main-grid">
+          <div class="lev-card">
+            <div class="lev-card-head">
+              <h3>Request / Book Leave</h3>
+              <span id="levModeHint">—</span>
+            </div>
+            <form class="lev-form" id="levForm" onsubmit="levSubmitRequest(event)">
+              <div class="lev-field">
+                <label for="levPerson">Person</label>
+                <select class="lev-select" id="levPerson" onchange="levUpdateEstimate()" required>
+                  <option value="Jack">Jack</option>
+                  <option value="Philip">Philip</option>
+                </select>
+              </div>
+              <div class="lev-field">
+                <label for="levLeaveType">Type</label>
+                <select class="lev-select" id="levLeaveType">
+                  <option value="Annual Leave">Annual Leave</option>
+                  <option value="Sick">Sick</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="lev-field">
+                <label for="levStartDate">Start Date</label>
+                <input class="lev-input" type="date" id="levStartDate" onchange="levUpdateEstimate()" required>
+              </div>
+              <div class="lev-field">
+                <label for="levEndDate">End Date</label>
+                <input class="lev-input" type="date" id="levEndDate" onchange="levUpdateEstimate()" required>
+              </div>
+              <div class="lev-field">
+                <label for="levDurationMode">Duration</label>
+                <select class="lev-select" id="levDurationMode" onchange="levUpdateEstimate()">
+                  <option value="full">Full working days</option>
+                  <option value="single-half">Single half day</option>
+                  <option value="start-half">Start date half day</option>
+                  <option value="end-half">End date half day</option>
+                  <option value="custom">Custom hours</option>
+                </select>
+              </div>
+              <div class="lev-field">
+                <label for="levHours">Hours</label>
+                <input class="lev-input" type="number" id="levHours" min="0.5" step="0.25" required oninput="levHoursEdited()">
+              </div>
+              <div class="lev-field full">
+                <div class="lev-hint" id="levEstimateHint">Select dates to calculate working-day hours. Weekends are excluded.</div>
+              </div>
+              <div class="lev-field full">
+                <label for="levNotes">Notes</label>
+                <textarea class="lev-textarea" id="levNotes" placeholder="Optional context"></textarea>
+              </div>
+              <div class="lev-form-actions">
+                <button class="btn btn-primary" type="submit" id="levSubmitBtn">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Save Leave
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div class="lev-card lev-calendar">
+            <div class="lev-card-head" style="padding:16px 16px 0;margin-bottom:12px;">
+              <h3>Shared Calendar</h3>
+              <span id="levCalendarCount">—</span>
+            </div>
+            <div id="levCalendar"></div>
+          </div>
+        </div>
+
+        <div class="lev-card">
+          <div class="lev-card-head">
+            <h3>Leave Requests</h3>
+            <span id="levRequestCount">—</span>
+          </div>
+          <div class="lev-toolbar" id="levFilters">
+            <button class="lev-chip active" type="button" data-filter="all" onclick="levSetFilter('all',this)">All</button>
+            <button class="lev-chip" type="button" data-filter="pending" onclick="levSetFilter('pending',this)">Pending</button>
+            <button class="lev-chip" type="button" data-filter="approved" onclick="levSetFilter('approved',this)">Approved</button>
+            <button class="lev-chip" type="button" data-filter="mine" onclick="levSetFilter('mine',this)">Mine</button>
+          </div>
+          <div class="lev-tbl-wrap">
+            <table class="lev-tbl">
+              <thead>
+                <tr>
+                  <th>Person</th>
+                  <th>Dates</th>
+                  <th>Hours</th>
+                  <th>Status</th>
+                  <th>Requested By</th>
+                  <th>Approved By</th>
+                  <th>Created</th>
+                  <th>Notes</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="levTableBody">
+                <tr><td colspan="9" class="lev-empty">Loading leave records...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════════════════════════════════
          COMPLIANCE SECTION (Phase 8)
          — Compliance & audit tracker: certifications, insurance, audits,
            registrations, policies. Reads/writes `GeckoCompliance` list.
@@ -5884,7 +6229,7 @@ body::before {
               <div class="set-row"><span class="set-label">Tenant ID</span><span class="set-value set-mono" id="setTenantId">—</span></div>
               <div class="set-row"><span class="set-label">SharePoint Site</span><span class="set-value set-mono" id="setSpSite">—</span></div>
               <div class="set-row"><span class="set-label">Auth Scopes</span><span class="set-value set-mono" id="setScopes">—</span></div>
-              <div class="set-row"><span class="set-label">Redirect URI</span><span class="set-value set-mono" id="setRedirect">—</span></div>
+            <div class="set-row"><span class="set-label">Redirect URI</span><span class="set-value set-mono" id="setRedirect">—</span></div>
             </div>
           </div>
 
@@ -5906,7 +6251,7 @@ body::before {
             <h3>Portal Info</h3>
           </div>
           <div class="set-card-body">
-            <div class="set-row"><span class="set-label">Version</span><span class="set-value">Phase 10 — May 2026</span></div>
+            <div class="set-row"><span class="set-label">Version</span><span class="set-value">Phase 11 — Annual Leave</span></div>
             <div class="set-row"><span class="set-label">Hosting</span><span class="set-value">GitHub Pages</span></div>
             <div class="set-row"><span class="set-label">Auth Library</span><span class="set-value">MSAL.js v3 (jsDelivr CDN)</span></div>
             <div class="set-row"><span class="set-label">API</span><span class="set-value">Microsoft Graph v1.0</span></div>
@@ -5997,7 +6342,8 @@ const CONFIG = {
   // — Scopes requested at sign-in —
   // Sites.ReadWrite.All — required for SharePoint list access.
   // User.Read           — required to display the signed-in user's name.
-  SCOPES:       ['User.Read', 'Sites.ReadWrite.All'],
+  // Mail.Send          — optional Phase 11 leave approval notifications.
+  SCOPES:       ['User.Read', 'Sites.ReadWrite.All', 'Mail.Send'],
 
   // — Graph API pagination (Phase 9) —
   GRAPH_PAGE_SIZE:    999,     // items per page request
@@ -6016,6 +6362,7 @@ const SECTION_TITLES = {
   mileage:       'MILEAGE TRACKER',
   clients:       'CLIENT DIRECTORY',
   timesheets:    'TIMESHEETS',
+  leave:         'ANNUAL LEAVE',
   compliance:    'COMPLIANCE',
   settings:      'SETTINGS'
 };
@@ -6250,8 +6597,8 @@ async function graphFetch(path, options = {}) {
     }
     throw new Error(`Graph ${res.status}: ${txt.slice(0, 200)}`);
   }
-  // Some DELETEs return 204 No Content
-  if (res.status === 204) return null;
+  // Some DELETEs return 204 No Content; sendMail returns 202 Accepted with no body.
+  if (res.status === 204 || res.status === 202) return null;
   return res.json();
 }
 
@@ -6300,6 +6647,9 @@ function navTo(sectionKey) {
   }
   if (sectionKey === 'timesheets' && typeof initTimesheets === 'function') {
     initTimesheets();
+  }
+  if (sectionKey === 'leave' && typeof initLeave === 'function') {
+    initLeave();
   }
   if (sectionKey === 'compliance' && typeof initCompliance === 'function') {
     initCompliance();
@@ -12546,6 +12896,646 @@ async function initTimesheets() {
 
 /* ╔═══════════════════════════════════════════════════════════════════╗
    ║                                                                   ║
+   ║   ANNUAL LEAVE SECTION (Phase 11)                                ║
+   ║                                                                   ║
+   ║   SharePoint-backed leave planner for Jack and Philip.           ║
+   ║   Stores hours internally, displays days using standard hours.    ║
+   ║   Uses UK tax year: 6 April to 5 April.                           ║
+   ║                                                                   ║
+   ╚═══════════════════════════════════════════════════════════════════╝ */
+
+const LEV = {
+  initialised: false,
+  loading: false,
+  siteId: null,
+  listIds: { requests: null, entitlements: null },
+  requests: [],
+  entitlements: [],
+  selectedMonth: today().slice(0, 7),
+  selectedTaxYear: '',
+  filter: 'all',
+  lastSync: null,
+  hoursEdited: false,
+  standardDayHours: 7.5,
+  defaultEntitlementHours: 196,
+  people: ['Jack', 'Philip'],
+  philipEmail: 'philip@geckoitservices.co.uk'
+};
+
+const LEV_ICONS = {
+  check: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  x: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+};
+
+function levCurrentTaxYear(date = new Date()) {
+  const y = date.getFullYear();
+  const start = new Date(y, 3, 6);
+  const startYear = date >= start ? y : y - 1;
+  return `${startYear}/${String(startYear + 1).slice(-2)}`;
+}
+
+function levTaxYearBounds(taxYear) {
+  const startYear = Number(String(taxYear || levCurrentTaxYear()).slice(0, 4));
+  return {
+    start: `${startYear}-04-06`,
+    end: `${startYear + 1}-04-05`
+  };
+}
+
+function levTaxYearForDate(dateKey) {
+  return levCurrentTaxYear(new Date((dateKey || today()) + 'T00:00:00'));
+}
+
+function levCurrentPerson() {
+  const raw = `${activeAccount?.name || ''} ${activeAccount?.username || ''}`.toLowerCase();
+  if (raw.includes('philip')) return 'Philip';
+  if (raw.includes('jack')) return 'Jack';
+  return 'Jack';
+}
+
+function levIsPhilip() {
+  return levCurrentPerson() === 'Philip';
+}
+
+function levUserLabel() {
+  return activeAccount?.name || activeAccount?.username || levCurrentPerson();
+}
+
+function levUserEmail() {
+  return activeAccount?.username || '';
+}
+
+function levFmtHours(v) {
+  const n = Number(v) || 0;
+  return n.toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1') + 'h';
+}
+
+function levFmtDays(hours) {
+  const d = (Number(hours) || 0) / LEV.standardDayHours;
+  return d.toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1') + 'd';
+}
+
+function levFmtHoursDays(hours) {
+  return `${levFmtHours(hours)} / ${levFmtDays(hours)}`;
+}
+
+function levDateRangeLabel(startDate, endDate) {
+  if (!startDate) return 'No date';
+  if (!endDate || startDate === endDate) return fmtDate(startDate);
+  return `${fmtDate(startDate)} to ${fmtDate(endDate)}`;
+}
+
+function levWorkingDays(startDate, endDate) {
+  if (!startDate || !endDate || endDate < startDate) return 0;
+  let count = 0;
+  const d = new Date(startDate + 'T00:00:00');
+  const end = new Date(endDate + 'T00:00:00');
+  while (d <= end) {
+    const day = d.getDay();
+    if (day !== 0 && day !== 6) count++;
+    d.setDate(d.getDate() + 1);
+  }
+  return count;
+}
+
+function levEstimatedHours(startDate, endDate, mode) {
+  const days = levWorkingDays(startDate, endDate);
+  if (days <= 0) return 0;
+  if (mode === 'single-half') return LEV.standardDayHours / 2;
+  let hours = days * LEV.standardDayHours;
+  if (mode === 'start-half' || mode === 'end-half') hours -= LEV.standardDayHours / 2;
+  return Math.max(LEV.standardDayHours / 2, hours);
+}
+
+function levRequestOverlapsTaxYear(req, taxYear = LEV.selectedTaxYear) {
+  const b = levTaxYearBounds(taxYear);
+  return (req.startDate || '') <= b.end && (req.endDate || req.startDate || '') >= b.start;
+}
+
+function levNormaliseStatus(status) {
+  const s = String(status || 'Pending').trim();
+  if (/approved/i.test(s)) return 'Approved';
+  if (/rejected/i.test(s)) return 'Rejected';
+  if (/cancelled|canceled/i.test(s)) return 'Cancelled';
+  return 'Pending';
+}
+
+function levStatusClass(status) {
+  return levNormaliseStatus(status).toLowerCase();
+}
+
+function levEntitlementFor(person, taxYear = LEV.selectedTaxYear) {
+  const found = LEV.entitlements.find(e => e.person === person && e.taxYear === taxYear);
+  if (!found) return LEV.defaultEntitlementHours;
+  return (Number(found.entitlementHours) || 0) + (Number(found.carryOverHours) || 0) + (Number(found.adjustmentHours) || 0);
+}
+
+async function levCreateRequestsList() {
+  const body = {
+    displayName: 'GeckoLeaveRequests',
+    columns: [
+      { name: 'Person', text: {} },
+      { name: 'StartDate', dateTime: { format: 'dateOnly' } },
+      { name: 'EndDate', dateTime: { format: 'dateOnly' } },
+      { name: 'Hours', number: { decimalPlaces: 'automatic' } },
+      { name: 'Status', choice: { choices: ['Pending', 'Approved', 'Rejected', 'Cancelled'], displayAs: 'dropDownMenu' } },
+      { name: 'LeaveType', choice: { choices: ['Annual Leave', 'Sick', 'Other'], displayAs: 'dropDownMenu' } },
+      { name: 'Notes', text: { allowMultipleLines: true } },
+      { name: 'RequestedBy', text: {} },
+      { name: 'RequestedByEmail', text: {} },
+      { name: 'ApprovedBy', text: {} },
+      { name: 'ApprovedAt', dateTime: { format: 'dateTime' } },
+      { name: 'TaxYear', text: {} },
+      { name: 'CreatedByPortal', boolean: {} }
+    ],
+    list: { template: 'genericList' }
+  };
+  const created = await graphFetch(`/sites/${LEV.siteId}/lists`, {
+    method: 'POST',
+    body: JSON.stringify(body)
+  });
+  CONFIG._listsCache = null;
+  return created;
+}
+
+async function levResolveListIds() {
+  if (LEV.siteId && LEV.listIds.requests) return;
+  LEV.siteId = await resolveSiteId();
+  let allLists = await fetchAllLists();
+  let requests = allLists.find(l => l.displayName === 'GeckoLeaveRequests' || l.name === 'GeckoLeaveRequests');
+  const entitlements = allLists.find(l => l.displayName === 'GeckoLeaveEntitlements' || l.name === 'GeckoLeaveEntitlements');
+
+  if (!requests) {
+    toast('Creating GeckoLeaveRequests in SharePoint...', 'info', 3500);
+    requests = await levCreateRequestsList();
+    allLists = await fetchAllLists();
+    requests = allLists.find(l => l.displayName === 'GeckoLeaveRequests' || l.name === 'GeckoLeaveRequests') || requests;
+  }
+
+  if (!requests?.id) throw new Error('GeckoLeaveRequests list not found and could not be created');
+  LEV.listIds.requests = requests.id;
+  LEV.listIds.entitlements = entitlements?.id || null;
+}
+
+async function levLoadRequests() {
+  let allItems = [];
+  let nextUrl = `/sites/${LEV.siteId}/lists/${LEV.listIds.requests}/items?$expand=fields&$top=${CONFIG.GRAPH_PAGE_SIZE}`;
+  while (nextUrl) {
+    const res = await graphFetch(nextUrl);
+    allItems = allItems.concat(res.value || []);
+    nextUrl = res['@odata.nextLink'] || null;
+    if (allItems.length > CONFIG.GRAPH_SAFETY_LIMIT) break;
+  }
+
+  LEV.requests = allItems.map(it => {
+    const f = it.fields || {};
+    const startDate = spDateToLocalDateKey(f.StartDate);
+    const endDate = spDateToLocalDateKey(f.EndDate) || startDate;
+    return {
+      id: it.id,
+      title: f.Title || '',
+      person: f.Person || 'Jack',
+      startDate,
+      endDate,
+      hours: Number(f.Hours) || 0,
+      status: levNormaliseStatus(f.Status),
+      leaveType: f.LeaveType || 'Annual Leave',
+      notes: f.Notes || '',
+      requestedBy: f.RequestedBy || '',
+      requestedByEmail: f.RequestedByEmail || '',
+      approvedBy: f.ApprovedBy || '',
+      approvedAt: f.ApprovedAt || '',
+      taxYear: f.TaxYear || levTaxYearForDate(startDate),
+      created: spDateToLocalDateKey(f.Created) || spDateToLocalDateKey(it.createdDateTime)
+    };
+  });
+}
+
+async function levLoadEntitlements() {
+  LEV.entitlements = [];
+  if (!LEV.listIds.entitlements) return;
+  let allItems = [];
+  let nextUrl = `/sites/${LEV.siteId}/lists/${LEV.listIds.entitlements}/items?$expand=fields&$top=500`;
+  while (nextUrl) {
+    const res = await graphFetch(nextUrl);
+    allItems = allItems.concat(res.value || []);
+    nextUrl = res['@odata.nextLink'] || null;
+  }
+  LEV.entitlements = allItems.map(it => {
+    const f = it.fields || {};
+    return {
+      id: it.id,
+      person: f.Person || '',
+      taxYear: f.TaxYear || '',
+      entitlementHours: Number(f.EntitlementHours) || 0,
+      carryOverHours: Number(f.CarryOverHours) || 0,
+      adjustmentHours: Number(f.AdjustmentHours) || 0,
+      notes: f.Notes || ''
+    };
+  }).filter(e => e.person && e.taxYear);
+}
+
+async function levCreateRequest(data) {
+  const fields = {
+    Title: `${data.person} ${data.startDate}`,
+    Person: data.person,
+    StartDate: data.startDate,
+    EndDate: data.endDate,
+    Hours: data.hours,
+    Status: data.status,
+    LeaveType: data.leaveType,
+    TaxYear: data.taxYear,
+    RequestedBy: data.requestedBy,
+    RequestedByEmail: data.requestedByEmail,
+    CreatedByPortal: true
+  };
+  if (data.notes) fields.Notes = data.notes;
+  if (data.status === 'Approved') {
+    fields.ApprovedBy = data.approvedBy || data.requestedBy;
+    fields.ApprovedAt = new Date().toISOString();
+  }
+  return graphFetch(`/sites/${LEV.siteId}/lists/${LEV.listIds.requests}/items`, {
+    method: 'POST',
+    body: JSON.stringify({ fields })
+  });
+}
+
+async function levPatchRequest(id, patch) {
+  return graphFetch(`/sites/${LEV.siteId}/lists/${LEV.listIds.requests}/items/${id}/fields`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch)
+  });
+}
+
+async function levSendApprovalEmail(request) {
+  const subject = `Leave request: ${request.person} ${levDateRangeLabel(request.startDate, request.endDate)}`;
+  const portalUrl = `${window.location.origin}${window.location.pathname}`;
+  const html = `
+    <p>${escapeHtml(request.requestedBy || request.person)} submitted a leave request.</p>
+    <p><strong>Person:</strong> ${escapeHtml(request.person)}<br>
+    <strong>Dates:</strong> ${escapeHtml(levDateRangeLabel(request.startDate, request.endDate))}<br>
+    <strong>Hours:</strong> ${escapeHtml(levFmtHoursDays(request.hours))}<br>
+    <strong>Notes:</strong> ${escapeHtml(request.notes || 'None')}</p>
+    <p>Open the Gecko portal, go to Annual Leave, and approve or reject it there:</p>
+    <p><a href="${portalUrl}">${portalUrl}</a></p>
+  `;
+  return graphFetch('/me/sendMail', {
+    method: 'POST',
+    body: JSON.stringify({
+      message: {
+        subject,
+        body: { contentType: 'HTML', content: html },
+        toRecipients: [{ emailAddress: { address: LEV.philipEmail } }]
+      },
+      saveToSentItems: true
+    })
+  });
+}
+
+async function levRefreshData(silent = false) {
+  if (LEV.loading) return;
+  LEV.loading = true;
+  const btn = document.getElementById('levRefresh');
+  if (btn) { btn.disabled = true; btn.classList.add('spinning'); }
+  if (!silent) showLoading(true);
+  try {
+    await levResolveListIds();
+    await Promise.all([levLoadRequests(), levLoadEntitlements()]);
+    LEV.lastSync = new Date();
+    levRenderAll();
+    if (!silent) toast('Leave data loaded', 'success');
+  } catch (err) {
+    console.error('Leave load failed:', err);
+    toast('Failed to load leave data: ' + (err.message || 'unknown error'), 'error', 7000);
+    levRenderError(err);
+  } finally {
+    LEV.loading = false;
+    if (btn) { btn.disabled = false; btn.classList.remove('spinning'); }
+    showLoading(false);
+  }
+}
+
+function levHoursEdited() {
+  LEV.hoursEdited = true;
+  const mode = document.getElementById('levDurationMode');
+  if (mode) mode.value = 'custom';
+}
+
+function levUpdateEstimate() {
+  const start = document.getElementById('levStartDate')?.value || '';
+  const endEl = document.getElementById('levEndDate');
+  if (endEl && start && (!endEl.value || endEl.value < start)) endEl.value = start;
+  const end = endEl?.value || start;
+  const mode = document.getElementById('levDurationMode')?.value || 'full';
+  const hrs = levEstimatedHours(start, end, mode);
+  const hoursEl = document.getElementById('levHours');
+  if (hoursEl && mode !== 'custom') hoursEl.value = hrs ? hrs.toFixed(2).replace(/\.00$/, '') : '';
+  const hint = document.getElementById('levEstimateHint');
+  if (hint) {
+    const days = levWorkingDays(start, end);
+    if (!start || !end) hint.textContent = 'Select dates to calculate working-day hours. Weekends are excluded.';
+    else if (!days) hint.textContent = 'No working weekdays in this range. Choose weekdays or enter custom hours.';
+    else hint.textContent = `${days} working day${days === 1 ? '' : 's'} · ${levFmtHoursDays(mode === 'custom' ? Number(hoursEl?.value) || 0 : hrs)} · weekends excluded.`;
+  }
+}
+
+async function levSubmitRequest(event) {
+  event.preventDefault();
+  const btn = document.getElementById('levSubmitBtn');
+  const person = document.getElementById('levPerson')?.value || levCurrentPerson();
+  const leaveType = document.getElementById('levLeaveType')?.value || 'Annual Leave';
+  const startDate = document.getElementById('levStartDate')?.value || '';
+  const endDate = document.getElementById('levEndDate')?.value || startDate;
+  const hours = Number(document.getElementById('levHours')?.value) || 0;
+  const notes = document.getElementById('levNotes')?.value.trim() || '';
+
+  if (!startDate || !endDate) { toast('Start and end dates are required', 'warning'); return; }
+  if (endDate < startDate) { toast('End date cannot be before start date', 'warning'); return; }
+  if (hours <= 0) { toast('Hours must be greater than zero', 'warning'); return; }
+
+  const currentPerson = levCurrentPerson();
+  const status = currentPerson === 'Philip' ? 'Approved' : 'Pending';
+  const data = {
+    person,
+    leaveType,
+    startDate,
+    endDate,
+    hours,
+    notes,
+    status,
+    taxYear: levTaxYearForDate(startDate),
+    requestedBy: levUserLabel(),
+    requestedByEmail: levUserEmail(),
+    approvedBy: status === 'Approved' ? levUserLabel() : ''
+  };
+
+  if (btn) btn.disabled = true;
+  showLoading(true);
+  try {
+    await levCreateRequest(data);
+    let emailSent = false;
+    if (status === 'Pending') {
+      try {
+        await levSendApprovalEmail(data);
+        emailSent = true;
+      } catch (mailErr) {
+        console.warn('Leave approval email failed:', mailErr);
+      }
+    }
+    document.getElementById('levForm')?.reset();
+    levSetDefaultFormValues();
+    toast(status === 'Approved' ? 'Leave booked' : (emailSent ? 'Leave requested and Philip notified' : 'Leave requested. Email notification could not be sent.'), emailSent || status === 'Approved' ? 'success' : 'warning', 5500);
+    await levRefreshData(true);
+  } catch (err) {
+    console.error('Leave save failed:', err);
+    toast('Failed to save leave: ' + (err.message || 'unknown error'), 'error', 7000);
+  } finally {
+    if (btn) btn.disabled = false;
+    showLoading(false);
+  }
+}
+
+async function levApprove(id) {
+  if (!levIsPhilip()) { toast('Only Philip can approve leave', 'warning'); return; }
+  showLoading(true);
+  try {
+    await levPatchRequest(id, {
+      Status: 'Approved',
+      ApprovedBy: levUserLabel(),
+      ApprovedAt: new Date().toISOString()
+    });
+    toast('Leave approved', 'success');
+    await levRefreshData(true);
+  } catch (err) {
+    console.error('Approve leave failed:', err);
+    toast('Failed to approve leave: ' + (err.message || 'unknown error'), 'error');
+  } finally {
+    showLoading(false);
+  }
+}
+
+async function levReject(id) {
+  if (!levIsPhilip()) { toast('Only Philip can reject leave', 'warning'); return; }
+  const reason = prompt('Optional rejection note');
+  const req = LEV.requests.find(r => String(r.id) === String(id));
+  showLoading(true);
+  try {
+    await levPatchRequest(id, {
+      Status: 'Rejected',
+      ApprovedBy: levUserLabel(),
+      ApprovedAt: new Date().toISOString(),
+      Notes: [req?.notes || '', reason ? `Rejected: ${reason}` : 'Rejected'].filter(Boolean).join('\n')
+    });
+    toast('Leave rejected', 'success');
+    await levRefreshData(true);
+  } catch (err) {
+    console.error('Reject leave failed:', err);
+    toast('Failed to reject leave: ' + (err.message || 'unknown error'), 'error');
+  } finally {
+    showLoading(false);
+  }
+}
+
+async function levCancel(id) {
+  const req = LEV.requests.find(r => String(r.id) === String(id));
+  if (!req) return;
+  const mine = req.person === levCurrentPerson() || req.requestedByEmail === levUserEmail();
+  if (!mine && !levIsPhilip()) { toast('You can only cancel your own leave', 'warning'); return; }
+  if (!confirm(`Cancel ${req.person}'s leave for ${levDateRangeLabel(req.startDate, req.endDate)}?`)) return;
+  showLoading(true);
+  try {
+    await levPatchRequest(id, { Status: 'Cancelled' });
+    toast('Leave cancelled', 'success');
+    await levRefreshData(true);
+  } catch (err) {
+    console.error('Cancel leave failed:', err);
+    toast('Failed to cancel leave: ' + (err.message || 'unknown error'), 'error');
+  } finally {
+    showLoading(false);
+  }
+}
+
+function levChangeMonth(delta) {
+  const d = new Date(LEV.selectedMonth + '-01T00:00:00');
+  d.setMonth(d.getMonth() + delta);
+  LEV.selectedMonth = localDateKey(d).slice(0, 7);
+  levRenderAll();
+}
+
+function levSetFilter(filter, btn) {
+  LEV.filter = filter;
+  document.querySelectorAll('#section-leave .lev-chip[data-filter]').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  levRenderTable();
+}
+
+function levSummaryFor(person) {
+  const taxYear = LEV.selectedTaxYear;
+  const entitlement = levEntitlementFor(person, taxYear);
+  const rows = LEV.requests.filter(r => r.person === person && levRequestOverlapsTaxYear(r, taxYear) && r.leaveType === 'Annual Leave');
+  const approved = rows.filter(r => r.status === 'Approved').reduce((a, r) => a + r.hours, 0);
+  const pending = rows.filter(r => r.status === 'Pending').reduce((a, r) => a + r.hours, 0);
+  return { entitlement, approved, pending, remaining: entitlement - approved };
+}
+
+function levRenderKpis() {
+  const el = document.getElementById('levKpis');
+  if (!el) return;
+  el.innerHTML = LEV.people.map(person => {
+    const s = levSummaryFor(person);
+    const remCls = s.remaining < 0 ? 'red' : s.remaining < LEV.standardDayHours ? 'amber' : 'green';
+    return `<div class="lev-person">
+      <div class="lev-person-head">
+        <div class="lev-person-name">${escapeHtml(person)}</div>
+        <span class="lev-year-pill">${escapeHtml(LEV.selectedTaxYear)}</span>
+      </div>
+      <div class="lev-person-grid">
+        <div class="lev-stat"><div class="v">${levFmtHours(s.entitlement)}</div><div class="l">Entitlement</div><div class="s">${levFmtDays(s.entitlement)}</div></div>
+        <div class="lev-stat"><div class="v">${levFmtHours(s.approved)}</div><div class="l">Booked</div><div class="s">${levFmtDays(s.approved)}</div></div>
+        <div class="lev-stat"><div class="v amber">${levFmtHours(s.pending)}</div><div class="l">Pending</div><div class="s">${levFmtDays(s.pending)}</div></div>
+        <div class="lev-stat"><div class="v ${remCls}">${levFmtHours(s.remaining)}</div><div class="l">Remaining</div><div class="s">${levFmtDays(s.remaining)}</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function levEventsForDate(dateKey) {
+  return LEV.requests.filter(r =>
+    ['Approved', 'Pending'].includes(r.status) &&
+    r.startDate <= dateKey &&
+    (r.endDate || r.startDate) >= dateKey
+  ).sort((a, b) => a.person.localeCompare(b.person) || a.status.localeCompare(b.status));
+}
+
+function levRenderCalendar() {
+  const labelEl = document.getElementById('levMonthLabel');
+  const countEl = document.getElementById('levCalendarCount');
+  const wrap = document.getElementById('levCalendar');
+  if (!wrap) return;
+  const monthStart = new Date(LEV.selectedMonth + '-01T00:00:00');
+  if (labelEl) labelEl.textContent = monthStart.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+
+  const firstDay = monthStart.getDay() || 7;
+  const gridStart = new Date(monthStart);
+  gridStart.setDate(monthStart.getDate() - (firstDay - 1));
+  const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0);
+  const visible = LEV.requests.filter(r => ['Approved', 'Pending'].includes(r.status) && r.startDate <= localDateKey(monthEnd) && (r.endDate || r.startDate) >= LEV.selectedMonth + '-01');
+  if (countEl) countEl.textContent = `${visible.length} visible`;
+
+  const days = [];
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(gridStart);
+    d.setDate(gridStart.getDate() + i);
+    const key = localDateKey(d);
+    const out = d.getMonth() !== monthStart.getMonth() ? ' out' : '';
+    const isToday = key === today() ? ' today' : '';
+    const events = levEventsForDate(key).slice(0, 3).map(e =>
+      `<span class="lev-block ${levStatusClass(e.status)}" title="${escapeHtml(e.person)} ${escapeHtml(levFmtHours(e.hours))}">${escapeHtml(e.person)} · ${escapeHtml(e.status)}</span>`
+    ).join('');
+    const more = levEventsForDate(key).length > 3 ? `<span class="lev-block pending">+${levEventsForDate(key).length - 3} more</span>` : '';
+    days.push(`<div class="lev-day${out}${isToday}"><div class="lev-day-num">${d.getDate()}</div>${events}${more}</div>`);
+  }
+  wrap.innerHTML = `
+    <div class="lev-cal-head"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+    <div class="lev-cal-grid">${days.join('')}</div>
+  `;
+}
+
+function levFilteredRequests() {
+  let rows = LEV.requests.filter(r => levRequestOverlapsTaxYear(r, LEV.selectedTaxYear));
+  if (LEV.filter === 'pending') rows = rows.filter(r => r.status === 'Pending');
+  if (LEV.filter === 'approved') rows = rows.filter(r => r.status === 'Approved');
+  if (LEV.filter === 'mine') {
+    const me = levCurrentPerson();
+    const email = levUserEmail();
+    rows = rows.filter(r => r.person === me || r.requestedByEmail === email);
+  }
+  return rows.sort((a, b) => (b.startDate || '').localeCompare(a.startDate || ''));
+}
+
+function levRenderTable() {
+  const tbody = document.getElementById('levTableBody');
+  const count = document.getElementById('levRequestCount');
+  if (!tbody) return;
+  const rows = levFilteredRequests();
+  if (count) count.textContent = `${rows.length} record${rows.length === 1 ? '' : 's'}`;
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="lev-empty">No leave records match this view.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => {
+    const canApprove = levIsPhilip() && r.status === 'Pending';
+    const canCancel = r.status !== 'Cancelled' && r.status !== 'Rejected' && (levIsPhilip() || r.person === levCurrentPerson() || r.requestedByEmail === levUserEmail());
+    const actions = [
+      canApprove ? `<button class="lev-iconbtn" type="button" onclick="levApprove('${r.id}')" title="Approve">${LEV_ICONS.check}</button>` : '',
+      canApprove ? `<button class="lev-iconbtn danger" type="button" onclick="levReject('${r.id}')" title="Reject">${LEV_ICONS.x}</button>` : '',
+      canCancel ? `<button class="lev-iconbtn danger" type="button" onclick="levCancel('${r.id}')" title="Cancel">Cancel</button>` : ''
+    ].join('') || '<span style="color:var(--muted)">-</span>';
+    return `<tr>
+      <td><strong>${escapeHtml(r.person)}</strong><div style="font-size:11px;color:var(--muted)">${escapeHtml(r.leaveType)}</div></td>
+      <td>${escapeHtml(levDateRangeLabel(r.startDate, r.endDate))}<div style="font-size:11px;color:var(--muted)">${escapeHtml(r.taxYear)}</div></td>
+      <td>${escapeHtml(levFmtHoursDays(r.hours))}</td>
+      <td><span class="lev-status ${levStatusClass(r.status)}">${escapeHtml(r.status)}</span></td>
+      <td>${escapeHtml(r.requestedBy || '-')}<div style="font-size:11px;color:var(--muted)">${escapeHtml(r.requestedByEmail || '')}</div></td>
+      <td>${escapeHtml(r.approvedBy || '-')}</td>
+      <td>${fmtDate(r.created)}</td>
+      <td>${escapeHtml(r.notes || '-')}</td>
+      <td><div class="lev-actions">${actions}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+function levRenderAll() {
+  LEV.selectedTaxYear = LEV.selectedTaxYear || levCurrentTaxYear();
+  const ty = document.getElementById('levTaxYear');
+  if (ty) ty.textContent = LEV.selectedTaxYear;
+  const sync = document.getElementById('levLastSync');
+  if (sync && LEV.lastSync) sync.textContent = 'Synced ' + LEV.lastSync.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  levRenderKpis();
+  levRenderCalendar();
+  levRenderTable();
+}
+
+function levRenderError(err) {
+  const kpis = document.getElementById('levKpis');
+  if (kpis) kpis.innerHTML = `<div class="lev-card" style="grid-column:1/-1"><div class="lev-empty">Leave could not load: ${escapeHtml(err.message || err)}</div></div>`;
+}
+
+function levSetDefaultFormValues() {
+  const currentPerson = levCurrentPerson();
+  const personEl = document.getElementById('levPerson');
+  if (personEl) {
+    personEl.value = currentPerson;
+    personEl.disabled = !levIsPhilip();
+  }
+  const startEl = document.getElementById('levStartDate');
+  const endEl = document.getElementById('levEndDate');
+  if (startEl && !startEl.value) startEl.value = today();
+  if (endEl && !endEl.value) endEl.value = startEl?.value || today();
+  const mode = document.getElementById('levModeHint');
+  if (mode) mode.textContent = levIsPhilip() ? 'Philip bookings save as approved' : 'Jack requests start as pending';
+  const submit = document.getElementById('levSubmitBtn');
+  if (submit) submit.lastChild.textContent = levIsPhilip() ? ' Book Leave' : ' Request Leave';
+  LEV.hoursEdited = false;
+  levUpdateEstimate();
+}
+
+async function initLeave() {
+  if (LEV.initialised) return;
+  LEV.initialised = true;
+  LEV.selectedTaxYear = levCurrentTaxYear();
+  levSetDefaultFormValues();
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      // Reserved for future Leave modal support.
+    }
+  });
+  await levRefreshData(true);
+}
+
+
+/* ╔═══════════════════════════════════════════════════════════════════╗
+   ║                                                                   ║
    ║   COMPLIANCE SECTION (Phase 8)                                    ║
    ║                                                                   ║
    ║   Compliance & audit tracker. Reads/writes GeckoCompliance list.  ║
@@ -13466,6 +14456,12 @@ function renderSettings() {
       if (CMP.listIds.compliance && !lists.find(l => l.id === CMP.listIds.compliance))
         lists.push({ name: 'GeckoCompliance', id: CMP.listIds.compliance });
     }
+    if (typeof LEV !== 'undefined' && LEV.listIds) {
+      if (LEV.listIds.requests && !lists.find(l => l.id === LEV.listIds.requests))
+        lists.push({ name: 'GeckoLeaveRequests', id: LEV.listIds.requests });
+      if (LEV.listIds.entitlements && !lists.find(l => l.id === LEV.listIds.entitlements))
+        lists.push({ name: 'GeckoLeaveEntitlements', id: LEV.listIds.entitlements });
+    }
     if (typeof PNL !== 'undefined' && PNL.listId && !lists.find(l => l.id === PNL.listId)) {
       lists.push({ name: 'GeckoPnLReports', id: PNL.listId });
     }
@@ -13502,6 +14498,7 @@ function setRenderHealth() {
     ['Profitability data', PRF?.clients?.length ? setHealthPill('ok', `${PRF.clients.length} clients`) : setHealthPill('warn', 'Not loaded')],
     ['Mileage data', MIL?.journeys?.length ? setHealthPill('ok', `${MIL.journeys.length} journeys`) : setHealthPill('warn', 'Not loaded')],
     ['Timesheets data', TSH?.entries?.length ? setHealthPill('ok', `${TSH.entries.length} entries`) : setHealthPill('warn', 'Not loaded')],
+    ['Leave data', LEV?.requests?.length ? setHealthPill('ok', `${LEV.requests.length} requests`) : (LEV?.listIds?.requests ? setHealthPill('ok', 'List found') : setHealthPill('warn', 'Not loaded'))],
     ['Compliance data', CMP?.items?.length ? setHealthPill('ok', `${CMP.items.length} items`) : setHealthPill('warn', 'Not loaded')]
   ];
   body.innerHTML = rows.map(([label, value]) =>
@@ -13555,6 +14552,15 @@ function setRenderWatchlist() {
     else if (dueSoon.length) items.push({ tone: 'warn', label: 'Compliance', text: `${dueSoon.length} compliance item${dueSoon.length === 1 ? '' : 's'} due soon.` });
   }
 
+  if (LEV?.requests?.length) {
+    const pending = LEV.requests.filter(r => r.status === 'Pending');
+    if (pending.length) items.push({
+      tone: 'warn',
+      label: 'Leave',
+      text: `${pending.length} leave request${pending.length === 1 ? '' : 's'} awaiting approval.`
+    });
+  }
+
   if (items.length === 0) {
     items.push({
       tone: 'ok',
@@ -13572,6 +14578,7 @@ function setRenderChangelog() {
   const body = document.getElementById('setChangelogBody');
   if (!body) return;
   const changes = [
+    ['June 2026', 'Annual Leave planner added with SharePoint-backed requests, approvals, calendar view, and 196h default entitlement.'],
     ['May 2026', 'P&L imports now support CSV/XLSX, month switching, SharePoint site-wide storage, and summary insights.'],
     ['May 2026', 'Profitability gained category-aware ranking by profit, revenue, margin, cost, Xero variance, or client name.'],
     ['May 2026', 'Timesheets description now writes to the SharePoint WorkDescription field.'],
@@ -13611,10 +14618,10 @@ async function setExportBackup() {
     const siteId = await resolveSiteId();
     CONFIG._listsCache = null;
     const allLists = await fetchAllLists();
-    const wanted = ['GeckoClients', 'GeckoServices', 'MileageJourneys', 'MileageClients', 'Timesheets', 'Clients', 'GeckoCompliance', 'GeckoPnLReports'];
+    const wanted = ['GeckoClients', 'GeckoServices', 'MileageJourneys', 'MileageClients', 'Timesheets', 'Clients', 'GeckoCompliance', 'GeckoLeaveRequests', 'GeckoLeaveEntitlements', 'GeckoPnLReports'];
     const backup = {
       exportedAt: new Date().toISOString(),
-      portalVersion: 'Phase 10 — May 2026',
+      portalVersion: 'Phase 11 — Annual Leave',
       site: CONFIG.SP_HOST + CONFIG.SP_SITE,
       lists: {}
     };
