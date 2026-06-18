@@ -6339,6 +6339,9 @@ const CONFIG = {
   // — Graph API base —
   GRAPH_BASE:   'https://graph.microsoft.com/v1.0',
 
+  // — Annual Leave —
+  LEAVE_APPROVER_EMAIL: 'philip@gecko-it.com',
+
   // — Scopes requested at sign-in —
   // Sites.ReadWrite.All — required for SharePoint list access.
   // User.Read           — required to display the signed-in user's name.
@@ -12918,8 +12921,7 @@ const LEV = {
   hoursEdited: false,
   standardDayHours: 7.5,
   defaultEntitlementHours: 196,
-  people: ['Jack', 'Philip'],
-  philipEmail: 'philip@geckoitservices.co.uk'
+  people: ['Jack', 'Philip']
 };
 
 const LEV_ICONS = {
@@ -13185,7 +13187,7 @@ async function levSendApprovalEmail(request) {
       message: {
         subject,
         body: { contentType: 'HTML', content: html },
-        toRecipients: [{ emailAddress: { address: LEV.philipEmail } }]
+        toRecipients: [{ emailAddress: { address: CONFIG.LEAVE_APPROVER_EMAIL } }]
       },
       saveToSentItems: true
     })
