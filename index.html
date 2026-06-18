@@ -3742,10 +3742,11 @@ body {
   cursor: pointer; box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset;
 }
 #section-leave .lev-span:hover { filter: brightness(1.06); }
-#section-leave .lev-span.approved { background: rgba(74,158,221,0.62); border-left-color: #246a9e; }
-#section-leave .lev-span.pending { background: rgba(224,154,46,0.66); border-left-color: #a96c14; }
+#section-leave .lev-span.person-jack { background: rgba(139,92,246,0.68); border-left-color: #6d28d9; }
+#section-leave .lev-span.person-philip { background: rgba(74,158,221,0.68); border-left-color: #246a9e; }
+#section-leave .lev-span.pending { box-shadow: 0 0 0 1px rgba(224,154,46,0.78) inset, 0 1px 0 rgba(255,255,255,0.18) inset; }
 #section-leave .lev-span.rejected,
-#section-leave .lev-span.cancelled { background: rgba(210,81,81,0.62); border-left-color: #9f3030; }
+#section-leave .lev-span.cancelled { opacity: .62; text-decoration: line-through; }
 #section-leave .lev-span.continues-left { margin-left: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; border-left-color: transparent; }
 #section-leave .lev-span.continues-right { margin-right: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; }
 #section-leave .lev-span:not(.continues-left) { border-top-left-radius: 4px; border-bottom-left-radius: 4px; }
@@ -3768,8 +3769,9 @@ body {
   background: rgba(255,255,255,0.026);
 }
 #section-leave .lev-agenda-item:hover { border-color: var(--border); background: var(--row-hover); }
-#section-leave .lev-agenda-item.approved { border-left: 3px solid var(--green); }
-#section-leave .lev-agenda-item.pending { border-left: 3px solid var(--amber); }
+#section-leave .lev-agenda-item.person-jack { border-left: 3px solid #8b5cf6; }
+#section-leave .lev-agenda-item.person-philip { border-left: 3px solid var(--blue); }
+#section-leave .lev-agenda-item.pending { box-shadow: 0 0 0 1px rgba(224,154,46,0.22) inset; }
 #section-leave .lev-agenda-main {
   display: flex; justify-content: space-between; gap: 8px; color: var(--white);
   font-size: 13px; font-weight: 800;
@@ -13117,6 +13119,10 @@ function levStatusClass(status) {
   return levNormaliseStatus(status).toLowerCase();
 }
 
+function levPersonClass(person) {
+  return String(person || '').toLowerCase().includes('philip') ? 'person-philip' : 'person-jack';
+}
+
 function levEntitlementFor(person, taxYear = LEV.selectedTaxYear) {
   const found = LEV.entitlements.find(e => e.person === person && e.taxYear === taxYear);
   if (!found) return LEV.defaultEntitlementHours;
@@ -13688,7 +13694,7 @@ function levRenderMobileAgenda(monthStart, monthEnd) {
     const events = levEventsForDate(key);
     if (events.length) {
       const dateLabel = d.toLocaleDateString('en-GB', { weekday: 'short' });
-      const items = events.map(e => `<button class="lev-agenda-item ${levStatusClass(e.status)}" type="button" onclick="levOpenEditModal('${e.id}')">
+      const items = events.map(e => `<button class="lev-agenda-item ${levPersonClass(e.person)} ${levStatusClass(e.status)}" type="button" onclick="levOpenEditModal('${e.id}')">
         <div class="lev-agenda-main"><span>${escapeHtml(e.person)}</span><span>${escapeHtml(e.status)}</span></div>
         <div class="lev-agenda-sub">${escapeHtml(levDateRangeLabel(e.startDate, e.endDate))} · ${escapeHtml(levFmtHoursDays(e.hours))}${e.notes ? ' · ' + escapeHtml(e.notes) : ''}</div>
       </button>`).join('');
@@ -13731,6 +13737,7 @@ function levRenderCalendar() {
   const spans = levCalendarSegments(gridStart).map(seg => {
     const cls = [
       'lev-span',
+      levPersonClass(seg.req.person),
       levStatusClass(seg.req.status),
       seg.continuesLeft ? 'continues-left' : '',
       seg.continuesRight ? 'continues-right' : ''
