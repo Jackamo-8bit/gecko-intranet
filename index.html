@@ -3645,8 +3645,8 @@ body {
 }
 #section-leave .lev-month-label {
   min-width: 126px; text-align: center; color: var(--white);
-  font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700;
-  letter-spacing: .05em; text-transform: uppercase;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 800;
+  letter-spacing: .07em; text-transform: uppercase;
 }
 #section-leave .lev-wrap { display: flex; flex-direction: column; gap: 14px; }
 #section-leave .lev-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
@@ -3735,6 +3735,30 @@ body {
 #section-leave .lev-block.pending { background: var(--amber-dim); color: var(--amber); border-color: var(--amber-border); }
 #section-leave .lev-block.rejected,
 #section-leave .lev-block.cancelled { background: var(--red-dim); color: var(--red); border-color: var(--red-border); opacity: .82; }
+#section-leave .lev-mobile-agenda { display: none; padding: 0 14px 14px; }
+#section-leave .lev-agenda-day {
+  display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 10px;
+  padding: 12px 0; border-top: 1px solid var(--border-dim);
+}
+#section-leave .lev-agenda-date {
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 800; color: var(--white);
+}
+#section-leave .lev-agenda-date .dow { color: var(--muted); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+#section-leave .lev-agenda-date .num { font-size: 24px; line-height: 1; }
+#section-leave .lev-agenda-items { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+#section-leave .lev-agenda-item {
+  padding: 10px 11px; border-radius: 8px; border: 1px solid var(--border-dim);
+  background: rgba(255,255,255,0.026);
+}
+#section-leave .lev-agenda-item.approved { border-left: 3px solid var(--green); }
+#section-leave .lev-agenda-item.pending { border-left: 3px solid var(--amber); }
+#section-leave .lev-agenda-main {
+  display: flex; justify-content: space-between; gap: 8px; color: var(--white);
+  font-size: 13px; font-weight: 800;
+}
+#section-leave .lev-agenda-sub { margin-top: 3px; color: var(--muted); font-size: 11px; line-height: 1.35; }
+#section-leave .lev-agenda-empty { padding: 20px 0; color: var(--muted); text-align: center; font-size: 12px; }
 #section-leave .lev-toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
 #section-leave .lev-chip {
   padding: 6px 12px; border-radius: 999px; background: var(--card);
@@ -3784,11 +3808,28 @@ body {
   #section-leave .lev-form { grid-template-columns: 1fr; }
   #section-leave .lev-form-actions,
   #section-leave .lev-form-actions .btn { width: 100%; justify-content: center; }
-  #section-leave .lev-day { min-height: 78px; padding: 6px; }
-  #section-leave .lev-cal-head span { padding: 8px 4px; text-align: center; }
-  #section-leave .lev-block { font-size: 9px; padding: 3px 4px; }
+  #section-leave .lev-calendar .lev-card-head { margin-bottom: 8px !important; }
+  #section-leave .lev-cal-head,
+  #section-leave .lev-cal-grid { display: none; }
+  #section-leave .lev-mobile-agenda { display: block; }
   #section-leave .lev-toolbar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   #section-leave .lev-toolbar::-webkit-scrollbar { display: none; }
+}
+
+:root[data-theme="light"] #section-leave .section-head .lev-month-sel,
+:root[data-theme="light"] #section-leave .section-head .lev-refresh {
+  background: rgba(7,12,10,0.58);
+  border-color: rgba(255,255,255,0.22);
+}
+:root[data-theme="light"] #section-leave .section-head .lev-month-label,
+:root[data-theme="light"] #section-leave .section-head .lev-month-btn,
+:root[data-theme="light"] #section-leave .section-head .lev-refresh {
+  color: rgba(246,252,247,0.94);
+}
+:root[data-theme="light"] #section-leave .section-head .lev-month-btn:hover,
+:root[data-theme="light"] #section-leave .section-head .lev-refresh:hover:not(:disabled) {
+  color: #ffffff;
+  border-color: rgba(255,255,255,0.42);
 }
 
 /* ╔═══════════════════════════════════════════════════════════════════╗
@@ -12920,7 +12961,7 @@ const LEV = {
   lastSync: null,
   hoursEdited: false,
   standardDayHours: 7.5,
-  defaultEntitlementHours: 196,
+  defaultEntitlementHours: 150,
   people: ['Jack', 'Philip']
 };
 
@@ -13409,6 +13450,28 @@ function levEventsForDate(dateKey) {
   ).sort((a, b) => a.person.localeCompare(b.person) || a.status.localeCompare(b.status));
 }
 
+function levRenderMobileAgenda(monthStart, monthEnd) {
+  const days = [];
+  const d = new Date(localDateKey(monthStart) + 'T00:00:00');
+  while (d <= monthEnd) {
+    const key = localDateKey(d);
+    const events = levEventsForDate(key);
+    if (events.length) {
+      const dateLabel = d.toLocaleDateString('en-GB', { weekday: 'short' });
+      const items = events.map(e => `<div class="lev-agenda-item ${levStatusClass(e.status)}">
+        <div class="lev-agenda-main"><span>${escapeHtml(e.person)}</span><span>${escapeHtml(e.status)}</span></div>
+        <div class="lev-agenda-sub">${escapeHtml(levDateRangeLabel(e.startDate, e.endDate))} · ${escapeHtml(levFmtHoursDays(e.hours))}${e.notes ? ' · ' + escapeHtml(e.notes) : ''}</div>
+      </div>`).join('');
+      days.push(`<div class="lev-agenda-day">
+        <div class="lev-agenda-date"><span class="dow">${escapeHtml(dateLabel)}</span><span class="num">${d.getDate()}</span></div>
+        <div class="lev-agenda-items">${items}</div>
+      </div>`);
+    }
+    d.setDate(d.getDate() + 1);
+  }
+  return `<div class="lev-mobile-agenda">${days.join('') || '<div class="lev-agenda-empty">No approved or pending leave this month.</div>'}</div>`;
+}
+
 function levRenderCalendar() {
   const labelEl = document.getElementById('levMonthLabel');
   const countEl = document.getElementById('levCalendarCount');
@@ -13440,6 +13503,7 @@ function levRenderCalendar() {
   wrap.innerHTML = `
     <div class="lev-cal-head"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
     <div class="lev-cal-grid">${days.join('')}</div>
+    ${levRenderMobileAgenda(monthStart, monthEnd)}
   `;
 }
 
