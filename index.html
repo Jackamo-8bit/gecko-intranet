@@ -3714,6 +3714,11 @@ body {
 #section-leave .lev-calendar { padding: 0; }
 #section-leave .lev-cal-head,
 #section-leave .lev-cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+#section-leave .lev-cal-grid {
+  position: relative;
+  grid-template-rows: repeat(6, minmax(104px, 1fr));
+  overflow: hidden;
+}
 #section-leave .lev-cal-head { border-bottom: 1px solid var(--border-dim); }
 #section-leave .lev-cal-head span {
   padding: 10px 8px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
@@ -3721,20 +3726,30 @@ body {
 #section-leave .lev-day {
   min-height: 104px; padding: 8px; border-right: 1px solid var(--border-dim); border-bottom: 1px solid var(--border-dim);
   background: rgba(255,255,255,0.012);
+  position: relative;
+  z-index: 1;
 }
 #section-leave .lev-day:nth-child(7n) { border-right: none; }
 #section-leave .lev-day.out { opacity: .42; }
 #section-leave .lev-day.today { box-shadow: 0 0 0 1px var(--green) inset; }
 #section-leave .lev-day-num { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 800; color: var(--white); margin-bottom: 6px; }
-#section-leave .lev-block {
-  display: block; padding: 4px 6px; margin-bottom: 4px; border-radius: 6px;
-  font-size: 10px; font-weight: 700; line-height: 1.25; overflow: hidden; text-overflow: ellipsis;
-  white-space: nowrap; border: 1px solid transparent;
+#section-leave .lev-span {
+  position: relative; z-index: 3; align-self: start; justify-self: stretch;
+  min-height: 18px; margin: 31px 2px 0; padding: 3px 8px;
+  border: 0; border-left: 3px solid transparent; border-radius: 0;
+  color: var(--white); font-size: 10px; font-weight: 800; line-height: 1.2;
+  text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  cursor: pointer; box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset;
 }
-#section-leave .lev-block.approved { background: var(--green-glow); color: var(--green); border-color: var(--border); }
-#section-leave .lev-block.pending { background: var(--amber-dim); color: var(--amber); border-color: var(--amber-border); }
-#section-leave .lev-block.rejected,
-#section-leave .lev-block.cancelled { background: var(--red-dim); color: var(--red); border-color: var(--red-border); opacity: .82; }
+#section-leave .lev-span:hover { filter: brightness(1.06); }
+#section-leave .lev-span.approved { background: rgba(74,158,221,0.62); border-left-color: #246a9e; }
+#section-leave .lev-span.pending { background: rgba(224,154,46,0.66); border-left-color: #a96c14; }
+#section-leave .lev-span.rejected,
+#section-leave .lev-span.cancelled { background: rgba(210,81,81,0.62); border-left-color: #9f3030; }
+#section-leave .lev-span.continues-left { margin-left: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; border-left-color: transparent; }
+#section-leave .lev-span.continues-right { margin-right: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; }
+#section-leave .lev-span:not(.continues-left) { border-top-left-radius: 4px; border-bottom-left-radius: 4px; }
+#section-leave .lev-span:not(.continues-right) { border-top-right-radius: 4px; border-bottom-right-radius: 4px; }
 #section-leave .lev-mobile-agenda { display: none; padding: 0 14px 14px; }
 #section-leave .lev-agenda-day {
   display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 10px;
@@ -3748,9 +3763,11 @@ body {
 #section-leave .lev-agenda-date .num { font-size: 24px; line-height: 1; }
 #section-leave .lev-agenda-items { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 #section-leave .lev-agenda-item {
+  width: 100%; display: block; font-family: 'Instrument Sans', sans-serif; text-align: left; cursor: pointer;
   padding: 10px 11px; border-radius: 8px; border: 1px solid var(--border-dim);
   background: rgba(255,255,255,0.026);
 }
+#section-leave .lev-agenda-item:hover { border-color: var(--border); background: var(--row-hover); }
 #section-leave .lev-agenda-item.approved { border-left: 3px solid var(--green); }
 #section-leave .lev-agenda-item.pending { border-left: 3px solid var(--amber); }
 #section-leave .lev-agenda-main {
@@ -3775,6 +3792,7 @@ body {
 }
 #section-leave .lev-tbl tbody td { padding: 11px 12px; border-bottom: 1px solid var(--border-dim); vertical-align: top; }
 #section-leave .lev-tbl tbody tr:hover td { background: var(--row-hover); }
+#section-leave .lev-row { cursor: pointer; }
 #section-leave .lev-status {
   display: inline-flex; padding: 3px 8px; border-radius: 999px; font-size: 10px; font-weight: 800;
   text-transform: uppercase; letter-spacing: .06em;
@@ -3792,6 +3810,22 @@ body {
 #section-leave .lev-iconbtn:hover { color: var(--green); border-color: var(--green); }
 #section-leave .lev-iconbtn.danger:hover { color: var(--red); border-color: var(--red); }
 #section-leave .lev-empty { padding: 26px; text-align: center; color: var(--muted); }
+#section-leave .lev-modal-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.72); z-index: 1500;
+  display: none; align-items: center; justify-content: center; padding: 18px;
+  animation: fadeIn .15s ease;
+}
+#section-leave .lev-modal-bg.show { display: flex; }
+#section-leave .lev-modal {
+  width: 100%; max-width: 560px; background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; box-shadow: 0 24px 70px var(--shadow-heavy);
+}
+#section-leave .lev-modal h3 {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 18px;
+  letter-spacing: .06em; text-transform: uppercase; margin-bottom: 14px;
+}
+#section-leave .lev-edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+#section-leave .lev-edit-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
 
 @media (max-width: 920px) {
   #section-leave .lev-kpis,
@@ -3806,6 +3840,7 @@ body {
   #section-leave .lev-stat:nth-child(2) { border-right: none; }
   #section-leave .lev-stat:nth-child(-n+2) { border-bottom: 1px solid var(--border-dim); }
   #section-leave .lev-form { grid-template-columns: 1fr; }
+  #section-leave .lev-edit-grid { grid-template-columns: 1fr; }
   #section-leave .lev-form-actions,
   #section-leave .lev-form-actions .btn { width: 100%; justify-content: center; }
   #section-leave .lev-calendar .lev-card-head { margin-bottom: 8px !important; }
@@ -3814,12 +3849,18 @@ body {
   #section-leave .lev-mobile-agenda { display: block; }
   #section-leave .lev-toolbar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   #section-leave .lev-toolbar::-webkit-scrollbar { display: none; }
+  #section-leave .lev-edit-actions { flex-direction: column; }
+  #section-leave .lev-edit-actions .btn { width: 100%; justify-content: center; }
 }
 
 :root[data-theme="light"] #section-leave .section-head .lev-month-sel,
 :root[data-theme="light"] #section-leave .section-head .lev-refresh {
   background: rgba(7,12,10,0.58);
   border-color: rgba(255,255,255,0.22);
+}
+:root[data-theme="light"] #section-leave .section-head .lev-month-btn {
+  background: transparent;
+  border-color: transparent;
 }
 :root[data-theme="light"] #section-leave .section-head .lev-month-label,
 :root[data-theme="light"] #section-leave .section-head .lev-month-btn,
@@ -4113,6 +4154,7 @@ tbody tr {
 #section-mileage .mil-claim-modal,
 #section-clients .cli-modal,
 #section-timesheets .tsh-modal,
+#section-leave .lev-modal,
 #section-compliance .cmp-modal {
   background:
     linear-gradient(180deg, rgba(255,255,255,0.034), rgba(255,255,255,0.008)),
@@ -4853,6 +4895,7 @@ body::before {
   #section-mileage .mil-claim-modal,
   #section-clients .cli-modal,
   #section-timesheets .tsh-modal,
+  #section-leave .lev-modal,
   #section-compliance .cmp-modal {
     width: calc(100vw - 24px);
     max-width: calc(100vw - 24px);
@@ -6031,6 +6074,13 @@ body::before {
               </tbody>
             </table>
           </div>
+        </div>
+      </div>
+
+      <div class="lev-modal-bg" id="levModalBg" role="dialog" aria-modal="true" onclick="if(event.target===this)levCloseModal()">
+        <div class="lev-modal">
+          <h3 id="levModalTitle">Edit Leave</h3>
+          <div id="levModalBody"></div>
         </div>
       </div>
     </section>
@@ -13210,6 +13260,136 @@ async function levPatchRequest(id, patch) {
   });
 }
 
+function levCanEdit(req) {
+  if (!req) return false;
+  return levIsPhilip() || req.person === levCurrentPerson() || req.requestedByEmail === levUserEmail();
+}
+
+function levOpenEditModal(id) {
+  const req = LEV.requests.find(r => String(r.id) === String(id));
+  if (!req) { toast('Leave request not found', 'error'); return; }
+  if (!levCanEdit(req)) { toast('You can only edit your own leave requests', 'warning'); return; }
+
+  const statusOptions = ['Pending', 'Approved', 'Rejected', 'Cancelled']
+    .map(s => `<option value="${s}"${req.status === s ? ' selected' : ''}>${s}</option>`)
+    .join('');
+  const personOptions = LEV.people
+    .map(p => `<option value="${p}"${req.person === p ? ' selected' : ''}>${p}</option>`)
+    .join('');
+  const typeOptions = ['Annual Leave', 'Sick', 'Other']
+    .map(t => `<option value="${t}"${req.leaveType === t ? ' selected' : ''}>${t}</option>`)
+    .join('');
+
+  document.getElementById('levModalTitle').textContent = 'Edit Leave';
+  document.getElementById('levModalBody').innerHTML = `
+    <div class="lev-edit-grid">
+      <div class="lev-field">
+        <label for="levEditPerson">Person</label>
+        <select class="lev-select" id="levEditPerson" ${levIsPhilip() ? '' : 'disabled'}>${personOptions}</select>
+      </div>
+      <div class="lev-field">
+        <label for="levEditType">Type</label>
+        <select class="lev-select" id="levEditType">${typeOptions}</select>
+      </div>
+      <div class="lev-field">
+        <label for="levEditStart">Start Date</label>
+        <input class="lev-input" type="date" id="levEditStart" value="${escapeHtml(req.startDate)}" onchange="levUpdateEditEstimate()">
+      </div>
+      <div class="lev-field">
+        <label for="levEditEnd">End Date</label>
+        <input class="lev-input" type="date" id="levEditEnd" value="${escapeHtml(req.endDate || req.startDate)}" onchange="levUpdateEditEstimate()">
+      </div>
+      <div class="lev-field">
+        <label for="levEditHours">Hours</label>
+        <input class="lev-input" type="number" id="levEditHours" min="0.5" step="0.25" value="${escapeHtml(req.hours)}" oninput="levUpdateEditEstimate(false)">
+      </div>
+      <div class="lev-field">
+        <label for="levEditStatus">Status</label>
+        <select class="lev-select" id="levEditStatus" ${levIsPhilip() ? '' : 'disabled'}>${statusOptions}</select>
+      </div>
+      <div class="lev-field full">
+        <div class="lev-hint" id="levEditHint">${escapeHtml(levFmtHoursDays(req.hours))}</div>
+      </div>
+      <div class="lev-field full">
+        <label for="levEditNotes">Notes</label>
+        <textarea class="lev-textarea" id="levEditNotes">${escapeHtml(req.notes || '')}</textarea>
+      </div>
+    </div>
+    <div class="lev-edit-actions">
+      <button class="btn btn-ghost" type="button" onclick="levCloseModal()">Cancel</button>
+      <button class="btn btn-primary" type="button" onclick="levSaveEdit('${req.id}')">Save Changes</button>
+    </div>
+  `;
+  document.getElementById('levModalBg').classList.add('show');
+  levUpdateEditEstimate(false);
+}
+
+function levCloseModal() {
+  document.getElementById('levModalBg')?.classList.remove('show');
+  const body = document.getElementById('levModalBody');
+  if (body) body.innerHTML = '';
+}
+
+function levUpdateEditEstimate(updateHours = true) {
+  const start = document.getElementById('levEditStart')?.value || '';
+  const endEl = document.getElementById('levEditEnd');
+  if (endEl && start && (!endEl.value || endEl.value < start)) endEl.value = start;
+  const end = endEl?.value || start;
+  const hoursEl = document.getElementById('levEditHours');
+  const estimate = levEstimatedHours(start, end, 'full');
+  if (updateHours && hoursEl && estimate) hoursEl.value = estimate.toFixed(2).replace(/\.00$/, '');
+  const hours = Number(hoursEl?.value) || estimate || 0;
+  const hint = document.getElementById('levEditHint');
+  if (hint) hint.textContent = start && end
+    ? `${levWorkingDays(start, end)} working day${levWorkingDays(start, end) === 1 ? '' : 's'} · ${levFmtHoursDays(hours)} · weekends excluded.`
+    : levFmtHoursDays(hours);
+}
+
+async function levSaveEdit(id) {
+  const existing = LEV.requests.find(r => String(r.id) === String(id));
+  if (!levCanEdit(existing)) { toast('You can only edit your own leave requests', 'warning'); return; }
+  const person = document.getElementById('levEditPerson')?.value || existing.person;
+  const leaveType = document.getElementById('levEditType')?.value || 'Annual Leave';
+  const startDate = document.getElementById('levEditStart')?.value || '';
+  const endDate = document.getElementById('levEditEnd')?.value || startDate;
+  const hours = Number(document.getElementById('levEditHours')?.value) || 0;
+  const status = levIsPhilip() ? (document.getElementById('levEditStatus')?.value || existing.status) : existing.status;
+  const notes = document.getElementById('levEditNotes')?.value.trim() || '';
+
+  if (!startDate || !endDate) { toast('Start and end dates are required', 'warning'); return; }
+  if (endDate < startDate) { toast('End date cannot be before start date', 'warning'); return; }
+  if (hours <= 0) { toast('Hours must be greater than zero', 'warning'); return; }
+
+  const patch = {
+    Title: `${person} ${startDate}`,
+    Person: person,
+    LeaveType: leaveType,
+    StartDate: startDate,
+    EndDate: endDate,
+    Hours: hours,
+    Status: status,
+    TaxYear: levTaxYearForDate(startDate),
+    Notes: notes
+  };
+  if (levIsPhilip() && status === 'Approved' && existing.status !== 'Approved') {
+    patch.ApprovedBy = levUserLabel();
+    patch.ApprovedAt = new Date().toISOString();
+  }
+
+  showLoading(true);
+  try {
+    await levPatchRequest(id, patch);
+    levCloseModal();
+    toast('Leave request updated', 'success');
+    await levRefreshData(true);
+  } catch (err) {
+    console.error('Edit leave failed:', err);
+    toast('Failed to update leave: ' + (err.message || 'unknown error'), 'error', 6000);
+  } finally {
+    showLoading(false);
+  }
+}
+
 async function levSendApprovalEmail(request) {
   const subject = `Leave request: ${request.person} ${levDateRangeLabel(request.startDate, request.endDate)}`;
   const portalUrl = `${window.location.origin}${window.location.pathname}`;
@@ -13450,6 +13630,56 @@ function levEventsForDate(dateKey) {
   ).sort((a, b) => a.person.localeCompare(b.person) || a.status.localeCompare(b.status));
 }
 
+function levAddDays(date, days) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function levDaysBetween(start, end) {
+  return Math.round((end - start) / 86400000);
+}
+
+function levCalendarSegments(gridStart) {
+  const gridEnd = levAddDays(gridStart, 41);
+  const lanes = Array.from({ length: 6 }, () => []);
+  const segments = [];
+  const visible = LEV.requests
+    .filter(r => ['Approved', 'Pending'].includes(r.status))
+    .filter(r => r.startDate <= localDateKey(gridEnd) && (r.endDate || r.startDate) >= localDateKey(gridStart))
+    .sort((a, b) => (a.startDate || '').localeCompare(b.startDate || '') || a.person.localeCompare(b.person));
+
+  for (const req of visible) {
+    const reqStart = new Date(req.startDate + 'T00:00:00');
+    const reqEnd = new Date((req.endDate || req.startDate) + 'T00:00:00');
+    for (let week = 0; week < 6; week++) {
+      const weekStart = levAddDays(gridStart, week * 7);
+      const weekEnd = levAddDays(weekStart, 6);
+      if (reqEnd < weekStart || reqStart > weekEnd) continue;
+
+      const segStart = reqStart > weekStart ? reqStart : weekStart;
+      const segEnd = reqEnd < weekEnd ? reqEnd : weekEnd;
+      const colStart = levDaysBetween(weekStart, segStart) + 1;
+      const span = levDaysBetween(segStart, segEnd) + 1;
+      const occupied = { start: colStart, end: colStart + span - 1 };
+      const lane = [0, 1, 2].find(i => !lanes[week].some(x => x.lane === i && !(occupied.end < x.start || occupied.start > x.end)));
+      if (lane === undefined) continue;
+      lanes[week].push({ lane, ...occupied });
+
+      segments.push({
+        req,
+        week,
+        lane,
+        colStart,
+        span,
+        continuesLeft: reqStart < segStart,
+        continuesRight: reqEnd > segEnd
+      });
+    }
+  }
+  return segments;
+}
+
 function levRenderMobileAgenda(monthStart, monthEnd) {
   const days = [];
   const d = new Date(localDateKey(monthStart) + 'T00:00:00');
@@ -13458,10 +13688,10 @@ function levRenderMobileAgenda(monthStart, monthEnd) {
     const events = levEventsForDate(key);
     if (events.length) {
       const dateLabel = d.toLocaleDateString('en-GB', { weekday: 'short' });
-      const items = events.map(e => `<div class="lev-agenda-item ${levStatusClass(e.status)}">
+      const items = events.map(e => `<button class="lev-agenda-item ${levStatusClass(e.status)}" type="button" onclick="levOpenEditModal('${e.id}')">
         <div class="lev-agenda-main"><span>${escapeHtml(e.person)}</span><span>${escapeHtml(e.status)}</span></div>
         <div class="lev-agenda-sub">${escapeHtml(levDateRangeLabel(e.startDate, e.endDate))} · ${escapeHtml(levFmtHoursDays(e.hours))}${e.notes ? ' · ' + escapeHtml(e.notes) : ''}</div>
-      </div>`).join('');
+      </button>`).join('');
       days.push(`<div class="lev-agenda-day">
         <div class="lev-agenda-date"><span class="dow">${escapeHtml(dateLabel)}</span><span class="num">${d.getDate()}</span></div>
         <div class="lev-agenda-items">${items}</div>
@@ -13494,15 +13724,24 @@ function levRenderCalendar() {
     const key = localDateKey(d);
     const out = d.getMonth() !== monthStart.getMonth() ? ' out' : '';
     const isToday = key === today() ? ' today' : '';
-    const events = levEventsForDate(key).slice(0, 3).map(e =>
-      `<span class="lev-block ${levStatusClass(e.status)}" title="${escapeHtml(e.person)} ${escapeHtml(levFmtHours(e.hours))}">${escapeHtml(e.person)} · ${escapeHtml(e.status)}</span>`
-    ).join('');
-    const more = levEventsForDate(key).length > 3 ? `<span class="lev-block pending">+${levEventsForDate(key).length - 3} more</span>` : '';
-    days.push(`<div class="lev-day${out}${isToday}"><div class="lev-day-num">${d.getDate()}</div>${events}${more}</div>`);
+    const week = Math.floor(i / 7) + 1;
+    const col = (i % 7) + 1;
+    days.push(`<div class="lev-day${out}${isToday}" style="grid-row:${week};grid-column:${col};"><div class="lev-day-num">${d.getDate()}</div></div>`);
   }
+  const spans = levCalendarSegments(gridStart).map(seg => {
+    const cls = [
+      'lev-span',
+      levStatusClass(seg.req.status),
+      seg.continuesLeft ? 'continues-left' : '',
+      seg.continuesRight ? 'continues-right' : ''
+    ].filter(Boolean).join(' ');
+    const label = `${seg.req.person} · ${seg.req.notes || seg.req.status}`;
+    const title = `${seg.req.person} · ${levDateRangeLabel(seg.req.startDate, seg.req.endDate)} · ${levFmtHoursDays(seg.req.hours)} · ${seg.req.status}`;
+    return `<button class="${cls}" type="button" onclick="levOpenEditModal('${seg.req.id}')" title="${escapeHtml(title)}" style="grid-row:${seg.week + 1};grid-column:${seg.colStart} / span ${seg.span};margin-top:${31 + (seg.lane * 22)}px">${escapeHtml(label)}</button>`;
+  }).join('');
   wrap.innerHTML = `
     <div class="lev-cal-head"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
-    <div class="lev-cal-grid">${days.join('')}</div>
+    <div class="lev-cal-grid">${days.join('')}${spans}</div>
     ${levRenderMobileAgenda(monthStart, monthEnd)}
   `;
 }
@@ -13533,11 +13772,12 @@ function levRenderTable() {
     const canApprove = levIsPhilip() && r.status === 'Pending';
     const canCancel = r.status !== 'Cancelled' && r.status !== 'Rejected' && (levIsPhilip() || r.person === levCurrentPerson() || r.requestedByEmail === levUserEmail());
     const actions = [
-      canApprove ? `<button class="lev-iconbtn" type="button" onclick="levApprove('${r.id}')" title="Approve">${LEV_ICONS.check}</button>` : '',
-      canApprove ? `<button class="lev-iconbtn danger" type="button" onclick="levReject('${r.id}')" title="Reject">${LEV_ICONS.x}</button>` : '',
-      canCancel ? `<button class="lev-iconbtn danger" type="button" onclick="levCancel('${r.id}')" title="Cancel">Cancel</button>` : ''
+      levCanEdit(r) ? `<button class="lev-iconbtn" type="button" onclick="event.stopPropagation();levOpenEditModal('${r.id}')" title="Edit">Edit</button>` : '',
+      canApprove ? `<button class="lev-iconbtn" type="button" onclick="event.stopPropagation();levApprove('${r.id}')" title="Approve">${LEV_ICONS.check}</button>` : '',
+      canApprove ? `<button class="lev-iconbtn danger" type="button" onclick="event.stopPropagation();levReject('${r.id}')" title="Reject">${LEV_ICONS.x}</button>` : '',
+      canCancel ? `<button class="lev-iconbtn danger" type="button" onclick="event.stopPropagation();levCancel('${r.id}')" title="Cancel">Cancel</button>` : ''
     ].join('') || '<span style="color:var(--muted)">-</span>';
-    return `<tr>
+    return `<tr class="lev-row" onclick="levOpenEditModal('${r.id}')">
       <td><strong>${escapeHtml(r.person)}</strong><div style="font-size:11px;color:var(--muted)">${escapeHtml(r.leaveType)}</div></td>
       <td>${escapeHtml(levDateRangeLabel(r.startDate, r.endDate))}<div style="font-size:11px;color:var(--muted)">${escapeHtml(r.taxYear)}</div></td>
       <td>${escapeHtml(levFmtHoursDays(r.hours))}</td>
@@ -13592,8 +13832,8 @@ async function initLeave() {
   LEV.selectedTaxYear = levCurrentTaxYear();
   levSetDefaultFormValues();
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-      // Reserved for future Leave modal support.
+    if (e.key === 'Escape' && document.getElementById('levModalBg')?.classList.contains('show')) {
+      levCloseModal();
     }
   });
   await levRefreshData(true);
