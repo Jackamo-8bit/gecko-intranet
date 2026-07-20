@@ -173,7 +173,8 @@ body {
   border: 1px solid var(--border);
   background: transparent; color: var(--white);
   font-family: 'Instrument Sans', sans-serif; font-size: 13px; font-weight: 500;
-  cursor: pointer; transition: all .15s ease;
+  cursor: pointer;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease;
   text-decoration: none;
 }
 .btn:hover { background: var(--green-glow); border-color: var(--green); color: var(--green); }
@@ -269,11 +270,12 @@ body {
 .login-card p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
 
 #signInBtn {
-  width: 100%; padding: 12px 18px;
+  width: 100%; min-height: 44px; padding: 12px 18px;
   border-radius: var(--radius-sm);
   background: var(--green); border: 1px solid var(--green);
   color: var(--black); font-weight: 700; font-size: 14px;
-  cursor: pointer; transition: all .15s ease;
+  cursor: pointer;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease, opacity .15s ease;
   font-family: 'Instrument Sans', sans-serif;
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
 }
@@ -5197,7 +5199,7 @@ body::before {
     <div class="login-sub">Internal Portal</div>
     <p>Sign in with your Microsoft 365 account to access internal tools.</p>
     <button id="signInBtn" type="button">
-      <span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" ><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span><span>Sign in with Microsoft</span>
+      <span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" ><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span><span data-signin-label>Sign in with Microsoft</span>
     </button>
     <div class="login-foot">Internal · Confidential</div>
   </div>
@@ -6562,7 +6564,11 @@ function buildMsalConfig() {
 
 async function signIn() {
   const btn = document.getElementById('signInBtn');
+  const label = btn.querySelector('[data-signin-label]');
+  const defaultLabel = label?.textContent;
   btn.disabled = true;
+  btn.setAttribute('aria-busy', 'true');
+  if (label) label.textContent = 'Opening Microsoft sign-in…';
   showLoading(true);
   try {
     localStorage.removeItem(AUTH_REAUTH_KEY);
@@ -6581,6 +6587,8 @@ async function signIn() {
     toast('Sign-in failed: ' + (err.message || 'unknown error'), 'error');
   } finally {
     btn.disabled = false;
+    btn.removeAttribute('aria-busy');
+    if (label) label.textContent = defaultLabel;
     showLoading(false);
   }
 }
@@ -12257,7 +12265,6 @@ async function tshResolveListIds() {
     if (!TSH.fieldNames.hoursSpent) TSH.fieldNames.hoursSpent = 'HoursSpent';
     if (!TSH.fieldNames.workDescription) TSH.fieldNames.workDescription = 'WorkDescription';
     if (!TSH.fieldNames.internalNotes) TSH.fieldNames.internalNotes = 'InternalNotes';
-    console.log('TSH field names resolved:', TSH.fieldNames);
   }
 }
 

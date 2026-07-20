@@ -16,6 +16,11 @@ assert.match(html, /class="prf-month-btn"[^>]*aria-label="Previous month"/, 'pre
 assert.match(html, /class="prf-month-btn"[^>]*aria-label="Next month"/, 'next month controls need an accessible name');
 assert.match(html, /:focus-visible\s*\{/, 'keyboard users need a visible focus indicator');
 assert.match(html, /@media \(prefers-reduced-motion: reduce\)/, 'motion-sensitive users need a reduced-motion fallback');
+assert.match(html, /#signInBtn\s*\{[^}]*min-height:\s*44px;/s, 'the sign-in control should meet the minimum touch-target height');
+assert.match(html, /<span data-signin-label>Sign in with Microsoft<\/span>/, 'the sign-in action needs a dedicated status label');
+assert.match(html, /btn\.setAttribute\('aria-busy', 'true'\)/, 'sign-in should expose its in-progress state to assistive technology');
+assert.match(html, /btn\.removeAttribute\('aria-busy'\)/, 'sign-in should clear its in-progress state after it completes');
+assert.doesNotMatch(html, /console\.log\(/, 'production code should not include debug console logging');
 assert.doesNotMatch(html, /\.toast\s*\{[^}]*border-left-width:\s*3px;/s, 'toasts should not use a decorative side stripe');
 assert.doesNotMatch(html, /\.sb-link\.active::before\s*\{/, 'the active navigation state must not recreate a decorative side stripe');
 assert.doesNotMatch(html, /\.login-card\s*,\s*\.card:hover/, 'the login card should not inherit the card-hover shadow');
