@@ -5498,7 +5498,7 @@ body::before {
 
             <div class="mil-hmrc-hint">
               <span><strong>HMRC Approved Rates:</strong></span>
-              <span>First 10,000 miles · 45p/mile</span>
+              <span>From 20 July 2026 · 55p/mile (first 10,000 miles)</span>
               <span class="sep">·</span>
               <span>Above 10,000 miles · 25p/mile</span>
               <span class="sep">·</span>
@@ -10125,7 +10125,7 @@ This log captures every required field — date, destination, business purpose, 
     exportSubtitle: 'Full per-driver journey list for tax year {{year}} — company claims the reimbursement as an operating expense (Corp. Tax deductible); driver receives tax-free payment up to AMAP rates.',
     // ─ HMRC compliance note (shown below export cards)
     hmrcNote: `<strong>HMRC Mileage Record Requirements</strong>
-This log captures every required field — date, destination, business purpose, miles, and reimbursement amount. Retain records for 6 years after the end of the tax year. The company reimburses mileage at AMAP rates (45p/mile up to 10,000 miles per driver per tax year, 25p/mile thereafter) — this is a tax-free payment to the director/employee under HMRC rules. The company claims the full reimbursement as a deductible operating expense, reducing Corporation Tax liability. Retain bank statements or payroll records as evidence of payment.`,
+This log captures every required field — date, destination, business purpose, miles, and reimbursement amount. Retain records for 6 years after the end of the tax year. The company reimburses mileage at 55p/mile for journeys dated from 20 July 2026 (45p/mile for earlier journeys), up to 10,000 miles per driver per tax year, and 25p/mile thereafter. The company claims the full reimbursement as a deductible operating expense, reducing Corporation Tax liability. Retain bank statements or payroll records as evidence of payment.`,
     // ─ KPI label (shown in top cards)
     kpiLabel: 'Operating expense (Corp. Tax deductible)',
     // ─ Tax saving — for ltd cos, the reimbursement reduces Corporation Tax
@@ -10148,9 +10148,11 @@ function milConfig(key) {
 }
 
 // ─── HMRC rate constants ──────────────────────────────────────────────
-const HMRC_RATE_HIGH = 0.45;   // £/mile, first 10,000 per driver per tax year
-const HMRC_RATE_LOW  = 0.25;   // £/mile, above 10,000
-const HMRC_THRESHOLD = 10000;  // miles
+const HMRC_RATE_HIGH_HISTORIC = 0.45;  // £/mile, before 20 July 2026
+const HMRC_RATE_HIGH_CURRENT  = 0.55;  // £/mile, from 20 July 2026
+const HMRC_RATE_EFFECTIVE_DATE = '2026-07-20';
+const HMRC_RATE_LOW           = 0.25;  // £/mile, above 10,000
+const HMRC_THRESHOLD          = 10000; // miles
 
 
 // ─── Tax year helpers ─────────────────────────────────────────────────
@@ -10187,15 +10189,19 @@ function milFmtDate(iso) {
  * driver's cumulative tax-year mileage BEFORE this journey was added.
  * Splits the calculation if the journey crosses the 10,000-mile threshold.
  *
- * Returns { amount, rate } where rate is one of '45p/mi', '25p/mi', 'Mixed'.
+ * Returns { amount, rate } where rate is one of '45p/mi', '55p/mi', '25p/mi', 'Mixed'.
  */
-function milCalcReimbursement(miles, milesBefore) {
+function milCalcReimbursement(miles, milesBefore, journeyDate) {
   const m       = Number(miles) || 0;
   const before  = Number(milesBefore) || 0;
   const after   = before + m;
+  const highRate = String(journeyDate || '') >= HMRC_RATE_EFFECTIVE_DATE
+    ? HMRC_RATE_HIGH_CURRENT
+    : HMRC_RATE_HIGH_HISTORIC;
+  const highRateLabel = highRate === HMRC_RATE_HIGH_CURRENT ? '55p/mi' : '45p/mi';
 
   if (after <= HMRC_THRESHOLD) {
-    return { amount: +(m * HMRC_RATE_HIGH).toFixed(2), rate: '45p/mi' };
+    return { amount: +(m * highRate).toFixed(2), rate: highRateLabel };
   }
   if (before >= HMRC_THRESHOLD) {
     return { amount: +(m * HMRC_RATE_LOW).toFixed(2),  rate: '25p/mi' };
@@ -10204,7 +10210,7 @@ function milCalcReimbursement(miles, milesBefore) {
   const high = HMRC_THRESHOLD - before;
   const low  = m - high;
   return {
-    amount: +((high * HMRC_RATE_HIGH) + (low * HMRC_RATE_LOW)).toFixed(2),
+    amount: +((high * highRate) + (low * HMRC_RATE_LOW)).toFixed(2),
     rate:   'Mixed'
   };
 }
@@ -10227,7 +10233,7 @@ function milRecomputeAll() {
 
   for (const j of sorted) {
     const before = driverMiles[j.driver] || 0;
-    const calc   = milCalcReimbursement(j.miles, before);
+    const calc   = milCalcReimbursement(j.miles, before, j.date);
     if (j.amount !== calc.amount || j.rate !== calc.rate) {
       changes.push({
         id: j.id,
@@ -10520,7 +10526,7 @@ function milRenderLog() {
 
   body.innerHTML = sorted.map(j => {
     const dr = j.driver === 'Philip Morris' ? 'philip' : j.driver === 'Jack Morris' ? 'jack' : '';
-    const rateClass = j.rate === '45p/mi' ? 'r45' : j.rate === '25p/mi' ? 'r25' : j.rate === 'Mixed' ? 'rm' : '';
+    const rateClass = ['45p/mi', '55p/mi'].includes(j.rate) ? 'r45' : j.rate === '25p/mi' ? 'r25' : j.rate === 'Mixed' ? 'rm' : '';
     const isClaimed = !!j.claimedDate;
     const isSelected = MIL.selected.has(j.id);
     // Claimed cell — pill with date if claimed, inline "Mark claimed" link if not
@@ -10720,7 +10726,7 @@ async function milAddJourney(ev) {
   const before = MIL.journeys
     .filter(j => j.driver === data.driver && new Date(j.date).getTime() <= new Date(data.date).getTime())
     .reduce((s, j) => s + (Number(j.miles) || 0), 0);
-  const calc = milCalcReimbursement(data.miles, before);
+  const calc = milCalcReimbursement(data.miles, before, data.date);
   data.amount = calc.amount;
   data.rate   = calc.rate;
 
