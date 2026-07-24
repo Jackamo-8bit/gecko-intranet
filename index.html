@@ -7536,7 +7536,7 @@ function ovwRenderAll() {
         <div class="ovw-op ${ops.ssaRiskCount > 0 ? 'warn' : 'good'}">
           <div class="op-label">SSA Health</div>
           <div class="op-value">${ops.ssaRiskCount > 0 ? ops.ssaRiskCount : 'Healthy'}</div>
-          <div class="op-note">${ops.ssaRiskCount > 0 ? 'Client hour balances need attention' : `<strong>${ssaRisk.totalSsa}</strong> SSA clients above threshold`}</div>
+          <div class="op-note">${ops.ssaRiskCount > 0 ? 'Client hour balances need attention' : `All <strong>${ssaRisk.totalSsa}</strong> SSA clients within limits`}</div>
         </div>
         <div class="ovw-op info">
           <div class="op-label">Weekly Delivery</div>
