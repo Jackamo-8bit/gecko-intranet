@@ -15,12 +15,12 @@
 
 <!-- ═══════════════════════════════════════════════════════════════════
      FONTS
-     — Barlow Condensed for headers/numbers (compact, data-friendly).
-     — Instrument Sans for body/UI (clean, readable).
+     — Inter for display + body + UI (one family; display = heavy weight, tight tracking).
+     — JetBrains Mono for data figures, IDs and timestamps — the character element.
      ═══════════════════════════════════════════════════════════════════ -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <!-- ═══════════════════════════════════════════════════════════════════
      MSAL.js v3 — Microsoft Authentication Library
@@ -44,25 +44,53 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* Surfaces */
-  --black:        #050706;
-  --dark:         #0b0f10;
-  --card:         #111716;
-  --card-hover:   #161f1d;
+  /* Typography — Fraunces (display only) · Inter (UI/body) · JetBrains Mono (data) */
+  --font-body:    'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  /* Surfaces — precision-instrument dark: near-black base, layered panels */
+  --black:        #040605;
+  --dark:         #090c0d;
+  --card:         #0f1413;
+  --card-hover:   #151b1a;
+  --panel:        #121817;   /* raised inner panels (drop zones, sub-cards) */
+  --inset:        #0a0f0e;   /* recessed wells (inputs, table zebra) */
 
   /* Accent — Gecko green */
   --green:        #52b02e;
   --green-dark:   #3f8f24;
+  --green-bright: #6fd048;   /* hover / emphasis */
   --green-glow:   rgba(82,176,46,0.12);
   --green-line:   rgba(82,176,46,0.24);
 
   /* Text */
-  --white:        #f2f5f1;
-  --muted:        #93a398;
+  --white:        #f3f6f1;
+  --muted:        #8b9a8f;
+  --faint:        #5d6b62;   /* tertiary / captions */
 
   /* Borders */
   --border:       rgba(82,176,46,0.24);
-  --border-dim:   rgba(230,242,232,0.09);
+  --border-dim:   rgba(233,245,235,0.08);
+  --hair:         rgba(233,245,235,0.055);  /* internal dividers */
+
+  /* Elevation — tinted to the surface hue, never pure black */
+  --shadow-sm:    0 1px 2px rgba(0,0,0,0.28);
+  --shadow-md:    0 6px 18px -8px rgba(0,0,0,0.42);
+  --shadow-lg:    0 18px 44px -18px rgba(0,0,0,0.58);
+
+  /* Motion — exponential ease-out, product-speed */
+  --ease:         cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-1:        120ms;
+  --dur-2:        180ms;
+  --dur-3:        260ms;
+
+  /* Z-index scale */
+  --z-sticky:     100;
+  --z-sidebar:    200;
+  --z-backdrop:   300;
+  --z-modal:      400;
+  --z-toast:      500;
 
   /* Status colours */
   --red:          #e05252;
@@ -96,15 +124,23 @@
 }
 
 :root[data-theme="light"] {
-  --dark:         #edf3ee;
+  --dark:         #e4ebe5;   /* deeper page bg so white cards separate cleanly */
   --card:         #ffffff;
-  --card-hover:   #f5faf6;
-  --white:        #17201b;
-  --muted:        #5f7065;
-  --border-dim:   rgba(23,32,27,0.12);
+  --card-hover:   #f4f8f4;
+  --panel:        #eef3ee;   /* raised inner panels */
+  --inset:        #eaf0ea;   /* recessed wells */
+  --white:        #16201b;
+  --muted:        #566860;
+  --faint:        #7c8a80;
+  --border-dim:   rgba(23,32,27,0.14);
+  --hair:         rgba(23,32,27,0.09);
   --overlay:      rgba(247,250,247,0.78);
   --shadow-heavy: rgba(36,54,42,0.16);
   --row-hover:    rgba(23,32,27,0.045);
+  /* Soft, present shadows lift white cards off the light page (separation). */
+  --shadow-sm:    0 1px 2px rgba(36,54,42,0.08), 0 1px 1px rgba(36,54,42,0.04);
+  --shadow-md:    0 8px 24px -10px rgba(36,54,42,0.18);
+  --shadow-lg:    0 20px 48px -18px rgba(36,54,42,0.22);
 }
 
 :root[data-accent="blue"] {
@@ -126,12 +162,30 @@
 html { scroll-behavior: smooth; }
 
 body {
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
   background: var(--dark);
   color: var(--white);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv05' 1, 'ss01' 1;  /* Inter: open digits, single-storey a */
   min-height: 100vh;
   overflow-x: hidden;
+}
+
+/* Tabular, lining figures everywhere a number carries meaning. */
+.k-value, .num, td, th, input, .badge, [class*="stat"], [class*="kpi"], [class*="total"],
+[class*="amount"], [class*="-num"], [class*="-value"], [class*="-v"] {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+}
+
+/* Data figures — mono, tight, tabular. Applied to the numeric display classes. */
+.k-value {
+  font-family: var(--font-mono);
+  font-feature-settings: 'tnum' 1;
+  letter-spacing: -0.02em;
 }
 
 :root[data-theme="light"] body {
@@ -161,27 +215,40 @@ body {
 :root[data-density="roomy"] td { padding-top: 13px; padding-bottom: 13px; }
 
 /* — Shared utility classes — */
-.barlow   { font-family: 'Barlow Condensed', sans-serif; letter-spacing: .04em; }
+/* .barlow is now the display serif. Kept the class name so existing markup/JS
+   that adds it still resolves to the display family. */
+.barlow   { font-family: var(--font-display); font-weight: 600; letter-spacing: normal; }
+.display  { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.01em; }
+.mono     { font-family: var(--font-mono); }
+/* Small tracked labels / eyebrows — Inter, never the display serif. */
+.label    { font-family: var(--font-body); text-transform: uppercase; letter-spacing: .1em;
+            font-size: 10px; font-weight: 600; color: var(--muted); }
 .uppercase{ text-transform: uppercase; }
 .muted    { color: var(--muted); }
 .hidden   { display: none !important; }
 
 /* — Shared button styles — */
 .btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 8px 16px; border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 15px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border-dim);
   background: transparent; color: var(--white);
-  font-family: 'Instrument Sans', sans-serif; font-size: 13px; font-weight: 500;
+  font-family: var(--font-body); font-size: 13px; font-weight: 500;
   cursor: pointer;
-  transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+  transition: background-color var(--dur-1) var(--ease), border-color var(--dur-1) var(--ease),
+              color var(--dur-1) var(--ease), transform var(--dur-1) var(--ease);
   text-decoration: none;
 }
-.btn:hover { background: var(--green-glow); border-color: var(--green); color: var(--green); }
-.btn-primary { background: var(--green); border-color: var(--green); color: var(--black); font-weight: 700; }
-.btn-primary:hover { background: var(--green-dark); border-color: var(--green-dark); color: var(--white); }
-.btn-ghost { border-color: var(--border-dim); color: var(--muted); }
-.btn-ghost:hover { color: var(--white); border-color: var(--border); background: transparent; }
+.btn:hover { background: var(--card-hover); border-color: var(--border); color: var(--white); }
+.btn:active { transform: translateY(1px); }
+.btn:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.btn-primary {
+  background: var(--green); border-color: var(--green); color: #06110a; font-weight: 600;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.14) inset, 0 4px 14px -6px var(--green-glow);
+}
+.btn-primary:hover { background: var(--green-bright); border-color: var(--green-bright); color: #06110a; }
+.btn-ghost { border-color: transparent; color: var(--muted); }
+.btn-ghost:hover { color: var(--white); border-color: var(--border-dim); background: var(--card-hover); }
 
 /* — Shared card style — */
 .card {
@@ -189,9 +256,25 @@ body {
   border: 1px solid var(--border-dim);
   border-radius: var(--radius);
   padding: 22px;
-  transition: border-color .2s ease;
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease);
 }
-.card:hover { border-color: var(--border); }
+.card:hover { border-color: var(--hair); box-shadow: var(--shadow-md); }
+
+/* Section card containers that don't use the .card class still need to read
+   as separated surfaces — critical in light theme where white-on-near-white
+   otherwise blends into one mass. */
+#section-overview .ovw-card,
+#section-profitability .prf-cc,
+#section-profitability .prf-xero-import,
+#section-clients .cli-card,
+#section-clients .cli-tbl-wrap,
+#section-timesheets .tsh-card,
+#section-leave .lev-card,
+#section-leave .lev-person,
+#section-profit-loss .pnl-card {
+  box-shadow: var(--shadow-sm);
+}
 
 /* — Shared badge / pill — */
 .badge {
@@ -254,7 +337,7 @@ body {
 .login-logo img { width: 100%; height: 100%; object-fit: contain; }
 
 .login-card h1 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 800; font-size: 24px;
   letter-spacing: .08em; text-transform: uppercase;
   margin-bottom: 4px;
@@ -276,7 +359,7 @@ body {
   color: var(--black); font-weight: 700; font-size: 14px;
   cursor: pointer;
   transition: background-color .15s ease, border-color .15s ease, color .15s ease, opacity .15s ease;
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: var(--font-body);
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
 }
 #signInBtn:hover:not(:disabled) { background: var(--green-dark); border-color: var(--green-dark); color: var(--white); }
@@ -317,7 +400,7 @@ body {
 .sb-logo img { width: 100%; height: 100%; object-fit: contain; }
 .sb-brand-text { line-height: 1.2; }
 .sb-brand-name {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 800; font-size: 14px;
   letter-spacing: .1em; text-transform: uppercase;
 }
@@ -339,7 +422,7 @@ body {
   border: 0;
   background: transparent;
   color: var(--muted); cursor: pointer;
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: var(--font-body);
   text-align: left;
   font-size: 13px; font-weight: 500;
   transition: all .15s ease;
@@ -375,7 +458,7 @@ body {
   border-radius: 50%;
   background: var(--green-glow); border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
-  font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px;
+  font-family: var(--font-body); font-weight: 700; font-size: 12px;
   color: var(--green); flex-shrink: 0;
 }
 .user-info { flex: 1; min-width: 0; line-height: 1.2; }
@@ -391,7 +474,7 @@ body {
   background: transparent;
   border: 1px solid var(--border-dim);
   border-radius: var(--radius-sm);
-  cursor: pointer; font-family: 'Instrument Sans', sans-serif;
+  cursor: pointer; font-family: var(--font-body);
   transition: all .15s ease;
 }
 #signOutBtn:hover { color: var(--red); border-color: var(--red); }
@@ -423,7 +506,7 @@ body {
   position: sticky; top: 0; z-index: 40;
 }
 .top-bar h2 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 800; font-size: 18px;
   letter-spacing: .07em; text-transform: uppercase;
   flex: 1;
@@ -463,22 +546,32 @@ body {
   padding: 28px 32px 56px;
   flex: 1;
 }
-.section.active { display: block; animation: fadeIn .25s ease; }
+.section.active { display: block; animation: fadeIn var(--dur-3) var(--ease); }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+/* (global prefers-reduced-motion guard below neutralises this animation) */
 
 .section-head { margin-bottom: 22px; }
 .section-head h1 {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 800; font-size: 28px;
-  letter-spacing: .05em; text-transform: uppercase;
-  margin-bottom: 4px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(26px, 1.2vw + 20px, 33px);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  text-transform: none;
+  text-wrap: balance;
+  color: var(--white);
+  margin-bottom: 5px;
 }
 .section-head h1 span { color: var(--green); }
-.section-head p { color: var(--muted); font-size: 13px; }
+.section-head p {
+  color: var(--muted);
+  font-size: 13.5px;
+  max-width: 70ch;
+}
 
 /* — Placeholder card (used by all stub sections) — */
 .placeholder {
@@ -498,7 +591,7 @@ body {
   font-size: 24px; color: var(--green);
 }
 .placeholder h3 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700; font-size: 18px;
   letter-spacing: .06em; text-transform: uppercase;
   margin-bottom: 6px;
@@ -622,7 +715,7 @@ body {
   padding: 6px 12px; border-radius: var(--radius-sm);
   background: var(--card); border: 1px solid var(--border);
   color: var(--muted); font-size: 12px; cursor: pointer;
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: var(--font-body);
   transition: all .15s ease;
 }
 #section-overview .ovw-refresh:hover:not(:disabled) { color: var(--green); border-color: var(--green); }
@@ -657,11 +750,12 @@ body {
 }
 #section-overview .ovw-kpi .k-label svg { opacity: .7; }
 #section-overview .ovw-kpi .k-value {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 800; font-size: 28px;
-  letter-spacing: .02em;
+  font-family: var(--font-mono);
+  font-weight: 500; font-size: 29px;
+  letter-spacing: -0.03em;
   color: var(--green);
-  line-height: 1.1;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
 }
 #section-overview .ovw-kpi .k-sub {
   font-size: 11px; color: var(--muted);
@@ -698,7 +792,7 @@ body {
   display: flex; align-items: center; gap: 10px;
 }
 #section-overview .ovw-card-head h3 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700; font-size: 14px;
   letter-spacing: .07em; text-transform: uppercase;
   color: var(--white);
@@ -719,11 +813,16 @@ body {
 }
 #section-overview .ovw-tbl th,
 #section-overview .ovw-tbl td {
-  padding: 10px 18px;
+  padding: 10px 13px;
   border-bottom: 1px solid var(--border-dim);
   text-align: left;
   font-size: 13px;
 }
+#section-overview .ovw-tbl th:first-child,
+#section-overview .ovw-tbl td:first-child { padding-left: 18px; }
+#section-overview .ovw-tbl th:last-child,
+#section-overview .ovw-tbl td:last-child { padding-right: 18px; }
+#section-overview .ovw-tbl td.num { white-space: nowrap; }
 #section-overview .ovw-tbl tbody tr:last-child th,
 #section-overview .ovw-tbl tbody tr:last-child td { border-bottom: none; }
 #section-overview .ovw-tbl th {
@@ -732,12 +831,14 @@ body {
   font-weight: 700;
   background: rgba(0,0,0,0.2);
 }
-#section-overview .ovw-tbl td.num,
-#section-overview .ovw-tbl th.num {
+#section-overview .ovw-tbl th.num { text-align: right; }
+#section-overview .ovw-tbl td.num {
   text-align: right;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 15px; font-weight: 700;
-  letter-spacing: .02em;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 13.5px; font-weight: 500;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
 }
 #section-overview .ovw-tbl td.num { color: var(--white); }
 #section-overview .ovw-tbl td.num.muted   { color: var(--muted); font-weight: 600; font-size: 14px; }
@@ -756,7 +857,7 @@ body {
 #section-overview .ovw-tbl tr.ovw-trow td {
   background: rgba(82,176,46,0.06);
   border-top: 1px solid var(--green-line);
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700; font-size: 13px;
   letter-spacing: .05em; text-transform: uppercase;
 }
@@ -782,7 +883,7 @@ body {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
 }
 #section-overview .ovw-ops-head h3 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700; font-size: 14px;
   letter-spacing: .07em; text-transform: uppercase;
   color: var(--white);
@@ -813,7 +914,7 @@ body {
   margin-bottom: 6px;
 }
 #section-overview .ovw-op .op-value {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-size: 24px;
   font-weight: 800;
   line-height: 1.05;
@@ -844,7 +945,7 @@ body {
 }
 #section-overview .ovw-actions-text { flex: 1; min-width: 180px; }
 #section-overview .ovw-actions-text h4 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700; font-size: 14px;
   letter-spacing: .07em; text-transform: uppercase;
   margin-bottom: 3px;
@@ -854,7 +955,7 @@ body {
 #section-overview .ovw-act-btn {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 9px 16px; border-radius: var(--radius-sm);
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: var(--font-body);
   font-size: 13px; font-weight: 600;
   cursor: pointer; transition: all .15s ease;
   border: 1px solid var(--border);
@@ -882,7 +983,7 @@ body {
   text-align: center;
 }
 #section-overview .ovw-error h3 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700; font-size: 16px;
   letter-spacing: .06em; text-transform: uppercase;
   margin-bottom: 6px;
@@ -927,7 +1028,7 @@ body {
   padding: 6px 12px; border-radius: var(--radius-sm);
   background: var(--card); border: 1px solid var(--border);
   color: var(--muted); font-size: 12px; cursor: pointer;
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: var(--font-body);
   transition: all .15s ease;
 }
 #section-profitability .prf-refresh:hover:not(:disabled) { color: var(--green); border-color: var(--green); }
@@ -940,7 +1041,7 @@ body {
   padding: 6px 14px; border-radius: var(--radius-sm);
   background: var(--green); color: var(--black);
   border: 1px solid var(--green);
-  font-family: 'Instrument Sans', sans-serif; font-size: 12px; font-weight: 700;
+  font-family: var(--font-body); font-size: 12px; font-weight: 700;
   cursor: pointer; transition: all .15s ease;
 }
 #section-profitability .prf-add-btn:hover { background: var(--green-dark); border-color: var(--green-dark); color: var(--white); }
@@ -963,7 +1064,7 @@ body {
 }
 #section-profitability .prf-seed-text { flex: 1; min-width: 220px; }
 #section-profitability .prf-seed-text h3 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 800; font-size: 17px; letter-spacing: .05em;
   text-transform: uppercase; margin-bottom: 4px;
 }
@@ -983,7 +1084,7 @@ body {
 }
 #section-profitability .prf-sum-s:last-child { border-right: none; }
 #section-profitability .prf-sum-v {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-size: 22px; font-weight: 700; color: var(--green);
   letter-spacing: .02em;
 }
@@ -993,7 +1094,7 @@ body {
 }
 /* Phase 10: sub-value for variance/actual vs expected */
 #section-profitability .prf-sum-sub {
-  font-size: 11px; font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px; font-family: var(--font-body);
   font-weight: 600; letter-spacing: .02em; margin-top: 1px;
 }
 #section-profitability .prf-sum-sub.pos { color: var(--green); }
@@ -1015,7 +1116,7 @@ body {
 #section-profitability .prf-fbtn {
   padding: 4px 13px; border-radius: 999px; border: 1px solid var(--border);
   background: transparent; cursor: pointer;
-  font-size: 11px; font-family: 'Instrument Sans', sans-serif;
+  font-size: 11px; font-family: var(--font-body);
   color: var(--muted); transition: all .15s;
 }
 #section-profitability .prf-fbtn:hover { border-color: var(--green); color: var(--green); }
@@ -1024,7 +1125,7 @@ body {
 #section-profitability .prf-abtn {
   padding: 4px 11px; border-radius: 6px; border: 1px solid var(--border-dim);
   background: transparent; cursor: pointer;
-  font-size: 11px; font-family: 'Instrument Sans', sans-serif;
+  font-size: 11px; font-family: var(--font-body);
   color: var(--muted); transition: all .15s;
 }
 #section-profitability .prf-abtn:hover { color: var(--white); border-color: var(--border); }
@@ -1037,7 +1138,7 @@ body {
   height: 28px; border-radius: 8px;
   border: 1px solid var(--border-dim);
   background: var(--dark); color: var(--white);
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: var(--font-body);
   font-size: 11px; letter-spacing: 0; text-transform: none;
   padding: 0 28px 0 10px; outline: none;
 }
@@ -1047,7 +1148,7 @@ body {
   padding: 5px 11px 5px 28px; border-radius: 999px;
   border: 1px solid var(--border); background: var(--dark);
   color: var(--white); font-size: 11px;
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: var(--font-body);
   width: 200px; outline: none; transition: border-color .15s;
 }
 #section-profitability .prf-srch input::placeholder { color: var(--muted); }
@@ -1104,13 +1205,13 @@ body {
   width: 32px; height: 32px; border-radius: 8px;
   background: var(--green-glow); border: 1px solid var(--border);
   color: var(--green);
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 800; font-size: 12px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
 #section-profitability .prf-cn {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-size: 15px; font-weight: 700; letter-spacing: .05em;
   text-transform: uppercase; color: var(--white); flex: 1;
   min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -1127,7 +1228,7 @@ body {
 #section-profitability .prf-cnums { display: flex; gap: 18px; align-items: center; }
 #section-profitability .prf-cnum { text-align: right; }
 #section-profitability .prf-cnum .v {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-size: 15px; font-weight: 700;
 }
 #section-profitability .prf-cnum .l {
@@ -1142,7 +1243,7 @@ body {
 #section-profitability .prf-mpill {
   padding: 4px 10px; border-radius: 999px;
   font-size: 11px; font-weight: 700;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   letter-spacing: .04em; min-width: 50px; text-align: center;
 }
 #section-profitability .prf-mp-hi { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
@@ -1201,7 +1302,7 @@ body {
 #section-profitability .prf-sn .d { font-size: 11px; color: var(--muted); margin-top: 2px; }
 #section-profitability .prf-nr {
   text-align: right;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-size: 14px; font-weight: 600;
 }
 #section-profitability .prf-nc { color: var(--red); }
@@ -1217,13 +1318,13 @@ body {
   width: 100%; padding: 5px 8px;
   background: var(--dark); color: var(--white);
   border: 1px solid var(--border); border-radius: 6px;
-  font-family: 'Instrument Sans', sans-serif; font-size: 12px;
+  font-family: var(--font-body); font-size: 12px;
   outline: none; transition: border-color .15s;
 }
 .prf-erow input:focus,
 #section-profitability .prf-erow select:focus { border-color: var(--green); }
 #section-profitability .prf-erow input[type="number"] {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700; text-align: right;
 }
 #section-profitability .prf-erow .prf-eactions { display: flex; gap: 4px; justify-content: flex-end; }
@@ -1236,7 +1337,7 @@ body {
 #section-profitability .prf-arow button {
   background: transparent; border: 1px dashed var(--border);
   color: var(--muted); padding: 5px 14px; border-radius: 999px;
-  font-size: 11px; font-family: 'Instrument Sans', sans-serif;
+  font-size: 11px; font-family: var(--font-body);
   cursor: pointer; transition: all .15s;
   display: inline-flex; align-items: center; gap: 6px;
 }
@@ -1248,7 +1349,7 @@ body {
   border-top: 1px solid var(--green-line) !important;
   border-bottom: none !important;
   padding: 10px 14px;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-size: 13px; font-weight: 700;
   letter-spacing: .04em; text-transform: uppercase;
   color: var(--white);
@@ -1266,14 +1367,14 @@ body {
 #section-profitability .prf-xctrl { display: flex; align-items: center; gap: 7px; justify-content: flex-end; flex-wrap: wrap; }
 #section-profitability .prf-xcalc { font-size: 10px; color: var(--muted); }
 #section-profitability .prf-xcalc strong {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   color: var(--white); font-size: 13px;
 }
 #section-profitability .prf-xinput {
   width: 105px; padding: 4px 7px;
   background: var(--dark); border: 1px solid var(--border);
   border-radius: 6px; color: var(--white);
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-size: 14px; font-weight: 700; text-align: right;
   outline: none; transition: border-color .15s;
 }
@@ -1286,7 +1387,7 @@ body {
 #section-profitability .prf-xsm { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
 #section-profitability .prf-xsc { background: var(--amber-dim);  color: var(--amber); }
 #section-profitability .prf-xsd { background: var(--red-dim);    color: var(--red); }
-#section-profitability .prf-xdelta { font-size: 11px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; }
+#section-profitability .prf-xdelta { font-size: 11px; font-family: var(--font-body); font-weight: 700; }
 #section-profitability .prf-xdp { color: var(--amber); }
 #section-profitability .prf-xdn { color: var(--red); }
 
@@ -1297,7 +1398,7 @@ body {
   display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;
 }
 #section-profitability .prf-xero-import h4 {
-  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-family: var(--font-body); font-weight: 700;
   font-size: 13px; letter-spacing: .07em; text-transform: uppercase;
   color: var(--white); margin-bottom: 10px;
   display: flex; align-items: center; gap: 7px;
@@ -1322,7 +1423,7 @@ body {
   padding: 4px 12px; border-radius: var(--radius-sm);
   background: var(--card); border: 1px solid var(--border);
   color: var(--muted); font-size: 11px; cursor: pointer;
-  font-family: 'Instrument Sans', sans-serif; transition: all .15s;
+  font-family: var(--font-body); transition: all .15s;
 }
 #section-profitability .prf-drop-zone .dz-browse:hover { color: var(--green); border-color: var(--green); }
 #section-profitability .prf-drop-zone input[type="file"] {
@@ -1332,7 +1433,7 @@ body {
   min-width: 160px; font-size: 12px;
 }
 #section-profitability .prf-xero-stats .xs-month {
-  font-family: 'Barlow Condensed', sans-serif; font-size: 16px;
+  font-family: var(--font-body); font-size: 16px;
   font-weight: 700; color: var(--green); letter-spacing: .04em;
   text-transform: uppercase; margin-bottom: 4px;
 }
@@ -1360,14 +1461,14 @@ body {
   font-size: 12px; color: var(--white);
 }
 #section-profitability .prf-xero-unmatched .xu-row .xu-amt {
-  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-family: var(--font-body); font-weight: 700;
   color: var(--muted); font-size: 13px; min-width: 70px;
 }
 #section-profitability .prf-xero-unmatched .xu-row select {
   padding: 3px 8px; border-radius: 6px;
   background: var(--dark); border: 1px solid var(--border);
   color: var(--white); font-size: 11px;
-  font-family: 'Instrument Sans', sans-serif; outline: none;
+  font-family: var(--font-body); outline: none;
 }
 #section-profitability .prf-xero-unmatched .xu-row select:focus { border-color: var(--green); }
 
@@ -1384,7 +1485,7 @@ body {
 }
 #section-profitability .prf-month-sel .prf-month-btn:hover { color: var(--green); border-color: var(--green); }
 #section-profitability .prf-month-sel .prf-month-label {
-  font-family: 'Barlow Condensed', sans-serif; font-size: 14px;
+  font-family: var(--font-body); font-size: 14px;
   font-weight: 700; color: var(--green); letter-spacing: .04em;
   text-transform: uppercase; min-width: 100px; text-align: center;
 }
@@ -1395,7 +1496,7 @@ body {
   padding: 6px 12px; border-radius: var(--radius-sm);
   background: var(--card); border: 1px solid var(--border);
   color: var(--muted); font-size: 12px; cursor: pointer;
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: var(--font-body);
   transition: all .15s ease;
 }
 #section-profitability .prf-export-btn:hover { color: var(--green); border-color: var(--green); }
@@ -1414,7 +1515,7 @@ body {
 }
 #section-profitability .prf-gtlbl { flex: 1; padding-right: 24px; border-right: 1px solid var(--border); min-width: 220px; }
 #section-profitability .prf-gtlbl strong {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-size: 18px; font-weight: 800;
   letter-spacing: .06em; text-transform: uppercase; display: block;
 }
@@ -1424,7 +1525,7 @@ body {
 #section-profitability .prf-gtst { padding: 0 22px; border-right: 1px solid var(--border); text-align: center; }
 #section-profitability .prf-gtst:last-child { border-right: none; padding-right: 0; }
 #section-profitability .prf-gtst .v {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-size: 24px; font-weight: 800; display: block;
   letter-spacing: .02em;
 }
@@ -1439,7 +1540,7 @@ body {
   border-radius: var(--radius); padding: 50px 30px; text-align: center;
 }
 #section-profitability .prf-empty h3 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-size: 18px; font-weight: 700;
   letter-spacing: .05em; text-transform: uppercase;
   color: var(--white); margin-bottom: 6px;
@@ -1461,7 +1562,7 @@ body {
   max-height: 90vh; overflow-y: auto;
 }
 #section-profitability .prf-modal h3 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700; font-size: 17px;
   letter-spacing: .06em; text-transform: uppercase; margin-bottom: 14px;
 }
@@ -1479,7 +1580,7 @@ body {
   width: 100%; padding: 8px 12px;
   background: var(--dark); color: var(--white);
   border: 1px solid var(--border); border-radius: var(--radius-sm);
-  font-family: 'Instrument Sans', sans-serif; font-size: 13px;
+  font-family: var(--font-body); font-size: 13px;
   outline: none; transition: border-color .15s;
 }
 .prf-form-grp input:focus,
@@ -1507,7 +1608,7 @@ body {
   display: inline-flex; align-items: center; gap: 7px;
   min-height: 34px; padding: 7px 12px; border-radius: 10px;
   background: rgba(5,7,6,0.46); border: 1px solid rgba(255,255,255,0.11);
-  color: var(--muted); font-family: 'Instrument Sans', sans-serif;
+  color: var(--muted); font-family: var(--font-body);
   font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s ease;
 }
 #section-profit-loss .pnl-btn:hover { color: var(--green); border-color: var(--green); background: var(--green-glow); }
@@ -1529,7 +1630,7 @@ body {
 #section-profit-loss .pnl-month-btn:hover { color: var(--green); border-color: var(--border); background: var(--green-glow); }
 #section-profit-loss .pnl-month-label {
   min-width: 86px; text-align: center;
-  color: var(--white); font-family: 'Barlow Condensed', sans-serif;
+  color: var(--white); font-family: var(--font-body);
   font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
 }
 #section-profit-loss .pnl-empty,
@@ -1545,7 +1646,7 @@ body {
 }
 #section-profit-loss .pnl-import-text { flex: 1; min-width: 240px; }
 #section-profit-loss .pnl-import-text h3 {
-  font-family: 'Barlow Condensed', sans-serif; font-size: 16px;
+  font-family: var(--font-body); font-size: 16px;
   letter-spacing: .07em; text-transform: uppercase; margin-bottom: 5px;
 }
 #section-profit-loss .pnl-import-text p { color: var(--muted); font-size: 12px; line-height: 1.45; }
@@ -1566,7 +1667,7 @@ body {
   padding: 18px 20px;
 }
 #section-profit-loss .pnl-insights-main h3 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-size: 16px;
   font-weight: 800;
   letter-spacing: .08em;
@@ -1602,7 +1703,7 @@ body {
   text-transform: uppercase;
 }
 #section-profit-loss .pnl-insight-chip strong {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   color: var(--white);
   font-size: 18px;
   letter-spacing: .03em;
@@ -1620,7 +1721,7 @@ body {
   letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px;
 }
 #section-profit-loss .pnl-kpi .k-value {
-  font-family: 'Barlow Condensed', sans-serif; font-size: 28px;
+  font-family: var(--font-body); font-size: 28px;
   font-weight: 800; line-height: 1.05; color: var(--white);
 }
 #section-profit-loss .pnl-kpi .k-note { color: var(--muted); font-size: 11px; margin-top: 5px; }
@@ -1635,7 +1736,7 @@ body {
   border-bottom: 1px solid var(--border-dim);
 }
 #section-profit-loss .pnl-card-head h3 {
-  flex: 1; font-family: 'Barlow Condensed', sans-serif; font-size: 15px;
+  flex: 1; font-family: var(--font-body); font-size: 15px;
   letter-spacing: .07em; text-transform: uppercase;
 }
 #section-profit-loss .pnl-month {
@@ -1652,14 +1753,14 @@ body {
 }
 #section-profit-loss .pnl-table td.num,
 #section-profit-loss .pnl-table th.num {
-  text-align: right; font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  text-align: right; font-family: var(--font-body); font-weight: 700;
 }
 #section-profit-loss .pnl-table tr.pnl-section td {
   background: rgba(82,176,46,0.06); color: var(--white);
   font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
 }
 #section-profit-loss .pnl-table tr.pnl-section td.num {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-size: 18px;
   font-weight: 900 !important;
   letter-spacing: .02em;
@@ -1671,7 +1772,7 @@ body {
 #section-profit-loss .pnl-muted { color: var(--muted); }
 #section-profit-loss .pnl-empty { padding: 34px 24px; text-align: center; color: var(--muted); }
 #section-profit-loss .pnl-empty h3 {
-  color: var(--white); font-family: 'Barlow Condensed', sans-serif;
+  color: var(--white); font-family: var(--font-body);
   text-transform: uppercase; letter-spacing: .07em; margin-bottom: 6px;
 }
 
@@ -1721,7 +1822,7 @@ body {
   padding: 6px 12px; border-radius: var(--radius-sm);
   background: var(--card); border: 1px solid var(--border);
   color: var(--muted); font-size: 12px; cursor: pointer;
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: var(--font-body);
   transition: all .15s ease;
 }
 #section-mileage .mil-refresh:hover:not(:disabled) { color: var(--green); border-color: var(--green); }
@@ -1750,7 +1851,7 @@ body {
   margin-bottom: 4px;
 }
 #section-mileage .mil-kpi .k-value {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 800; font-size: 28px;
   letter-spacing: .02em;
   color: var(--green);
@@ -1777,7 +1878,7 @@ body {
   border: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: var(--font-body);
   letter-spacing: .03em;
   transition: all .15s ease;
 }
@@ -1805,14 +1906,14 @@ body {
   margin-bottom: 16px; gap: 12px; flex-wrap: wrap;
 }
 #section-mileage .mil-card-head h3 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700; font-size: 16px;
   letter-spacing: .07em; text-transform: uppercase;
   color: var(--white);
 }
 #section-mileage .mil-card-head .count {
   font-size: 11px; color: var(--muted);
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   letter-spacing: .05em; text-transform: uppercase;
 }
 
@@ -1836,14 +1937,14 @@ body {
   border: 1px solid var(--border-dim);
   border-radius: var(--radius-sm);
   color: var(--white);
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: var(--font-body);
   font-size: 13px;
   outline: none;
   transition: border-color .15s ease;
 }
 #section-mileage .mil-input:focus, #section-mileage .mil-select:focus {
   border-color: var(--green);
-  background: var(--black);
+  background: var(--inset);
 }
 #section-mileage .mil-input::placeholder { color: var(--muted); }
 
@@ -1890,7 +1991,7 @@ body {
   background: transparent;
   color: var(--muted);
   cursor: pointer;
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: var(--font-body);
   transition: all .15s ease;
 }
 #section-mileage .mil-chip:hover { color: var(--white); border-color: var(--border); }
@@ -1926,7 +2027,7 @@ body {
 #section-mileage .mil-tbl tbody tr:hover td { background: var(--row-hover); }
 #section-mileage .mil-tbl tbody td.num {
   text-align: right;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 600; font-size: 14px;
 }
 #section-mileage .mil-tbl tbody td.num.amt { color: var(--green); font-weight: 700; }
@@ -1950,7 +2051,7 @@ body {
   display: inline-block;
   padding: 1px 7px; border-radius: 4px;
   font-size: 10px; font-weight: 700;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   letter-spacing: .04em;
   background: var(--border-dim); color: var(--muted);
 }
@@ -2034,7 +2135,7 @@ body {
   display: inline-flex; align-items: center; gap: 6px;
 }
 #section-mileage .mil-claim-counter {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-size: 13px; font-weight: 700; letter-spacing: .04em;
   color: var(--green); text-transform: uppercase;
 }
@@ -2079,7 +2180,7 @@ body {
 #section-mileage .mil-month-claim .mc-item.claimed .mc-dot { background: var(--green); }
 #section-mileage .mil-month-claim .mc-item.unclaimed .mc-dot { background: var(--amber); }
 #section-mileage .mil-month-claim .mc-item strong {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-size: 13px; color: var(--white); font-weight: 700;
   margin-left: 2px;
 }
@@ -2124,7 +2225,7 @@ body {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 #section-mileage .mil-client-row .cm {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700; font-size: 14px;
   color: var(--green);
   padding: 2px 8px;
@@ -2160,7 +2261,7 @@ body {
   flex-wrap: wrap;
 }
 #section-mileage .mil-month-head .mh-title {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700; font-size: 15px;
   letter-spacing: .08em; text-transform: uppercase;
   color: var(--white);
@@ -2170,7 +2271,7 @@ body {
   letter-spacing: .04em;
 }
 #section-mileage .mil-month-head .mh-stat strong {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   color: var(--white); font-size: 14px; margin-left: 4px;
 }
 #section-mileage .mil-month-head .mh-stat.amt strong { color: var(--green); }
@@ -2183,13 +2284,13 @@ body {
   font-size: 12px;
 }
 #section-mileage .mil-month-split .ms-driver {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 4px;
 }
 #section-mileage .mil-month-split .ms-val {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700; font-size: 16px;
   color: var(--white);
 }
@@ -2209,7 +2310,7 @@ body {
   margin-bottom: 4px;
 }
 #section-mileage .mil-export-card .mec-head h4 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700; font-size: 15px;
   letter-spacing: .07em; text-transform: uppercase;
 }
@@ -2218,7 +2319,7 @@ body {
   letter-spacing: .05em;
 }
 #section-mileage .mil-export-card .mec-total {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 800; font-size: 24px;
   color: var(--green);
   margin-top: 6px;
@@ -2257,7 +2358,7 @@ body {
   margin-bottom: 3px;
 }
 #section-mileage .mil-year-totals .yt-cell .v {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 800; font-size: 20px;
   color: var(--white);
 }
@@ -2282,7 +2383,7 @@ body {
   box-shadow: 0 20px 50px var(--shadow-heavy);
 }
 #section-mileage .mil-modal h3 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700; font-size: 17px;
   letter-spacing: .06em; text-transform: uppercase;
   margin-bottom: 8px;
@@ -2298,11 +2399,11 @@ body {
 #section-mileage .mil-edit-mi {
   width: 64px;
   padding: 3px 6px;
-  background: var(--black);
+  background: var(--inset);
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--white);
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-size: 14px; font-weight: 700;
   text-align: right;
   outline: none;
@@ -2340,7 +2441,7 @@ body {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 7px 14px; border-radius: 999px;
   background: var(--green); color: var(--black);
-  border: 1px solid var(--green); font-family: 'Instrument Sans', sans-serif;
+  border: 1px solid var(--green); font-family: var(--font-body);
   font-size: 12px; font-weight: 700; cursor: pointer; transition: all .15s;
 }
 #section-clients .cli-add-btn:hover { background: var(--green-dark); border-color: var(--green-dark); color: var(--white); }
@@ -2349,7 +2450,7 @@ body {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 7px 12px; border-radius: 999px;
   background: transparent; color: var(--muted);
-  border: 1px solid var(--border-dim); font-family: 'Instrument Sans', sans-serif;
+  border: 1px solid var(--border-dim); font-family: var(--font-body);
   font-size: 12px; cursor: pointer; transition: all .15s;
 }
 #section-clients .cli-refresh:hover:not(:disabled) { color: var(--green); border-color: var(--green); }
@@ -2367,7 +2468,7 @@ body {
 #section-clients .cli-vt-btn {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 6px 12px; background: transparent; border: none;
-  color: var(--muted); font-family: 'Instrument Sans', sans-serif;
+  color: var(--muted); font-family: var(--font-body);
   font-size: 11px; font-weight: 600; cursor: pointer; transition: all .15s;
   border-right: 1px solid var(--border-dim);
 }
@@ -2388,7 +2489,7 @@ body {
   width: 100%; padding: 7px 12px 7px 32px;
   background: var(--dark); color: var(--white);
   border: 1px solid var(--border-dim); border-radius: 999px;
-  font-family: 'Instrument Sans', sans-serif; font-size: 12px;
+  font-family: var(--font-body); font-size: 12px;
   outline: none; transition: border-color .15s;
 }
 #section-clients .cli-srch input::placeholder { color: var(--muted); }
@@ -2415,19 +2516,19 @@ body {
 /* — Hours-remaining pills (green ≥2 / amber 1–1.99 / red <1) — */
 #section-clients .cli-hp {
   display: inline-block; padding: 3px 10px; border-radius: 999px;
-  font-family: 'Barlow Condensed', sans-serif; font-size: 13px;
+  font-family: var(--font-body); font-size: 13px;
   font-weight: 700; letter-spacing: .03em; min-width: 50px; text-align: center;
 }
 #section-clients .cli-hp-hi   { background: var(--green-glow); color: var(--green); border: 1px solid var(--border); }
 #section-clients .cli-hp-md   { background: var(--amber-dim);  color: var(--amber); border: 1px solid var(--amber-border); }
 #section-clients .cli-hp-lo   { background: var(--red-dim);    color: var(--red);   border: 1px solid var(--red-border); }
-#section-clients .cli-hp-none { color: var(--muted); font-family: 'Instrument Sans', sans-serif; font-size: 11px; font-weight: 500; }
+#section-clients .cli-hp-none { color: var(--muted); font-family: var(--font-body); font-size: 11px; font-weight: 500; }
 
 /* — Avatar (matches prf-cav) — */
 #section-clients .cli-cav {
   width: 32px; height: 32px; border-radius: 8px;
   background: var(--green-glow); border: 1px solid var(--border);
-  color: var(--green); font-family: 'Barlow Condensed', sans-serif;
+  color: var(--green); font-family: var(--font-body);
   font-weight: 800; font-size: 12px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
@@ -2446,11 +2547,11 @@ body {
 /* ─── TABLE VIEW ─── */
 #section-clients .cli-tbl-wrap {
   background: var(--card); border: 1px solid var(--border-dim);
-  border-radius: var(--radius); overflow: hidden;
+  border-radius: var(--radius); overflow-x: auto; overflow-y: hidden;
 }
 #section-clients .cli-tbl { width: 100%; border-collapse: collapse; }
 #section-clients .cli-tbl thead th {
-  padding: 10px 14px; font-size: 9px; font-weight: 700;
+  padding: 10px 10px; font-size: 9px; font-weight: 700;
   letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
   background: rgba(0,0,0,0.25); border-bottom: 1px solid var(--border-dim);
   text-align: left; white-space: nowrap; user-select: none;
@@ -2463,13 +2564,17 @@ body {
 }
 #section-clients .cli-tbl thead th.sorted .sort-ic { opacity: 1; color: var(--green); }
 #section-clients .cli-tbl tbody td {
-  padding: 10px 14px; border-bottom: 1px solid var(--border-dim);
+  padding: 10px 10px; border-bottom: 1px solid var(--border-dim);
   font-size: 13px; vertical-align: middle;
 }
+#section-clients .cli-tbl thead th:first-child,
+#section-clients .cli-tbl tbody td:first-child { padding-left: 14px; }
+#section-clients .cli-tbl thead th:last-child,
+#section-clients .cli-tbl tbody td:last-child { padding-right: 14px; }
 #section-clients .cli-tbl tbody tr:last-child td { border-bottom: none; }
 #section-clients .cli-tbl tbody tr:hover td { background: var(--row-hover); }
 #section-clients .cli-tbl tbody td.num {
-  text-align: right; font-family: 'Barlow Condensed', sans-serif;
+  text-align: right; font-family: var(--font-body);
   font-size: 14px; font-weight: 600;
 }
 #section-clients .cli-tbl tbody td.num.muted { color: var(--muted); font-weight: 500; font-size: 12px; }
@@ -2488,7 +2593,8 @@ body {
   color: var(--white); font-size: 12px;
 }
 #section-clients .cli-tbl tbody td .cli-contact-email {
-  color: var(--muted); font-size: 11px; word-break: break-all;
+  color: var(--muted); font-size: 11px;
+  max-width: 22ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 #section-clients .cli-tbl tbody td .cli-contact-email a {
   color: var(--muted); text-decoration: none;
@@ -2511,7 +2617,7 @@ body {
   display: flex; align-items: center; gap: 10px;
 }
 #section-clients .cli-card-head .cli-name {
-  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-family: var(--font-body); font-weight: 700;
   font-size: 15px; letter-spacing: .04em; text-transform: uppercase;
   color: var(--white); flex: 1; min-width: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -2531,7 +2637,7 @@ body {
 #section-clients .cli-card-row .cli-rv { color: var(--white); text-align: right; min-width: 0; }
 #section-clients .cli-card-row .cli-rv.muted { color: var(--muted); }
 #section-clients .cli-card-row .cli-rv.num {
-  font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 600;
+  font-family: var(--font-body); font-size: 14px; font-weight: 600;
 }
 #section-clients .cli-card-row .cli-rv a { color: var(--white); text-decoration: none; word-break: break-all; }
 #section-clients .cli-card-row .cli-rv a:hover { color: var(--green); }
@@ -2548,7 +2654,7 @@ body {
 }
 #section-clients .cli-empty h3,
 #section-clients .cli-error h3 {
-  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-family: var(--font-body); font-weight: 700;
   font-size: 16px; letter-spacing: .06em; text-transform: uppercase;
   margin-bottom: 8px;
 }
@@ -2570,7 +2676,7 @@ body {
   max-height: 90vh; overflow-y: auto;
 }
 #section-clients .cli-modal h3 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700; font-size: 17px;
   letter-spacing: .06em; text-transform: uppercase; margin-bottom: 14px;
 }
@@ -2587,7 +2693,7 @@ body {
   width: 100%; padding: 8px 12px;
   background: var(--dark); color: var(--white);
   border: 1px solid var(--border); border-radius: var(--radius-sm);
-  font-family: 'Instrument Sans', sans-serif; font-size: 13px;
+  font-family: var(--font-body); font-size: 13px;
   outline: none; transition: border-color .15s;
 }
 #section-clients .cli-form-grp input:focus,
@@ -2603,7 +2709,7 @@ body {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 7px 14px; border-radius: 999px;
   background: transparent; color: var(--muted);
-  border: 1px solid var(--border-dim); font-family: 'Instrument Sans', sans-serif;
+  border: 1px solid var(--border-dim); font-family: var(--font-body);
   font-size: 12px; cursor: pointer; transition: all .15s;
 }
 #section-profitability .prf-manage-link:hover { color: var(--green); border-color: var(--green); background: var(--green-glow); }
@@ -2638,7 +2744,7 @@ body {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 7px 14px; border-radius: 999px;
   background: transparent; border: 1px solid var(--border-dim);
-  color: var(--muted); font-family: 'Instrument Sans', sans-serif;
+  color: var(--muted); font-family: var(--font-body);
   font-size: 12px; cursor: pointer; transition: all .15s;
 }
 #section-timesheets .tsh-refresh:hover:not(:disabled) { color: var(--green); border-color: var(--green); }
@@ -2658,7 +2764,7 @@ body {
   padding: 8px 18px; font-size: 12px; font-weight: 600;
   color: var(--muted); background: transparent; border: none;
   border-radius: var(--radius-sm); cursor: pointer;
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: var(--font-body);
   letter-spacing: .03em; transition: all .15s ease;
 }
 #section-timesheets .tsh-tab:hover { color: var(--white); }
@@ -2680,7 +2786,7 @@ body {
   margin-bottom: 16px; gap: 12px; flex-wrap: wrap;
 }
 #section-timesheets .tsh-card-head h3 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700; font-size: 16px;
   letter-spacing: .07em; text-transform: uppercase; color: var(--white);
 }
@@ -2702,12 +2808,12 @@ body {
   width: 100%; padding: 9px 12px;
   background: var(--dark); border: 1px solid var(--border-dim);
   border-radius: var(--radius-sm); color: var(--white);
-  font-family: 'Instrument Sans', sans-serif; font-size: 13px;
+  font-family: var(--font-body); font-size: 13px;
   outline: none; transition: border-color .15s ease;
 }
 #section-timesheets .tsh-input:focus,
 #section-timesheets .tsh-select:focus,
-#section-timesheets .tsh-textarea:focus { border-color: var(--green); background: var(--black); }
+#section-timesheets .tsh-textarea:focus { border-color: var(--green); background: var(--inset); }
 #section-timesheets .tsh-input::placeholder,
 #section-timesheets .tsh-textarea::placeholder { color: var(--muted); }
 #section-timesheets .tsh-select {
@@ -2759,7 +2865,7 @@ body {
   border: 1px solid var(--border-dim);
   background: rgba(255,255,255,0.02);
   color: var(--muted); font-size: 12px;
-  font-family: 'Instrument Sans', sans-serif; font-weight: 700;
+  font-family: var(--font-body); font-weight: 700;
   cursor: pointer; text-decoration: none;
   transition: color .15s, border-color .15s, background .15s;
 }
@@ -2773,7 +2879,7 @@ body {
   padding: 5px 14px; font-size: 11px; font-weight: 600;
   border-radius: 999px; border: 1px solid var(--border-dim);
   background: transparent; color: var(--muted);
-  cursor: pointer; font-family: 'Instrument Sans', sans-serif;
+  cursor: pointer; font-family: var(--font-body);
   transition: all .15s ease;
 }
 #section-timesheets .tsh-chip:hover { color: var(--white); border-color: var(--border); }
@@ -2805,7 +2911,7 @@ body {
 #section-timesheets .tsh-tbl tbody tr:last-child td { border-bottom: none; }
 #section-timesheets .tsh-tbl tbody tr:hover td { background: var(--row-hover); }
 #section-timesheets .tsh-tbl tbody td.num {
-  text-align: right; font-family: 'Barlow Condensed', sans-serif;
+  text-align: right; font-family: var(--font-body);
   font-weight: 600; font-size: 14px;
 }
 #section-timesheets .tsh-tbl tbody td.actions { text-align: right; width: 1%; white-space: nowrap; }
@@ -2857,12 +2963,12 @@ body {
 #section-timesheets .tsh-ssa-av {
   width: 32px; height: 32px; border-radius: 8px;
   background: var(--green-glow); border: 1px solid var(--border);
-  color: var(--green); font-family: 'Barlow Condensed', sans-serif;
+  color: var(--green); font-family: var(--font-body);
   font-weight: 800; font-size: 12px;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 #section-timesheets .tsh-ssa-name {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700; font-size: 14px; letter-spacing: .04em; text-transform: uppercase;
   color: var(--white); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
@@ -2870,7 +2976,7 @@ body {
   display: flex; justify-content: space-between; font-size: 11px; color: var(--muted);
   margin-bottom: 8px;
 }
-#section-timesheets .tsh-ssa-stats span { font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 13px; }
+#section-timesheets .tsh-ssa-stats span { font-family: var(--font-body); font-weight: 600; font-size: 13px; }
 #section-timesheets .tsh-ssa-bar {
   width: 100%; height: 6px; border-radius: 3px; background: var(--border-dim); overflow: hidden;
   margin-bottom: 10px;
@@ -2907,11 +3013,11 @@ body {
   border-bottom: 1px solid var(--border-dim);
 }
 #section-timesheets .tsh-week-head h4 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700; font-size: 14px; letter-spacing: .05em; text-transform: uppercase;
 }
 #section-timesheets .tsh-week-head .total {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700; font-size: 15px; color: var(--green);
 }
 #section-timesheets .tsh-week-body { padding: 14px 18px; }
@@ -2921,7 +3027,7 @@ body {
 }
 #section-timesheets .tsh-week-row .lbl { color: var(--muted); }
 #section-timesheets .tsh-week-row .val {
-  font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 13px;
+  font-family: var(--font-body); font-weight: 600; font-size: 13px;
 }
 #section-timesheets .tsh-week-sub {
   margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-dim);
@@ -2944,7 +3050,7 @@ body {
   max-height: 90vh; overflow-y: auto;
 }
 #section-timesheets .tsh-modal h3 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700; font-size: 17px;
   letter-spacing: .06em; text-transform: uppercase; margin-bottom: 14px;
 }
@@ -2961,7 +3067,7 @@ body {
   width: 100%; padding: 8px 12px;
   background: var(--dark); color: var(--white);
   border: 1px solid var(--border); border-radius: var(--radius-sm);
-  font-family: 'Instrument Sans', sans-serif; font-size: 13px;
+  font-family: var(--font-body); font-size: 13px;
   outline: none; transition: border-color .15s;
 }
 #section-timesheets .tsh-form-grp input:focus,
@@ -3024,7 +3130,7 @@ body {
   width: 72px; height: 72px; border-radius: 50%;
   background: var(--green-glow); border: 2px solid var(--border);
   color: var(--green);
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 800; font-size: 24px;
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
@@ -3041,7 +3147,7 @@ body {
   border: 3px solid var(--card);
 }
 #section-settings .set-profile-name {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 800; font-size: 24px;
   letter-spacing: .04em; text-transform: uppercase;
   color: var(--white); line-height: 1.1;
@@ -3119,7 +3225,7 @@ body {
   color: var(--muted);
 }
 #section-settings .set-card-head h3 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700; font-size: 14px;
   letter-spacing: .07em; text-transform: uppercase;
   color: var(--white); flex: 1;
@@ -3143,7 +3249,7 @@ body {
   font-weight: 500; word-break: break-all;
 }
 #section-settings .set-mono {
-  font-family: 'Barlow Condensed', monospace;
+  font-family: var(--font-mono);
   font-size: 13px; letter-spacing: .02em;
   color: var(--green);
 }
@@ -3152,7 +3258,7 @@ body {
   margin-right: 6px;
 }
 #section-settings .set-list-id {
-  font-family: 'Barlow Condensed', monospace;
+  font-family: var(--font-mono);
   font-size: 11px; color: var(--muted);
   word-break: break-all;
 }
@@ -3186,7 +3292,7 @@ body {
 #section-settings .set-watch:last-child { border-bottom: none; }
 #section-settings .set-change-date,
 #section-settings .set-watch-tone {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-size: 12px; font-weight: 800;
   letter-spacing: .06em; text-transform: uppercase;
   color: var(--green);
@@ -3200,7 +3306,7 @@ body {
 #section-settings .set-action-btn {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 9px 16px; border-radius: var(--radius-sm);
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: var(--font-body);
   font-size: 13px; font-weight: 700;
   cursor: pointer; transition: all .15s ease;
   border: 1px solid var(--green);
@@ -3240,7 +3346,7 @@ body {
   border-radius: var(--radius-sm);
   background: rgba(255,255,255,0.02);
   color: var(--muted);
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: var(--font-body);
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
@@ -3280,7 +3386,7 @@ body {
 #section-settings .set-signout-btn {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 9px 18px; border-radius: var(--radius-sm);
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: var(--font-body);
   font-size: 13px; font-weight: 600;
   cursor: pointer; transition: all .15s ease;
   border: 1px solid var(--red);
@@ -3324,7 +3430,7 @@ body {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 7px 14px; border-radius: 999px; background: transparent;
   color: var(--muted); border: 1px solid var(--border-dim);
-  font-family: 'Instrument Sans', sans-serif; font-size: 12px;
+  font-family: var(--font-body); font-size: 12px;
   cursor: pointer; transition: all .15s;
 }
 #section-compliance .cmp-refresh:hover:not(:disabled) { color: var(--green); border-color: var(--green); }
@@ -3343,7 +3449,7 @@ body {
   text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
   border-bottom: 2px solid transparent; transition: all .15s;
   background: none; border-top: none; border-left: none; border-right: none;
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: var(--font-body);
 }
 #section-compliance .cmp-tab:hover { color: var(--white); }
 #section-compliance .cmp-tab.active {
@@ -3364,7 +3470,7 @@ body {
 }
 #section-compliance .cmp-kpi:last-child { border-right: none; }
 #section-compliance .cmp-kpi-val {
-  font-family: 'Barlow Condensed', sans-serif; font-size: 24px;
+  font-family: var(--font-body); font-size: 24px;
   font-weight: 800; display: block; letter-spacing: .02em;
 }
 #section-compliance .cmp-kpi-lbl {
@@ -3375,7 +3481,7 @@ body {
 /* ─── Category group ───────────────────────────────────────────────── */
 #section-compliance .cmp-group { margin-bottom: 18px; }
 #section-compliance .cmp-group-head {
-  font-family: 'Barlow Condensed', sans-serif; font-size: 13px;
+  font-family: var(--font-body); font-size: 13px;
   font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
   color: var(--muted); padding: 6px 0; border-bottom: 1px solid var(--border-dim);
   margin-bottom: 6px; display: flex; align-items: center; gap: 8px;
@@ -3387,17 +3493,23 @@ body {
 /* ─── Dashboard item card ──────────────────────────────────────────── */
 #section-compliance .cmp-item {
   background: var(--card); border: 1px solid var(--border-dim);
-  border-radius: var(--radius-sm); margin-bottom: 6px;
-  overflow: hidden; transition: border-color .2s;
+  border-radius: var(--radius-sm); margin-bottom: 8px;
+  overflow: hidden; transition: border-color var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease);
 }
-#section-compliance .cmp-item:hover { border-color: var(--border); }
-#section-compliance .cmp-item.cmp-overdue { box-shadow: inset 0 0 0 1px var(--red-border); }
-#section-compliance .cmp-item.cmp-due-soon { box-shadow: inset 0 0 0 1px var(--amber-border); }
+#section-compliance .cmp-item:hover { border-color: var(--border); box-shadow: var(--shadow-sm); }
+/* Status-tinted pills so overdue/due-soon read as distinct, separated cards
+   (previously white-on-white in light theme). */
+#section-compliance .cmp-item.cmp-overdue {
+  background: var(--red-dim); border-color: var(--red-border);
+}
+#section-compliance .cmp-item.cmp-due-soon {
+  background: var(--amber-dim); border-color: var(--amber-border);
+}
 #section-compliance .cmp-item-head {
   padding: 10px 14px; display: flex; align-items: center; gap: 10px;
   cursor: pointer; user-select: none; transition: background .15s;
 }
-#section-compliance .cmp-item-head:hover { background: var(--card-hover); }
+#section-compliance .cmp-item-head:hover { background: var(--row-hover); }
 #section-compliance .cmp-item-title {
   flex: 1; font-weight: 600; font-size: 13px; color: var(--white);
 }
@@ -3405,7 +3517,7 @@ body {
   display: flex; align-items: center; gap: 10px; flex-shrink: 0;
 }
 #section-compliance .cmp-item-date {
-  font-family: 'Barlow Condensed', sans-serif; font-size: 13px;
+  font-family: var(--font-body); font-size: 13px;
   font-weight: 600; color: var(--muted); white-space: nowrap;
 }
 #section-compliance .cmp-item-owner {
@@ -3472,7 +3584,7 @@ body {
   padding: 14px 18px; border-bottom: 1px solid var(--border-dim);
 }
 #section-compliance .cmp-card-head h3 {
-  font-family: 'Barlow Condensed', sans-serif; font-size: 14px;
+  font-family: var(--font-body); font-size: 14px;
   font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
   color: var(--green);
 }
@@ -3491,12 +3603,12 @@ body {
 #section-compliance .cmp-textarea {
   padding: 8px 12px; background: var(--dark); color: var(--white);
   border: 1px solid var(--border); border-radius: var(--radius-sm);
-  font-family: 'Instrument Sans', sans-serif; font-size: 13px;
+  font-family: var(--font-body); font-size: 13px;
   outline: none; transition: border-color .15s;
 }
 #section-compliance .cmp-input:focus,
 #section-compliance .cmp-select:focus,
-#section-compliance .cmp-textarea:focus { border-color: var(--green); background: var(--black); }
+#section-compliance .cmp-textarea:focus { border-color: var(--green); background: var(--inset); }
 #section-compliance .cmp-input::placeholder,
 #section-compliance .cmp-textarea::placeholder { color: var(--muted); }
 #section-compliance .cmp-select {
@@ -3538,7 +3650,7 @@ body {
 #section-compliance .cmp-chip {
   padding: 4px 12px; border-radius: 999px; border: 1px solid var(--border-dim);
   background: transparent; color: var(--muted); font-size: 11px;
-  font-family: 'Instrument Sans', sans-serif; cursor: pointer; transition: all .15s;
+  font-family: var(--font-body); cursor: pointer; transition: all .15s;
 }
 #section-compliance .cmp-chip:hover { color: var(--white); border-color: var(--border); }
 #section-compliance .cmp-chip.active {
@@ -3592,7 +3704,7 @@ body {
   max-height: 90vh; overflow-y: auto;
 }
 #section-compliance .cmp-modal h3 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700; font-size: 17px;
   letter-spacing: .06em; text-transform: uppercase; margin-bottom: 14px;
 }
@@ -3607,7 +3719,7 @@ body {
   overflow: hidden;
 }
 #section-compliance .cmp-empty h3 {
-  font-family: 'Barlow Condensed', sans-serif; font-size: 16px;
+  font-family: var(--font-body); font-size: 16px;
   font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
   margin-bottom: 8px;
 }
@@ -3618,7 +3730,7 @@ body {
 #section-compliance .cmp-seed-btn {
   padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border);
   background: var(--green-glow); color: var(--green);
-  font-family: 'Instrument Sans', sans-serif; font-size: 12px;
+  font-family: var(--font-body); font-size: 12px;
   cursor: pointer; transition: all .15s;
 }
 #section-compliance .cmp-seed-btn:hover { background: var(--green); color: var(--black); }
@@ -3650,7 +3762,7 @@ body {
   min-height: 32px; padding: 7px 12px;
   background: var(--card); border: 1px solid var(--border-dim);
   border-radius: var(--radius-sm); color: var(--muted);
-  font-family: 'Instrument Sans', sans-serif; font-size: 12px; cursor: pointer;
+  font-family: var(--font-body); font-size: 12px; cursor: pointer;
 }
 #section-leave .lev-refresh:hover:not(:disabled),
 #section-leave .lev-month-btn:hover { color: var(--green); border-color: var(--green); }
@@ -3664,7 +3776,7 @@ body {
 }
 #section-leave .lev-month-label {
   min-width: 126px; text-align: center; color: var(--white);
-  font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 800;
+  font-family: var(--font-body); font-size: 14px; font-weight: 800;
   letter-spacing: .07em; text-transform: uppercase;
 }
 #section-leave .lev-wrap { display: flex; flex-direction: column; gap: 14px; }
@@ -3678,7 +3790,7 @@ body {
   padding: 14px 16px; border-bottom: 1px solid var(--border-dim);
 }
 #section-leave .lev-person-name {
-  font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 800;
+  font-family: var(--font-body); font-size: 18px; font-weight: 800;
   letter-spacing: .05em; text-transform: uppercase; color: var(--white);
 }
 #section-leave .lev-year-pill {
@@ -3690,7 +3802,7 @@ body {
 #section-leave .lev-stat { padding: 14px 16px; border-right: 1px solid var(--border-dim); }
 #section-leave .lev-stat:last-child { border-right: none; }
 #section-leave .lev-stat .v {
-  font-family: 'Barlow Condensed', sans-serif; font-size: 26px; line-height: 1;
+  font-family: var(--font-body); font-size: 26px; line-height: 1;
   font-weight: 800; color: var(--white);
 }
 #section-leave .lev-stat .v.green { color: var(--green); }
@@ -3701,14 +3813,14 @@ body {
   text-transform: uppercase; letter-spacing: .07em;
 }
 #section-leave .lev-stat .s { margin-top: 3px; color: var(--muted); font-size: 11px; }
-#section-leave .lev-main-grid { display: grid; grid-template-columns: minmax(320px, .72fr) minmax(0, 1.28fr); gap: 14px; align-items: start; }
+#section-leave .lev-main-grid { display: grid; grid-template-columns: minmax(300px, .72fr) minmax(0, 1.28fr); gap: 14px; align-items: start; min-width: 0; }
 #section-leave .lev-card {
   background: var(--card); border: 1px solid var(--border-dim); border-radius: var(--radius);
   padding: 16px; overflow: hidden;
 }
 #section-leave .lev-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
 #section-leave .lev-card-head h3 {
-  font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 800;
+  font-family: var(--font-body); font-size: 16px; font-weight: 800;
   letter-spacing: .06em; text-transform: uppercase;
 }
 #section-leave .lev-card-head span { color: var(--muted); font-size: 11px; }
@@ -3721,8 +3833,8 @@ body {
 #section-leave .lev-input,
 #section-leave .lev-select,
 #section-leave .lev-textarea {
-  width: 100%; background: var(--black); border: 1px solid var(--border-dim); border-radius: var(--radius-sm);
-  color: var(--white); font-family: 'Instrument Sans', sans-serif; font-size: 13px; padding: 9px 11px; outline: none;
+  width: 100%; background: var(--inset); border: 1px solid var(--border-dim); border-radius: var(--radius-sm);
+  color: var(--white); font-family: var(--font-body); font-size: 13px; padding: 9px 11px; outline: none;
 }
 #section-leave .lev-input:focus,
 #section-leave .lev-select:focus,
@@ -3751,18 +3863,18 @@ body {
 #section-leave .lev-day:nth-child(7n) { border-right: none; }
 #section-leave .lev-day.out { opacity: .42; }
 #section-leave .lev-day.today { box-shadow: 0 0 0 1px var(--green) inset; }
-#section-leave .lev-day-num { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 800; color: var(--white); margin-bottom: 6px; }
+#section-leave .lev-day-num { font-family: var(--font-body); font-size: 13px; font-weight: 800; color: var(--white); margin-bottom: 6px; }
 #section-leave .lev-span {
   position: relative; z-index: 3; align-self: start; justify-self: stretch;
   min-height: 18px; margin: 31px 2px 0; padding: 3px 8px;
-  border: 0; border-left: 3px solid transparent; border-radius: 0;
+  border: 0; border-radius: 3px;
   color: var(--white); font-size: 10px; font-weight: 800; line-height: 1.2;
   text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   cursor: pointer; box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset;
 }
 #section-leave .lev-span:hover { filter: brightness(1.06); }
-#section-leave .lev-span.person-jack { background: rgba(139,92,246,0.68); border-left-color: #6d28d9; }
-#section-leave .lev-span.person-philip { background: rgba(74,158,221,0.68); border-left-color: #246a9e; }
+#section-leave .lev-span.person-jack { background: rgba(139,92,246,0.68); }
+#section-leave .lev-span.person-philip { background: rgba(74,158,221,0.68); }
 #section-leave .lev-span.pending { box-shadow: 0 0 0 1px rgba(224,154,46,0.78) inset, 0 1px 0 rgba(255,255,255,0.18) inset; }
 #section-leave .lev-span.rejected,
 #section-leave .lev-span.cancelled { opacity: .62; text-decoration: line-through; }
@@ -3777,13 +3889,13 @@ body {
 }
 #section-leave .lev-agenda-date {
   display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-  font-family: 'Barlow Condensed', sans-serif; font-weight: 800; color: var(--white);
+  font-family: var(--font-body); font-weight: 800; color: var(--white);
 }
 #section-leave .lev-agenda-date .dow { color: var(--muted); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
 #section-leave .lev-agenda-date .num { font-size: 24px; line-height: 1; }
 #section-leave .lev-agenda-items { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 #section-leave .lev-agenda-item {
-  position: relative; width: 100%; display: block; font-family: 'Instrument Sans', sans-serif; text-align: left; cursor: pointer;
+  position: relative; width: 100%; display: block; font-family: var(--font-body); text-align: left; cursor: pointer;
   padding: 10px 11px 10px 24px; border-radius: 8px; border: 1px solid var(--border-dim);
   background: rgba(255,255,255,0.026);
 }
@@ -3846,15 +3958,19 @@ body {
   border-radius: var(--radius); padding: 20px; box-shadow: 0 24px 70px var(--shadow-heavy);
 }
 #section-leave .lev-modal h3 {
-  font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 18px;
+  font-family: var(--font-body); font-weight: 800; font-size: 18px;
   letter-spacing: .06em; text-transform: uppercase; margin-bottom: 14px;
 }
 #section-leave .lev-edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 #section-leave .lev-edit-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
 
-@media (max-width: 920px) {
-  #section-leave .lev-kpis,
+/* Collapse the form+calendar grid earlier: the fixed 268px sidebar eats
+   into content width, so a 2-col layout only has room above ~1040px. */
+@media (max-width: 1040px) {
   #section-leave .lev-main-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 920px) {
+  #section-leave .lev-kpis { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
   #section-leave .lev-head-actions { width: 100%; }
@@ -4047,8 +4163,7 @@ body::before {
   box-shadow: 0 10px 30px rgba(0,0,0,0.22);
 }
 
-.top-bar h2,
-.section-head h1 {
+.top-bar h2 {
   letter-spacing: .045em;
 }
 
@@ -4140,20 +4255,38 @@ textarea:focus {
   box-shadow: 0 0 0 3px rgba(82,176,46,0.10);
 }
 
+/* Unified KPI cluster — one instrument panel, hairline-divided cells
+   (replaces the 6-separate-cards "hero-metric" template). Applied across
+   every section's stat strip for a consistent precision-instrument read. */
 #section-overview .ovw-kpis,
 #section-mileage .mil-kpis,
 #section-timesheets .tsh-kpi-strip,
-#section-leave .lev-kpis,
 #section-compliance .cmp-kpi-strip {
-  gap: 12px;
+  gap: 1px;
+  background: var(--hair);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 #section-overview .ovw-kpi,
 #section-mileage .mil-kpi,
 #section-timesheets .tsh-kpi,
-#section-leave .lev-stat,
 #section-compliance .cmp-kpi {
-  padding: 17px 18px;
+  padding: 16px 18px 18px;
+  background: var(--card);
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  transition: background var(--dur-2) var(--ease);
+}
+#section-overview .ovw-kpi:hover,
+#section-mileage .mil-kpi:hover,
+#section-timesheets .tsh-kpi:hover,
+#section-compliance .cmp-kpi:hover {
+  background: var(--card-hover);
+  box-shadow: none !important;
 }
 
 #section-overview .ovw-kpi .k-value,
@@ -4161,15 +4294,28 @@ textarea:focus {
 #section-timesheets .tsh-kpi .k-value,
 #section-leave .lev-stat .v,
 #section-compliance .cmp-kpi .k-value {
-  letter-spacing: .01em;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
 }
 
+/* Global table system — precision-instrument: quiet tracked headers,
+   hairline rows, tabular figures, calm hover. */
 table thead th {
-  color: rgba(147,163,152,0.86) !important;
+  color: var(--faint) !important;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 10.5px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
 }
-
 tbody tr {
-  transition: background .15s ease;
+  transition: background var(--dur-1) var(--ease);
+}
+tbody tr:hover { background: var(--row-hover); }
+tbody td {
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
 .toast,
@@ -5016,6 +5162,23 @@ body::before {
   font-weight: 600;
 }
 
+/* The hero banner stays dark in light theme, so its controls must stay
+   light-on-dark too — otherwise refresh/month buttons go dark-on-dark. */
+:root[data-theme="light"] .section-head button:not(.btn-primary):not(.primary),
+:root[data-theme="light"] .section-head .btn:not(.btn-primary),
+:root[data-theme="light"] .section-head select {
+  background: rgba(7,12,10,0.42);
+  border-color: rgba(255,255,255,0.20);
+  color: rgba(246,252,247,0.90);
+}
+:root[data-theme="light"] .section-head button:not(.btn-primary):not(.primary):hover,
+:root[data-theme="light"] .section-head .btn:not(.btn-primary):hover {
+  background: rgba(7,12,10,0.60);
+  border-color: rgba(82,176,46,0.55);
+  color: #fff;
+}
+:root[data-theme="light"] .section-head svg { color: inherit; }
+
 :root[data-theme="light"] #section-profit-loss .pnl-btn:not(.primary),
 :root[data-theme="light"] #section-profit-loss .pnl-month-sel {
   background: rgba(7,12,10,0.58);
@@ -5321,7 +5484,7 @@ body::before {
     <section class="section active" id="section-overview">
 
       <div class="section-head">
-        <h1>OVERVIEW <span>DASHBOARD</span></h1>
+        <h1>Overview <span>Dashboard</span></h1>
         <p>Live summary across mileage, profitability, timesheets and clients · <span id="ovwHeadMonth">—</span></p>
         <div class="ovw-head-actions">
           <button class="ovw-refresh" id="ovwRefresh" type="button" onclick="ovwRefreshData()" title="Reload from SharePoint">
@@ -5345,7 +5508,7 @@ body::before {
     <section class="section" id="section-profitability">
 
       <div class="section-head">
-        <h1>CLIENT <span>PROFITABILITY</span></h1>
+        <h1>Client <span>Profitability</span></h1>
         <p>Service-by-service cost &amp; margin analysis — reconciled to Xero.</p>
         <div class="prf-head-actions">
           <!-- Phase 5: client CRUD moved to Directory (Phase 5).
@@ -5399,7 +5562,7 @@ body::before {
     <section class="section" id="section-profit-loss">
 
       <div class="section-head">
-        <h1>PROFIT <span>&amp; LOSS</span></h1>
+        <h1>Profit <span>&amp; Loss</span></h1>
         <p>Xero P&amp;L CSV/XLSX import, operating-profit view and clean CSV export.</p>
         <div class="pnl-actions">
           <button class="pnl-btn primary" type="button" onclick="document.getElementById('pnlCsvFile').click()">
@@ -5441,7 +5604,7 @@ body::before {
     <section class="section" id="section-mileage">
 
       <div class="section-head">
-        <h1>MILEAGE <span>TRACKER</span></h1>
+        <h1>Mileage <span>Tracker</span></h1>
         <p>HMRC-compliant journey log · Tax Year <span id="milTaxYear">2026/27</span> · Philip Morris &amp; Jack Morris</p>
         <div class="mil-head-actions">
           <button class="mil-refresh" id="milRefresh" type="button" onclick="milRefreshData()" title="Reload from SharePoint">
@@ -5757,7 +5920,7 @@ body::before {
     <section class="section" id="section-clients">
 
       <div class="section-head">
-        <h1>CLIENT <span>DIRECTORY</span></h1>
+        <h1>Client <span>Directory</span></h1>
         <p>Unified contact, contract &amp; SSA view — single source of truth for client metadata.</p>
         <div class="cli-head-actions">
           <button class="cli-add-btn" type="button" onclick="cliOpenClientModal()">
@@ -5821,7 +5984,7 @@ body::before {
     <section class="section" id="section-timesheets">
 
       <div class="section-head">
-        <h1>TIME<span>SHEETS</span></h1>
+        <h1>Time<span>sheets</span></h1>
         <p>Time tracking for SSA client work &amp; internal projects — Philip Morris &amp; Jack Morris</p>
         <div class="tsh-head-actions">
           <button class="tsh-refresh" id="tshRefresh" type="button" onclick="tshRefreshData()" title="Reload from SharePoint">
@@ -5915,7 +6078,7 @@ body::before {
         <div class="tsh-card">
           <div class="tsh-card-head">
             <h3>Recent Entries</h3>
-            <span id="tshEntryCount" style="font-size:11px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;letter-spacing:.05em;text-transform:uppercase;"></span>
+            <span id="tshEntryCount" style="font-size:11px;color:var(--muted);font-family:var(--font-body);letter-spacing:.05em;text-transform:uppercase;"></span>
           </div>
           <div class="tsh-filters" id="tshFilters">
             <span class="tsh-filter-label">Engineer:</span>
@@ -5963,7 +6126,7 @@ body::before {
          ═══════════════════════════════════════════════════════════════ -->
     <section class="section" id="section-leave">
       <div class="section-head">
-        <h1>ANNUAL <span>LEAVE</span></h1>
+        <h1>Annual <span>Leave</span></h1>
         <p>Shared leave planner · Tax Year <span id="levTaxYear">—</span> · hours stored, days shown where useful</p>
         <div class="lev-head-actions">
           <button class="lev-refresh" id="levRefresh" type="button" onclick="levRefreshData()" title="Reload from SharePoint">
@@ -6108,7 +6271,7 @@ body::before {
          ═══════════════════════════════════════════════════════════════ -->
     <section class="section" id="section-compliance">
       <div class="section-head">
-        <h1>COMPLIANCE <span>&amp; AUDIT</span></h1>
+        <h1>Compliance <span>&amp; Audit</span></h1>
         <p>Certifications, insurance, audit records, and key compliance dates.</p>
         <div class="cmp-head-actions">
           <button class="btn btn-primary" type="button" onclick="cmpSwitchTab('manage')">
@@ -6240,7 +6403,7 @@ body::before {
     <!-- ═══ SETTINGS SECTION ═══════════════════════════════════════ -->
     <section class="section" id="section-settings">
       <div class="section-head">
-        <h1>SETTINGS <span>&amp; INFO</span></h1>
+        <h1>Settings <span>&amp; Info</span></h1>
         <p>Portal configuration, account information, and system details.</p>
       </div>
       <div class="set-wrap">
@@ -7594,9 +7757,9 @@ function ovwRenderAll() {
           <thead>
             <tr>
               <th>Driver</th>
-              <th class="num">Journeys</th>
+              <th class="num">Trips</th>
               <th class="num">Miles</th>
-              <th class="num">Reimbursement</th>
+              <th class="num">Reimb.</th>
             </tr>
           </thead>
           <tbody>${mileageRows}</tbody>
@@ -13078,6 +13241,17 @@ async function initTimesheets() {
   const dateInput = document.getElementById('tshDate');
   if (dateInput) dateInput.value = today();
 
+  // Default the engineer to the signed-in user, matched by first name
+  // (options are first names: Philip / Jack / System). Falls back to the
+  // existing first option if the signed-in user isn't one of the engineers.
+  const engInput = document.getElementById('tshEngineer');
+  if (engInput && activeAccount) {
+    const fullName  = activeAccount.name || activeAccount.username || '';
+    const firstName = fullName.trim().split(/[\s@.]/)[0].toLowerCase();
+    const match = [...engInput.options].find(o => o.value.toLowerCase() === firstName);
+    if (match) engInput.value = match.value;
+  }
+
   // Modal: close on ESC
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && document.getElementById('tshModalBg')?.classList.contains('show')) {
@@ -14442,7 +14616,7 @@ function cmpRenderTable() {
     <td style="font-weight:600">${escapeHtml(item.title)}</td>
     <td><span class="cmp-cat ${cmpCatClass(item.category)}">${escapeHtml(item.category)}</span></td>
     <td><span class="cmp-sp ${cmpStatusClass(item.status)}">${escapeHtml(item.status)}</span></td>
-    <td style="font-family:'Barlow Condensed',sans-serif;font-weight:600">${fmtDate(item.dueDate)}</td>
+    <td style="font-family:var(--font-body);font-weight:600">${fmtDate(item.dueDate)}</td>
     <td class="col-owner">${escapeHtml(item.owner)}</td>
     <td class="col-client">${item.clientName ? escapeHtml(item.clientName) : '<span style="color:var(--muted)">Company</span>'}</td>
     <td>
