@@ -1090,8 +1090,8 @@ body {
   transition: border-color .2s;
 }
 #section-profitability .prf-cc:hover { border-color: var(--border); }
-#section-profitability .prf-cc.winding { border-left: 3px solid var(--amber); }
-#section-profitability .prf-cc.isnew { border-left: 3px solid var(--blue); }
+#section-profitability .prf-cc.winding { box-shadow: inset 0 0 0 1px var(--amber-border); }
+#section-profitability .prf-cc.isnew { box-shadow: inset 0 0 0 1px var(--blue-border); }
 #section-profitability .prf-cc.open { border-color: var(--green-line); }
 
 /* — Card header (collapsed view, click to toggle) — */
@@ -2230,9 +2230,8 @@ body {
 
 /* HMRC compliance footnote */
 #section-mileage .mil-hmrc-note {
-  background: var(--card);
-  border: 1px solid var(--border-dim);
-  border-left: 3px solid var(--amber);
+  background: linear-gradient(var(--amber-dim), var(--amber-dim)), var(--card);
+  border: 1px solid var(--amber-border);
   border-radius: var(--radius-sm);
   padding: 14px 18px;
   font-size: 12px; color: var(--muted);
@@ -3392,8 +3391,8 @@ body {
   overflow: hidden; transition: border-color .2s;
 }
 #section-compliance .cmp-item:hover { border-color: var(--border); }
-#section-compliance .cmp-item.cmp-overdue { border-left: 3px solid var(--red); }
-#section-compliance .cmp-item.cmp-due-soon { border-left: 3px solid var(--amber); }
+#section-compliance .cmp-item.cmp-overdue { box-shadow: inset 0 0 0 1px var(--red-border); }
+#section-compliance .cmp-item.cmp-due-soon { box-shadow: inset 0 0 0 1px var(--amber-border); }
 #section-compliance .cmp-item-head {
   padding: 10px 14px; display: flex; align-items: center; gap: 10px;
   cursor: pointer; user-select: none; transition: background .15s;
@@ -3784,13 +3783,17 @@ body {
 #section-leave .lev-agenda-date .num { font-size: 24px; line-height: 1; }
 #section-leave .lev-agenda-items { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 #section-leave .lev-agenda-item {
-  width: 100%; display: block; font-family: 'Instrument Sans', sans-serif; text-align: left; cursor: pointer;
-  padding: 10px 11px; border-radius: 8px; border: 1px solid var(--border-dim);
+  position: relative; width: 100%; display: block; font-family: 'Instrument Sans', sans-serif; text-align: left; cursor: pointer;
+  padding: 10px 11px 10px 24px; border-radius: 8px; border: 1px solid var(--border-dim);
   background: rgba(255,255,255,0.026);
 }
+#section-leave .lev-agenda-item::before {
+  content: ''; position: absolute; left: 11px; top: 15px;
+  width: 7px; height: 7px; border-radius: 50%; background: var(--border);
+}
 #section-leave .lev-agenda-item:hover { border-color: var(--border); background: var(--row-hover); }
-#section-leave .lev-agenda-item.person-jack { border-left: 3px solid #8b5cf6; }
-#section-leave .lev-agenda-item.person-philip { border-left: 3px solid var(--blue); }
+#section-leave .lev-agenda-item.person-jack::before { background: var(--purple); }
+#section-leave .lev-agenda-item.person-philip::before { background: var(--blue); }
 #section-leave .lev-agenda-item.pending { box-shadow: 0 0 0 1px rgba(224,154,46,0.22) inset; }
 #section-leave .lev-agenda-main {
   display: flex; justify-content: space-between; gap: 8px; color: var(--white);
