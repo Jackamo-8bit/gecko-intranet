@@ -4150,19 +4150,16 @@ body::before {
 #section-profitability .prf-gtot,
 #section-profitability .prf-empty,
 #section-mileage .mil-kpi,
-#section-mileage .mil-panel,
 #section-mileage .mil-quick-card,
 #section-mileage .mil-claim-bar,
 #section-clients .cli-tbl-wrap,
 #section-clients .cli-card,
 #section-timesheets .tsh-kpi,
-#section-timesheets .tsh-panel,
 #section-timesheets .tsh-ssa-card,
 #section-leave .lev-person,
 #section-leave .lev-card,
 #section-settings .set-card,
   #section-compliance .cmp-kpi,
-  #section-compliance .cmp-panel,
   #section-compliance .cmp-item,
   #section-compliance .cmp-form,
   #section-compliance .cmp-empty,
@@ -4171,7 +4168,7 @@ body::before {
     linear-gradient(180deg, rgba(255,255,255,0.028), rgba(255,255,255,0.006)),
     var(--card);
   border-color: var(--border-dim);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.035) inset, 0 18px 44px rgba(0,0,0,0.20);
+  box-shadow: var(--shadow-sm);
 }
 
 .card:hover,
@@ -4184,15 +4181,15 @@ body::before {
 #section-leave .lev-card:hover,
 #section-compliance .cmp-item:hover {
   border-color: var(--border);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 20px 48px rgba(0,0,0,0.25);
+  box-shadow: var(--shadow-md);
 }
 
 .sidebar,
 .top-bar {
-  background: rgba(5,7,6,0.88);
+  background: var(--black);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-color: rgba(82,176,46,0.18);
+  border-color: var(--hair);
 }
 
 .sb-brand {
