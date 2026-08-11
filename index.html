@@ -5649,7 +5649,32 @@ body::before {
    Narrow tables (two or three columns, e.g. the P&L breakdowns) are
    deliberately left as tables — they already read fine. */
 
-@media (max-width: 720px) {
+/* The query scope. Applied by syncTableLabels() to the parent of every
+   table it marks data-rt, so a table added in future gets it for free.
+   inline-size containment only — the element still sizes its own height
+   from its contents. */
+.rt-scope {
+  container-type: inline-size;
+  container-name: rtable;
+}
+
+/* Keyed on the container, not the viewport. The constraint on a table is
+   how much room its own column has, and that is not the window width: at
+   a 900px viewport the sidebar takes 244px and the section padding takes
+   another 64, leaving ~590px for a table that needs ~680. The old
+   viewport breakpoint left exactly that band rendering a squeezed table
+   with dates broken across three lines. Collapsing the sidebar changes
+   the figure by another 168px, which a viewport query cannot see at all.
+
+   The scope is each table's own parent, marked .rt-scope by
+   syncTableLabels(). Containment is safe there: no modal or other fixed
+   positioned element lives inside a table's parent, which was checked
+   before this went in.
+
+   Browsers without container query support keep the previous behaviour —
+   the table stays a table and scrolls inside its wrapper. Degraded, not
+   broken. */
+@container rtable (max-width: 760px) {
 
   /* Why !important here: the per-section styles above are all ID-scoped
      (#section-mileage .mil-tbl tbody td.num and friends, up to 1 ID +
@@ -5837,7 +5862,12 @@ body::before {
   #section-mileage.claim-mode .mil-tbl > tbody > tr > td.mil-tbl-check::before {
     content: 'Claim';
   }
+}
 
+
+/* Phone ergonomics, which really are viewport concerns: how many
+   metrics fit on a screen someone is holding. */
+@media (max-width: 720px) {
 
   /* KPI clusters: one metric per screen turned the dashboard into a
      1,300px scroll before any content. Two-up restores glanceability;
@@ -7929,9 +7959,16 @@ function syncTableLabels(root = document) {
     const headers = [...table.querySelectorAll(':scope > thead > tr > th')];
     if (headers.length < RT_MIN_COLUMNS) {
       table.removeAttribute('data-rt');
+      table.parentElement?.classList.remove('rt-scope');
       return;
     }
     table.setAttribute('data-rt', '');
+
+    // The table's parent becomes the query container, so card mode is
+    // decided by the room the table actually has rather than by the
+    // window width. Marked here rather than in CSS because the wrapper
+    // element differs per section and some tables have none of their own.
+    table.parentElement?.classList.add('rt-scope');
 
     // Header text, minus any interactive furniture (the mileage
     // select-all checkbox lives in a <th>).
