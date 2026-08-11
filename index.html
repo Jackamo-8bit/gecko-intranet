@@ -40,12 +40,17 @@
 
 <!-- ═══════════════════════════════════════════════════════════════════
      FONTS
-     — Inter for display + body + UI (one family; display = heavy weight, tight tracking).
-     — JetBrains Mono for data figures, IDs and timestamps — the character element.
+     — Schibsted Grotesk for display + body + UI (one family; display =
+       heavy weight, tight tracking). A contemporary grotesque with enough
+       character to not read as a default, and it holds up at both a 34px
+       heading and a 9.5px tracked micro-label.
+     — JetBrains Mono for data figures, IDs and timestamps — the character
+       element. Kept: its digits are well differentiated and it has the
+       x-height to stay legible at small sizes in dense tables.
      ═══════════════════════════════════════════════════════════════════ -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <!-- ═══════════════════════════════════════════════════════════════════
      MSAL.js v3 — Microsoft Authentication Library
@@ -69,9 +74,9 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* Typography — Fraunces (display only) · Inter (UI/body) · JetBrains Mono (data) */
-  --font-body:    'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-display: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Typography — Schibsted Grotesk (display + UI/body) · JetBrains Mono (data) */
+  --font-body:    'Schibsted Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Schibsted Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono:    'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
   /* Surfaces — precision-instrument dark: near-black base, layered panels */
@@ -228,7 +233,11 @@ body {
   color: var(--white);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: 'cv05' 1, 'ss01' 1;  /* Inter: open digits, single-storey a */
+  /* No figure settings here on purpose. Tabular figures belong on data,
+     not on running prose where the even widths read as loose spacing —
+     the rule below applies them to the numeric classes that need them.
+     (This slot previously carried Inter's 'cv05'/'ss01', which were that
+     face's own stylistic sets and are inert on any other family.) */
   min-height: 100vh;
   min-height: 100dvh;   /* dvh tracks the collapsing mobile URL bar; vh does not */
   overflow-x: hidden;
@@ -275,12 +284,12 @@ body {
 :root[data-density="roomy"] td { padding-top: 13px; padding-bottom: 13px; }
 
 /* — Shared utility classes — */
-/* .barlow is now the display serif. Kept the class name so existing markup/JS
-   that adds it still resolves to the display family. */
+/* .barlow is a legacy class name from an earlier typeface. Kept so existing
+   markup/JS that adds it still resolves to the current display family. */
 .barlow   { font-family: var(--font-display); font-weight: 600; letter-spacing: normal; }
 .display  { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.01em; }
 .mono     { font-family: var(--font-mono); }
-/* Small tracked labels / eyebrows — Inter, never the display serif. */
+/* Small tracked labels / eyebrows — always the body family. */
 .label    { font-family: var(--font-body); text-transform: uppercase; letter-spacing: .1em;
             font-size: 10px; font-weight: 600; color: var(--muted); }
 .uppercase{ text-transform: uppercase; }
@@ -5964,9 +5973,12 @@ body::before {
 @media (min-width: 881px) {
   .sb-collapse { display: inline-flex; }
 
-  /* Width is the only thing that animates; everything inside simply
-     stops taking part in layout. */
-  .sidebar { transition: width var(--dur-3) var(--ease); }
+  /* The rail snaps rather than animating its width. Width is a layout
+     property, so a 260ms transition reflows the entire main column on
+     every frame — and this app's main column can be 20,000px of table
+     cards. The instant change is unambiguous; the tactile feedback comes
+     from the toggle itself. */
+  .sb-collapse:active { transform: scale(0.92); }
 
   :root[data-sidebar="collapsed"] { --sidebar-w: 76px; }
 
