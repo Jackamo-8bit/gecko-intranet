@@ -5,8 +5,8 @@
   "start_url": "https://jackamo-8bit.github.io/gecko-intranet/",
   "scope": "https://jackamo-8bit.github.io/gecko-intranet/",
   "display": "standalone",
-  "theme_color": "#040605",
-  "background_color": "#040605",
+  "theme_color": "#ffffff",
+  "background_color": "#f2f4f2",
   "icons": [
     {
       "src": "gecko-favicon.png",

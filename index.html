@@ -7,22 +7,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <!-- Browser chrome (address bar, status bar) matches the portal surface so
      the page reads as one app rather than a document in a browser. -->
-<meta name="theme-color" content="#f7faf7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#040605" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="dark light">
 
 <!-- ═════════════════════════════════════════════════════════════════
      INSTALLABILITY (Add to Home Screen)
-     — status-bar-style is black-translucent on purpose: it pairs with
-       viewport-fit=cover above so the shell paints under the status bar
-       instead of letterboxing. The safe-area insets keep content clear.
+     — status-bar-style is `default` (dark status text): the portal
+       defaults to a light surface, and black-translucent renders the
+       status bar text white, which disappeared against it. It still
+       pairs with viewport-fit=cover so the shell paints under the status
+       bar rather than letterboxing; the safe-area insets keep content
+       clear.
      — Sign-in switches from popup to redirect when running standalone;
        see isStandaloneDisplay(). Do not add the manifest without that.
      ═════════════════════════════════════════════════════════════════ -->
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Gecko Portal">
 
 <title>Gecko IT Services — Internal Portal</title>
