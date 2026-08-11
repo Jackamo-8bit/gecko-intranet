@@ -21,8 +21,11 @@ assert.equal(
   'scope must equal CONFIG.REDIRECT_URI so the sign-in return leg stays inside the installed app'
 );
 assert.equal(manifest.display, 'standalone', 'display should be standalone');
-assert.equal(manifest.theme_color, '#040605', 'theme_color should match the dark surface');
-assert.equal(manifest.background_color, '#040605', 'background_color should match the dark surface');
+// The portal defaults to the light surface, so the install splash and OS
+// chrome have to match it — a near-black manifest colour flashed dark
+// before the shell painted.
+assert.equal(manifest.theme_color, '#ffffff', 'theme_color should match the top bar');
+assert.equal(manifest.background_color, '#f2f4f2', 'background_color should match the page surface');
 assert.ok(manifest.name && manifest.short_name, 'name and short_name should both be set');
 
 assert.ok(manifest.icons?.length >= 1, 'the manifest should declare at least one icon');
@@ -40,14 +43,16 @@ assert.match(head, /<link rel="manifest" href="manifest\.webmanifest">/,
   'the manifest should be linked from the head');
 assert.match(head, /<meta name="apple-mobile-web-app-capable" content="yes">/,
   'apple-mobile-web-app-capable is what makes Add to Home Screen run standalone');
-assert.match(head, /<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">/,
-  'black-translucent is what pairs the status bar with viewport-fit=cover');
+// `default` gives dark status-bar text. black-translucent renders it white,
+// which vanished once the portal's default surface became light.
+assert.match(head, /<meta name="apple-mobile-web-app-status-bar-style" content="default">/,
+  'status bar text must be dark to read against the light surface');
 // Asserted against the meta tag itself, not the file — "viewport-fit=cover"
 // also appears in the comment above it and in the CSS notes further down.
 const viewportMeta = head.match(/<meta name="viewport" content="([^"]*)">/)?.[1];
 assert.ok(viewportMeta, 'a viewport meta should be present');
 assert.match(viewportMeta, /viewport-fit=cover/,
-  'black-translucent letterboxes without viewport-fit=cover — the two must ship together');
+  'the shell paints under the status bar and relies on the safe-area insets');
 
 /* ── Sign-in flow switches on display mode ─────────────────────────────── */
 

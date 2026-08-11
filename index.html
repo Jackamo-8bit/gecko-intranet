@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light" data-sidebar="expanded">
 <head>
 <meta charset="UTF-8">
 <!-- viewport-fit=cover lets the shell paint into the notch/home-indicator
@@ -7,22 +7,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <!-- Browser chrome (address bar, status bar) matches the portal surface so
      the page reads as one app rather than a document in a browser. -->
-<meta name="theme-color" content="#f7faf7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#040605" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="dark light">
 
 <!-- ═════════════════════════════════════════════════════════════════
      INSTALLABILITY (Add to Home Screen)
-     — status-bar-style is black-translucent on purpose: it pairs with
-       viewport-fit=cover above so the shell paints under the status bar
-       instead of letterboxing. The safe-area insets keep content clear.
+     — status-bar-style is `default` (dark status text): the portal
+       defaults to a light surface, and black-translucent renders the
+       status bar text white, which disappeared against it. It still
+       pairs with viewport-fit=cover so the shell paints under the status
+       bar rather than letterboxing; the safe-area insets keep content
+       clear.
      — Sign-in switches from popup to redirect when running standalone;
        see isStandaloneDisplay(). Do not add the manifest without that.
      ═════════════════════════════════════════════════════════════════ -->
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Gecko Portal">
 
 <title>Gecko IT Services — Internal Portal</title>
@@ -37,12 +40,17 @@
 
 <!-- ═══════════════════════════════════════════════════════════════════
      FONTS
-     — Inter for display + body + UI (one family; display = heavy weight, tight tracking).
-     — JetBrains Mono for data figures, IDs and timestamps — the character element.
+     — Schibsted Grotesk for display + body + UI (one family; display =
+       heavy weight, tight tracking). A contemporary grotesque with enough
+       character to not read as a default, and it holds up at both a 34px
+       heading and a 9.5px tracked micro-label.
+     — JetBrains Mono for data figures, IDs and timestamps — the character
+       element. Kept: its digits are well differentiated and it has the
+       x-height to stay legible at small sizes in dense tables.
      ═══════════════════════════════════════════════════════════════════ -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <!-- ═══════════════════════════════════════════════════════════════════
      MSAL.js v3 — Microsoft Authentication Library
@@ -66,9 +74,9 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* Typography — Fraunces (display only) · Inter (UI/body) · JetBrains Mono (data) */
-  --font-body:    'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-display: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Typography — Schibsted Grotesk (display + UI/body) · JetBrains Mono (data) */
+  --font-body:    'Schibsted Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Schibsted Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono:    'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
   /* Surfaces — precision-instrument dark: near-black base, layered panels */
@@ -141,11 +149,22 @@
   --shadow-heavy: rgba(0,0,0,0.52);
   --row-hover:    rgba(255,255,255,0.035);
 
-  /* Geometry */
-  --radius:       10px;
-  --radius-sm:    7px;
-  --sidebar-w:    228px;
-  --header-h:     58px;
+  /* Geometry — generous radii. The reference dashboards read as "app" not
+     "document" largely because of corner softness: outer frames ~26px,
+     cards ~18px, controls pill or 12px. */
+  --radius-lg:    26px;   /* outer frames, hero band, panel groups */
+  --radius:       18px;   /* cards */
+  --radius-sm:    12px;   /* controls, chips, inputs */
+  --radius-pill:  999px;
+  --sidebar-w:    244px;
+  --header-h:     62px;
+
+  /* Ink — the primary-action colour: maximum contrast against the page,
+     so it inverts per theme. Both references use a near-black pill for
+     the primary action and keep the brand hue for data, which is this
+     portal's own "green is signal, not decoration" rule already. */
+  --ink:          #eef2ee;
+  --on-ink:       #0c110e;
 
   /* Safe areas — resolve to 0px on hardware without insets, so these can be
      used unconditionally in padding calculations. */
@@ -160,23 +179,32 @@
 }
 
 :root[data-theme="light"] {
-  --dark:         #e4ebe5;   /* deeper page bg so white cards separate cleanly */
+  /* Near-neutral ramp with only a trace of the brand's warmth. The old
+     light theme tinted every surface green, which made white cards fight
+     the page instead of floating on it. Separation now comes from a soft
+     shadow and a hairline, not from a darker background. */
+  --black:        #ffffff;   /* the "deepest" surface is white here: sidebar, top bar */
+  --dark:         #f2f4f2;   /* page */
   --card:         #ffffff;
-  --card-hover:   #f4f8f4;
-  --panel:        #eef3ee;   /* raised inner panels */
-  --inset:        #eaf0ea;   /* recessed wells */
-  --white:        #16201b;
-  --muted:        #566860;
-  --faint:        #7c8a80;
-  --border-dim:   rgba(23,32,27,0.14);
-  --hair:         rgba(23,32,27,0.09);
-  --overlay:      rgba(247,250,247,0.78);
-  --shadow-heavy: rgba(36,54,42,0.16);
-  --row-hover:    rgba(23,32,27,0.045);
-  /* Soft, present shadows lift white cards off the light page (separation). */
-  --shadow-sm:    0 1px 2px rgba(36,54,42,0.08), 0 1px 1px rgba(36,54,42,0.04);
-  --shadow-md:    0 8px 24px -10px rgba(36,54,42,0.18);
-  --shadow-lg:    0 20px 48px -18px rgba(36,54,42,0.22);
+  --card-hover:   #fbfcfb;
+  --panel:        #f7f9f7;   /* raised inner panels */
+  --inset:        #f1f4f1;   /* recessed wells */
+  --white:        #141a17;   /* primary ink */
+  --muted:        #5a665f;
+  --faint:        #7d8a83;
+  --border:       rgba(20,26,23,0.10);
+  --border-dim:   rgba(20,26,23,0.09);
+  --hair:         rgba(20,26,23,0.065);
+  --overlay:      rgba(28,34,30,0.36);
+  --shadow-heavy: rgba(20,32,26,0.14);
+  --row-hover:    rgba(20,26,23,0.035);
+  /* Wide, low-opacity diffusion rather than a tight drop shadow — the
+     thing that reads as "expensive" in both references. */
+  --shadow-sm:    0 1px 2px rgba(20,32,26,0.05), 0 1px 3px rgba(20,32,26,0.04);
+  --shadow-md:    0 10px 30px -12px rgba(20,32,26,0.13), 0 2px 6px rgba(20,32,26,0.04);
+  --shadow-lg:    0 26px 60px -22px rgba(20,32,26,0.18), 0 4px 12px rgba(20,32,26,0.05);
+  --ink:          #141a17;
+  --on-ink:       #f6f8f6;
 }
 
 :root[data-accent="blue"] {
@@ -205,7 +233,11 @@ body {
   color: var(--white);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: 'cv05' 1, 'ss01' 1;  /* Inter: open digits, single-storey a */
+  /* No figure settings here on purpose. Tabular figures belong on data,
+     not on running prose where the even widths read as loose spacing —
+     the rule below applies them to the numeric classes that need them.
+     (This slot previously carried Inter's 'cv05'/'ss01', which were that
+     face's own stylistic sets and are inert on any other family.) */
   min-height: 100vh;
   min-height: 100dvh;   /* dvh tracks the collapsing mobile URL bar; vh does not */
   overflow-x: hidden;
@@ -229,11 +261,7 @@ body {
   letter-spacing: -0.02em;
 }
 
-:root[data-theme="light"] body {
-  background:
-    radial-gradient(ellipse at 30% 8%, var(--green-glow) 0%, transparent 34%),
-    var(--dark);
-}
+:root[data-theme="light"] body { background: var(--dark); }
 
 :root[data-density="compact"] {
   --header-h: 52px;
@@ -256,12 +284,12 @@ body {
 :root[data-density="roomy"] td { padding-top: 13px; padding-bottom: 13px; }
 
 /* — Shared utility classes — */
-/* .barlow is now the display serif. Kept the class name so existing markup/JS
-   that adds it still resolves to the display family. */
+/* .barlow is a legacy class name from an earlier typeface. Kept so existing
+   markup/JS that adds it still resolves to the current display family. */
 .barlow   { font-family: var(--font-display); font-weight: 600; letter-spacing: normal; }
 .display  { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.01em; }
 .mono     { font-family: var(--font-mono); }
-/* Small tracked labels / eyebrows — Inter, never the display serif. */
+/* Small tracked labels / eyebrows — always the body family. */
 .label    { font-family: var(--font-body); text-transform: uppercase; letter-spacing: .1em;
             font-size: 10px; font-weight: 600; color: var(--muted); }
 .uppercase{ text-transform: uppercase; }
@@ -271,24 +299,31 @@ body {
 /* — Shared button styles — */
 .btn {
   display: inline-flex; align-items: center; gap: 7px;
-  padding: 8px 15px; border-radius: var(--radius-sm);
+  padding: 9px 16px; border-radius: var(--radius-pill);
   border: 1px solid var(--border-dim);
-  background: transparent; color: var(--white);
+  background: var(--panel); color: var(--white);
   font-family: var(--font-body); font-size: 13px; font-weight: 500;
   cursor: pointer;
   transition: background-color var(--dur-1) var(--ease), border-color var(--dur-1) var(--ease),
-              color var(--dur-1) var(--ease), transform var(--dur-1) var(--ease);
+              color var(--dur-1) var(--ease), transform var(--dur-1) var(--ease),
+              box-shadow var(--dur-1) var(--ease);
   text-decoration: none;
 }
 .btn:hover { background: var(--card-hover); border-color: var(--border); color: var(--white); }
 .btn:active { transform: translateY(1px); }
 .btn:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+/* Primary is ink, not green: green stays reserved for data and status so
+   a figure turning green still means something. */
 .btn-primary {
-  background: var(--green); border-color: var(--green); color: var(--on-green); font-weight: 600;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.14) inset, 0 4px 14px -6px var(--green-glow);
+  background: var(--ink); border-color: var(--ink); color: var(--on-ink); font-weight: 600;
+  box-shadow: var(--shadow-sm);
 }
-.btn-primary:hover { background: var(--green-bright); border-color: var(--green-bright); color: var(--on-green); }
-.btn-ghost { border-color: transparent; color: var(--muted); }
+.btn-primary:hover {
+  background: var(--ink); border-color: var(--ink); color: var(--on-ink);
+  box-shadow: var(--shadow-md); transform: translateY(-1px);
+}
+.btn-primary:active { transform: translateY(0); box-shadow: var(--shadow-sm); }
+.btn-ghost { border-color: transparent; background: transparent; color: var(--muted); }
 .btn-ghost:hover { color: var(--white); border-color: var(--border-dim); background: var(--card-hover); }
 
 /* — Shared card style — */
@@ -296,11 +331,11 @@ body {
   background: var(--card);
   border: 1px solid var(--border-dim);
   border-radius: var(--radius);
-  padding: 22px;
+  padding: 24px;
   box-shadow: var(--shadow-sm);
   transition: border-color var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease);
 }
-.card:hover { border-color: var(--hair); box-shadow: var(--shadow-md); }
+.card:hover { border-color: var(--border); box-shadow: var(--shadow-md); }
 
 /* Section card containers that don't use the .card class still need to read
    as separated surfaces — critical in light theme where white-on-near-white
@@ -419,7 +454,7 @@ body {
 .sidebar {
   width: var(--sidebar-w); flex-shrink: 0;
   background: var(--black);
-  border-right: 1px solid var(--border);
+  border-right: 1px solid var(--hair);
   display: flex; flex-direction: column;
   position: sticky; top: 0; height: 100vh;
   height: 100dvh;
@@ -428,9 +463,9 @@ body {
 }
 
 .sb-brand {
-  padding: 16px 18px;
+  padding: 18px 18px;
   display: flex; align-items: center; gap: 11px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--hair);
 }
 .sb-logo {
   width: 38px; height: 38px;
@@ -452,9 +487,10 @@ body {
 
 .sb-nav { flex: 1; padding: 14px 10px; overflow-y: auto; }
 .sb-nav-label {
-  font-size: 9px; color: var(--muted);
-  letter-spacing: .12em; text-transform: uppercase;
-  padding: 6px 12px; margin-top: 6px;
+  font-size: 9.5px; color: var(--faint);
+  font-weight: 700;
+  letter-spacing: .15em; text-transform: uppercase;
+  padding: 6px 12px; margin-top: 12px; margin-bottom: 2px;
 }
 
 .sb-link {
@@ -462,6 +498,7 @@ body {
   width: 100%;
   padding: 9px 12px; margin-bottom: 2px;
   border-radius: var(--radius-sm);
+  letter-spacing: -0.005em;
   border: 0;
   background: transparent;
   color: var(--muted); cursor: pointer;
@@ -486,7 +523,7 @@ body {
 
 .sb-foot {
   padding: 12px 12px 16px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--hair);
 }
 .user-chip {
   display: flex; align-items: center; gap: 10px;
@@ -513,6 +550,7 @@ body {
 
 #signOutBtn {
   width: 100%; padding: 7px 10px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
   font-size: 11px; color: var(--muted);
   background: transparent;
   border: 1px solid var(--border-dim);
@@ -550,8 +588,9 @@ body {
 }
 .top-bar h2 {
   font-family: var(--font-body);
-  font-weight: 800; font-size: 18px;
-  letter-spacing: .07em; text-transform: uppercase;
+  font-weight: 600; font-size: 12px;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted);
   flex: 1;
 }
 .top-bar h2 span { color: var(--green); }
@@ -652,6 +691,7 @@ body {
 #toastStack {
   position: fixed;
   bottom: 22px; right: 22px;
+  align-items: flex-end;
   display: flex; flex-direction: column; gap: 8px;
   z-index: 2000;
   pointer-events: none;
@@ -1224,7 +1264,10 @@ body {
 #section-profitability .prf-ct-m365 { background: var(--blue-dim);   color: var(--blue); }
 #section-profitability .prf-ct-hosting { background: var(--teal-dim);   color: var(--teal); }
 #section-profitability .prf-ct-retainer { background: var(--purple-dim); color: var(--purple); }
-#section-profitability .prf-ct-other { background: rgba(255,204,51,0.1); color: #ffcc33; }
+/* Routed through the amber token rather than a hardcoded #ffcc33, which
+   sat outside the palette and so never picked up the light-theme
+   darkening — it was rendering at 1.4:1 on its own tint. */
+#section-profitability .prf-ct-other { background: var(--amber-dim); color: var(--amber); }
 
 /* — Client card — */
 #section-profitability .prf-cc {
@@ -4049,8 +4092,8 @@ body {
 
 :root[data-theme="light"] #section-leave .section-head .lev-month-sel,
 :root[data-theme="light"] #section-leave .section-head .lev-refresh {
-  background: rgba(7,12,10,0.58);
-  border-color: rgba(255,255,255,0.22);
+  background: var(--panel);
+  border-color: var(--border-dim);
 }
 :root[data-theme="light"] #section-leave .section-head .lev-month-btn {
   background: transparent;
@@ -4059,12 +4102,12 @@ body {
 :root[data-theme="light"] #section-leave .section-head .lev-month-label,
 :root[data-theme="light"] #section-leave .section-head .lev-month-btn,
 :root[data-theme="light"] #section-leave .section-head .lev-refresh {
-  color: rgba(246,252,247,0.94);
+  color: var(--muted);
 }
 :root[data-theme="light"] #section-leave .section-head .lev-month-btn:hover,
 :root[data-theme="light"] #section-leave .section-head .lev-refresh:hover:not(:disabled) {
-  color: #ffffff;
-  border-color: rgba(255,255,255,0.42);
+  color: var(--white);
+  border-color: var(--border);
 }
 
 /* ╔═══════════════════════════════════════════════════════════════════╗
@@ -4117,19 +4160,16 @@ body::before {
 #section-profitability .prf-gtot,
 #section-profitability .prf-empty,
 #section-mileage .mil-kpi,
-#section-mileage .mil-panel,
 #section-mileage .mil-quick-card,
 #section-mileage .mil-claim-bar,
 #section-clients .cli-tbl-wrap,
 #section-clients .cli-card,
 #section-timesheets .tsh-kpi,
-#section-timesheets .tsh-panel,
 #section-timesheets .tsh-ssa-card,
 #section-leave .lev-person,
 #section-leave .lev-card,
 #section-settings .set-card,
   #section-compliance .cmp-kpi,
-  #section-compliance .cmp-panel,
   #section-compliance .cmp-item,
   #section-compliance .cmp-form,
   #section-compliance .cmp-empty,
@@ -4138,7 +4178,7 @@ body::before {
     linear-gradient(180deg, rgba(255,255,255,0.028), rgba(255,255,255,0.006)),
     var(--card);
   border-color: var(--border-dim);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.035) inset, 0 18px 44px rgba(0,0,0,0.20);
+  box-shadow: var(--shadow-sm);
 }
 
 .card:hover,
@@ -4151,15 +4191,15 @@ body::before {
 #section-leave .lev-card:hover,
 #section-compliance .cmp-item:hover {
   border-color: var(--border);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 20px 48px rgba(0,0,0,0.25);
+  box-shadow: var(--shadow-md);
 }
 
 .sidebar,
 .top-bar {
-  background: rgba(5,7,6,0.88);
+  background: var(--black);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-color: rgba(82,176,46,0.18);
+  border-color: var(--hair);
 }
 
 .sb-brand {
@@ -4178,7 +4218,7 @@ body::before {
 
 .sb-nav-label {
   margin: 12px 0 5px;
-  color: rgba(147,163,152,0.74);
+  color: var(--faint);
 }
 
 .sb-link {
@@ -4222,7 +4262,7 @@ body::before {
 
 .top-bar .meta,
 .section-head p {
-  color: rgba(147,163,152,0.86);
+  color: var(--muted);
 }
 
 .section {
@@ -4397,9 +4437,10 @@ tbody td {
 }
 
 /* Stronger visible redesign layer */
-:root {
-  --sidebar-w: 268px;
-}
+/* (--sidebar-w was redeclared here, silently shadowing the value in the
+   token block at the top of the file. Removed so there is one source of
+   truth; the drawer width for narrow screens is still set in its own
+   media query below.) */
 
 body {
   background:
@@ -4456,7 +4497,7 @@ body::before {
 .sb-nav-label {
   margin: 16px 0 7px;
   padding: 0 11px;
-  color: rgba(147,163,152,0.72);
+  color: var(--faint);
 }
 
 .sb-link {
@@ -4496,7 +4537,7 @@ body::before {
 
 .sb-link.active .ic {
   background: var(--green);
-  color: var(--black);
+  color: var(--on-green);
   box-shadow: 0 8px 20px rgba(82,176,46,0.22);
 }
 
@@ -4596,9 +4637,9 @@ body::before {
 
 .section-head {
   position: relative;
-  margin-bottom: 22px;
-  padding: 22px 24px;
-  border-radius: 14px;
+  margin-bottom: 24px;
+  padding: 28px 30px;
+  border-radius: var(--radius-lg);
   border: 1px solid rgba(82,176,46,0.18);
   background:
     linear-gradient(135deg, rgba(82,176,46,0.13), rgba(74,158,221,0.055) 45%, rgba(255,255,255,0.02)),
@@ -5192,46 +5233,24 @@ body::before {
   --on-green:     #ffffff;
 }
 
-/* The hero band stays dark in both themes, so it carries its own colour
-   context. Redefining the tokens here (rather than chasing selectors) fixes
-   every descendant at once — the per-section refresh buttons and sync
-   labels are styled by ID selectors that outrank any theme-level rule, so
-   they were rendering #405247 on a near-black band at roughly 1.6:1. */
-:root[data-theme="light"] .section-head {
-  --white:        #f6fcf7;
-  --muted:        rgba(246,252,247,0.76);
-  --faint:        rgba(246,252,247,0.60);
-  --border-dim:   rgba(255,255,255,0.18);
-  --hair:         rgba(255,255,255,0.12);
-  --green:        #6fd048;
-  --green-bright: #8ade63;
-  --card:         rgba(7,12,10,0.42);
-  --card-hover:   rgba(7,12,10,0.62);
-  /* Status hues go back to their bright dark-theme values here: the
-     darkened light-theme variants above are tuned for white cards and
-     would disappear against this band. */
-  --amber:        #e09a2e;
-  --blue:         #4a9edd;
-  --red:          #e05252;
-  --purple:       #9b6dff;
-  --teal:         #2dd4bf;
-  /* Filled green buttons in the band sit on the bright green above, so
-     they need the dark ink, not light theme's white — white on #6fd048 is
-     1.9:1 and made "Import CSV/XLSX" and "Add Client" unreadable. */
-  --on-green:     #06110a;
-}
+/* The hero band is a light surface in light theme now (both reference
+   dashboards lead with a plain light header, not a dark slab), so it
+   simply inherits the page tokens. Nothing to redefine here. */
 
 :root[data-theme="light"] body {
+  /* Near-plain. A whisper of the brand hue at the top edge, nothing more —
+     the old three-layer gradient competed with the cards for attention. */
   background:
-    linear-gradient(180deg, rgba(82,176,46,0.08), transparent 280px),
-    radial-gradient(circle at 80% -10%, rgba(74,158,221,0.13), transparent 32%),
-    linear-gradient(135deg, #edf3ee 0%, #f7faf7 46%, #e6eee8 100%);
+    linear-gradient(180deg, rgba(82,176,46,0.045), transparent 320px),
+    var(--dark);
 }
 
 :root[data-theme="light"] .top-bar {
-  background: rgba(248,251,248,0.94);
-  border-bottom-color: rgba(23,32,27,0.12);
-  box-shadow: 0 10px 28px rgba(36,54,42,0.10);
+  background: rgba(255,255,255,0.86);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  border-bottom-color: var(--hair);
+  box-shadow: none;
 }
 
 :root[data-theme="light"] .top-bar h2,
@@ -5255,22 +5274,13 @@ body::before {
 
 :root[data-theme="light"] .section-head {
   background:
-    linear-gradient(135deg, rgba(82,176,46,0.22), rgba(74,158,221,0.10) 45%, rgba(255,255,255,0.035)),
-    rgba(28,39,35,0.94);
-  border-color: rgba(82,176,46,0.30);
+    linear-gradient(135deg, rgba(82,176,46,0.055), rgba(82,176,46,0) 42%),
+    var(--card);
+  border-color: var(--border-dim);
+  box-shadow: var(--shadow-sm);
 }
+:root[data-theme="light"] .section-head::after { opacity: .5; }
 
-:root[data-theme="light"] .section-head h1,
-:root[data-theme="light"] .section-head p,
-:root[data-theme="light"] .section-head .prf-last-sync,
-:root[data-theme="light"] .section-head .ovw-last-sync,
-:root[data-theme="light"] .section-head .mil-last-sync,
-:root[data-theme="light"] .section-head .cli-last-sync,
-:root[data-theme="light"] .section-head .tsh-last-sync,
-:root[data-theme="light"] .section-head .lev-last-sync,
-:root[data-theme="light"] .section-head .cmp-last-sync {
-  color: rgba(246,252,247,0.88);
-}
 
 :root[data-theme="light"] .section-head p,
 :root[data-theme="light"] .section-head .prf-last-sync,
@@ -5279,20 +5289,31 @@ body::before {
   font-weight: 600;
 }
 
-/* The hero banner stays dark in light theme, so its controls must stay
-   light-on-dark too — otherwise refresh/month buttons go dark-on-dark. */
+/* Band controls are ordinary light controls now. The per-section ID rules
+   further up set a dark translucent chip background for the old dark band,
+   so that gets neutralised here rather than edited in nine places. */
 :root[data-theme="light"] .section-head button:not(.btn-primary):not(.primary),
 :root[data-theme="light"] .section-head .btn:not(.btn-primary),
-:root[data-theme="light"] .section-head select {
-  background: rgba(7,12,10,0.42);
-  border-color: rgba(255,255,255,0.20);
-  color: rgba(246,252,247,0.90);
+:root[data-theme="light"] .section-head select,
+:root[data-theme="light"] #section-overview .ovw-refresh,
+:root[data-theme="light"] #section-profitability .prf-refresh,
+:root[data-theme="light"] #section-profitability .prf-manage-link,
+:root[data-theme="light"] #section-profitability .prf-export-btn,
+:root[data-theme="light"] #section-mileage .mil-refresh,
+:root[data-theme="light"] #section-clients .cli-refresh,
+:root[data-theme="light"] #section-timesheets .tsh-refresh,
+:root[data-theme="light"] #section-leave .lev-refresh,
+:root[data-theme="light"] #section-leave .lev-month-sel,
+:root[data-theme="light"] #section-compliance .cmp-refresh {
+  background: var(--panel);
+  border-color: var(--border-dim);
+  color: var(--muted);
 }
 :root[data-theme="light"] .section-head button:not(.btn-primary):not(.primary):hover,
 :root[data-theme="light"] .section-head .btn:not(.btn-primary):hover {
-  background: rgba(7,12,10,0.60);
-  border-color: rgba(82,176,46,0.55);
-  color: #fff;
+  background: var(--inset);
+  border-color: var(--border);
+  color: var(--white);
 }
 :root[data-theme="light"] .section-head svg { color: inherit; }
 
@@ -5302,14 +5323,14 @@ body::before {
    near-white text on a dark translucent chip over white. */
 :root[data-theme="light"] #section-profit-loss .section-head .pnl-btn:not(.primary),
 :root[data-theme="light"] #section-profit-loss .section-head .pnl-month-sel {
-  background: rgba(7,12,10,0.58);
-  border-color: rgba(255,255,255,0.18);
-  color: rgba(246,252,247,0.82);
+  background: var(--panel);
+  border-color: var(--border-dim);
+  color: var(--muted);
 }
 
 :root[data-theme="light"] #section-profit-loss .section-head .pnl-month-label,
 :root[data-theme="light"] #section-profit-loss .section-head .pnl-month-btn {
-  color: rgba(246,252,247,0.88);
+  color: var(--white);
 }
 
 :root[data-theme="light"] #section-profit-loss .pnl-import-text p,
@@ -5534,7 +5555,7 @@ body::before {
 
 /* The integrations card is reassurance, not a destination. It is the
    first thing to go when vertical space is contested. */
-@media (max-height: 880px) {
+@media (max-height: 980px) {
   .sb-system-card { display: none; }
 }
 
@@ -5542,7 +5563,7 @@ body::before {
    destinations, the identity block and sign out — still fits without
    scrolling. 860px covers the 13" laptop case (~760px of viewport after
    browser chrome), which is the machine this is used on most. */
-@media (max-height: 860px) {
+@media (max-height: 900px) {
   .sb-brand { padding: 11px 18px; }
   .sb-logo { width: 32px; height: 32px; }
   .sb-nav { padding: 8px 10px; }
@@ -5628,7 +5649,32 @@ body::before {
    Narrow tables (two or three columns, e.g. the P&L breakdowns) are
    deliberately left as tables — they already read fine. */
 
-@media (max-width: 720px) {
+/* The query scope. Applied by syncTableLabels() to the parent of every
+   table it marks data-rt, so a table added in future gets it for free.
+   inline-size containment only — the element still sizes its own height
+   from its contents. */
+.rt-scope {
+  container-type: inline-size;
+  container-name: rtable;
+}
+
+/* Keyed on the container, not the viewport. The constraint on a table is
+   how much room its own column has, and that is not the window width: at
+   a 900px viewport the sidebar takes 244px and the section padding takes
+   another 64, leaving ~590px for a table that needs ~680. The old
+   viewport breakpoint left exactly that band rendering a squeezed table
+   with dates broken across three lines. Collapsing the sidebar changes
+   the figure by another 168px, which a viewport query cannot see at all.
+
+   The scope is each table's own parent, marked .rt-scope by
+   syncTableLabels(). Containment is safe there: no modal or other fixed
+   positioned element lives inside a table's parent, which was checked
+   before this went in.
+
+   Browsers without container query support keep the previous behaviour —
+   the table stays a table and scrolls inside its wrapper. Degraded, not
+   broken. */
+@container rtable (max-width: 760px) {
 
   /* Why !important here: the per-section styles above are all ID-scoped
      (#section-mileage .mil-tbl tbody td.num and friends, up to 1 ID +
@@ -5716,18 +5762,23 @@ body::before {
     text-overflow: ellipsis;
   }
 
-  /* Row actions become a footer strip on the card. */
-  #portalShell table[data-rt] > tbody > tr > td:not([data-label]) {
+  /* Row actions become a footer strip on the card, whether the column had
+     a header or not. The label is dropped: the controls carry their own
+     accessible names and "ACTIONS" above a row of icons is noise. */
+  #portalShell table[data-rt] > tbody > tr > td:not([data-label]),
+  #portalShell table[data-rt] > tbody > tr > td[data-actions] {
+    grid-column: 1 / -1;
     display: flex !important;
     flex-wrap: wrap;
     justify-content: flex-end;
     align-items: center;
     gap: 8px;
     text-align: right !important;
-    padding-top: 9px !important;
+    padding-top: 10px !important;
     border-bottom: 0 !important;
   }
-  #portalShell table[data-rt] > tbody > tr > td:not([data-label])::before { content: none; }
+  #portalShell table[data-rt] > tbody > tr > td:not([data-label])::before,
+  #portalShell table[data-rt] > tbody > tr > td[data-actions]::before { content: none; }
 
   /* Last labelled pair in the card loses its rule so the card does not
      end on a stray divider. */
@@ -5811,7 +5862,12 @@ body::before {
   #section-mileage.claim-mode .mil-tbl > tbody > tr > td.mil-tbl-check::before {
     content: 'Claim';
   }
+}
 
+
+/* Phone ergonomics, which really are viewport concerns: how many
+   metrics fit on a screen someone is holding. */
+@media (max-width: 720px) {
 
   /* KPI clusters: one metric per screen turned the dashboard into a
      1,300px scroll before any content. Two-up restores glanceability;
@@ -5911,6 +5967,103 @@ body::before {
   #portalShell .card:hover { box-shadow: var(--shadow-sm); }
 }
 
+/* ─── 6 · Chrome: no duplicate title bar, collapsible rail ────────────
+   The top bar showed the section name in uppercase directly above the
+   section's own H1 — the same words twice, costing 62px of vertical
+   space on every screen.
+
+   It only goes on desktop. Below 881px the sidebar is a slide-over, so
+   that bar is the only route to navigation and the only thing telling
+   you where you are once the H1 has scrolled away. There it stays. */
+
+@media (min-width: 881px) {
+  .top-bar { display: none; }
+  #loadingBar { top: 0; }
+  .section { padding-top: 26px; }
+}
+
+/* The collapse toggle lives in the brand row and is desktop-only: the
+   drawer already collapses by closing. */
+.sb-collapse {
+  display: none;
+  margin-left: auto;
+  width: 30px; height: 30px;
+  flex-shrink: 0;
+  align-items: center; justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--faint);
+  cursor: pointer;
+  transition: color var(--dur-1) var(--ease), background-color var(--dur-1) var(--ease),
+              border-color var(--dur-1) var(--ease);
+}
+.sb-collapse:hover { color: var(--white); background: var(--card-hover); border-color: var(--border-dim); }
+
+@media (min-width: 881px) {
+  .sb-collapse { display: inline-flex; }
+
+  /* The rail snaps rather than animating its width. Width is a layout
+     property, so a 260ms transition reflows the entire main column on
+     every frame — and this app's main column can be 20,000px of table
+     cards. The instant change is unambiguous; the tactile feedback comes
+     from the toggle itself. */
+  .sb-collapse:active { transform: scale(0.92); }
+
+  :root[data-sidebar="collapsed"] { --sidebar-w: 76px; }
+
+  /* Labels are clipped rather than display:none so each control keeps
+     its accessible name when the rail is icon-only. */
+  :root[data-sidebar="collapsed"] .sb-brand-text,
+  :root[data-sidebar="collapsed"] .sb-nav-label,
+  :root[data-sidebar="collapsed"] .sb-link .lbl,
+  :root[data-sidebar="collapsed"] .sb-link .tag,
+  :root[data-sidebar="collapsed"] .user-info,
+  :root[data-sidebar="collapsed"] #signOutBtn .so-label {
+    position: absolute;
+    width: 1px; height: 1px;
+    margin: -1px; padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Brand stacks so the logo and the toggle both stay reachable in 76px. */
+  :root[data-sidebar="collapsed"] .sb-brand {
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px 8px;
+  }
+  :root[data-sidebar="collapsed"] .sb-collapse { margin-left: 0; }
+
+  :root[data-sidebar="collapsed"] .sb-nav { padding: 12px 8px; }
+  :root[data-sidebar="collapsed"] .sb-nav-label { margin: 0; }
+  :root[data-sidebar="collapsed"] .sb-link {
+    justify-content: center;
+    padding: 10px 0;
+    gap: 0;
+  }
+  :root[data-sidebar="collapsed"] .sb-link .ic { width: auto; }
+
+  /* A hairline between groups replaces the group captions the rail
+     cannot show. */
+  :root[data-sidebar="collapsed"] .sb-nav-label + .sb-link {
+    margin-top: 10px;
+    border-top: 1px solid var(--hair);
+    padding-top: 14px;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  }
+
+  :root[data-sidebar="collapsed"] .sb-foot { padding: 10px 8px calc(12px + var(--safe-b)); }
+  :root[data-sidebar="collapsed"] .user-chip {
+    justify-content: center;
+    padding: 6px;
+    gap: 0;
+  }
+  :root[data-sidebar="collapsed"] #signOutBtn { padding: 8px 0; gap: 0; }
+  :root[data-sidebar="collapsed"] .sb-system-card { display: none; }
+}
+
 /* Keep hover lifts for pointer hardware only. */
 @media (hover: none) {
   .sb-link:hover { background: transparent; color: var(--muted); }
@@ -5975,6 +6128,12 @@ body::before {
         <div class="sb-brand-name">GECKO <em>IT</em></div>
         <div class="sb-brand-sub">Internal Portal</div>
       </div>
+      <button class="sb-collapse" id="sbCollapse" type="button"
+              onclick="togglePortalSidebar()"
+              aria-controls="sidebar" aria-expanded="true"
+              title="Collapse sidebar" aria-label="Collapse sidebar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      </button>
     </div>
 
     <nav class="sb-nav" aria-label="Main navigation">
@@ -6032,7 +6191,10 @@ body::before {
           <div class="user-role" id="userRole">Gecko IT</div>
         </div>
       </div>
-      <button id="signOutBtn" type="button" onclick="signOut()">Sign out</button>
+      <button id="signOutBtn" type="button" onclick="signOut()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span class="so-label">Sign out</span>
+      </button>
     </div>
   </aside>
 
@@ -7214,9 +7376,12 @@ const SECTION_TITLES = {
 
 const SETTINGS_PREF_KEY = 'gecko.portal.preferences.v1';
 const SETTINGS_PREF_DEFAULTS = {
-  theme: 'dark',
+  // Light is the portal's default surface. Dark remains fully supported
+  // and is one tap away in Settings.
+  theme: 'light',
   density: 'comfortable',
-  accent: 'green'
+  accent: 'green',
+  sidebar: 'expanded'   // 'expanded' | 'collapsed' — desktop rail only
 };
 let SETTINGS_PREFS = { ...SETTINGS_PREF_DEFAULTS };
 
@@ -7248,6 +7413,36 @@ function applyPortalPreferences() {
   root.dataset.themeChoice = SETTINGS_PREFS.theme;
   root.dataset.density = SETTINGS_PREFS.density;
   root.dataset.accent = SETTINGS_PREFS.accent;
+  root.dataset.sidebar = SETTINGS_PREFS.sidebar;
+  syncSidebarCollapseState();
+}
+
+/**
+ * Keep the collapse control and the rail's tooltips honest.
+ * When the rail is icon-only the visible label is gone, so each nav item
+ * needs a title to stay identifiable on hover. The label text itself stays
+ * in the accessibility tree (clipped, not display:none), so screen readers
+ * are unaffected either way.
+ */
+function syncSidebarCollapseState() {
+  const collapsed = SETTINGS_PREFS.sidebar === 'collapsed';
+  const btn = document.getElementById('sbCollapse');
+  if (btn) {
+    btn.setAttribute('aria-expanded', String(!collapsed));
+    const label = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+    btn.setAttribute('aria-label', label);
+    btn.title = label;
+  }
+  document.querySelectorAll('.sb-link').forEach(link => {
+    const text = link.querySelector('.lbl')?.textContent.trim();
+    if (!text) return;
+    if (collapsed) link.title = text;
+    else link.removeAttribute('title');
+  });
+}
+
+function togglePortalSidebar() {
+  setPreference('sidebar', SETTINGS_PREFS.sidebar === 'collapsed' ? 'expanded' : 'collapsed');
 }
 
 function setPreference(key, value) {
@@ -7545,11 +7740,12 @@ function navTo(sectionKey) {
 
   // Rails and tables measure to zero while their section is display:none,
   // so they have to be re-read once the section is actually on screen.
+  // setTimeout, not rAF, so this still runs in a background tab.
   if (typeof initScrollRails === 'function') {
-    requestAnimationFrame(() => {
+    window.setTimeout(() => {
       initScrollRails();
       syncTableLabels(document.getElementById('section-' + sectionKey) || document);
-    });
+    }, 0);
   }
 
   // — Close mobile sidebar after selection —
@@ -7602,7 +7798,12 @@ function isMobileSidebar() {
 }
 
 function getSidebarFocusables() {
-  return [...document.querySelectorAll('#sidebar button:not([disabled])')];
+  // Visible only. The collapse control is first in DOM order and is
+  // display:none on mobile, so an unfiltered list would make the drawer's
+  // focus trap wrap onto an element that cannot take focus, letting focus
+  // escape the drawer on Shift+Tab.
+  return [...document.querySelectorAll('#sidebar button:not([disabled])')]
+    .filter(el => el.offsetParent !== null || el.getClientRects().length > 0);
 }
 
 function syncSidebarAccessibility() {
@@ -7758,9 +7959,16 @@ function syncTableLabels(root = document) {
     const headers = [...table.querySelectorAll(':scope > thead > tr > th')];
     if (headers.length < RT_MIN_COLUMNS) {
       table.removeAttribute('data-rt');
+      table.parentElement?.classList.remove('rt-scope');
       return;
     }
     table.setAttribute('data-rt', '');
+
+    // The table's parent becomes the query container, so card mode is
+    // decided by the room the table actually has rather than by the
+    // window width. Marked here rather than in CSS because the wrapper
+    // element differs per section and some tables have none of their own.
+    table.parentElement?.classList.add('rt-scope');
 
     // Header text, minus any interactive furniture (the mileage
     // select-all checkbox lives in a <th>).
@@ -7803,6 +8011,20 @@ function syncTableLabels(root = document) {
 
         if (label && wideColumns[index]) cell.setAttribute('data-wide', '');
         else cell.removeAttribute('data-wide');
+
+        // A cell that is a cluster of controls rather than a value needs
+        // the full card width and a row layout, otherwise three 44px icon
+        // buttons wrap onto two lines inside a half-width column. Detected
+        // by shape, so it works whether or not the column has a header.
+        const ownText = [...cell.childNodes]
+          .filter(node => node.nodeType === 3)
+          .map(node => node.textContent).join('').trim();
+        const controls = cell.querySelectorAll('button, a[href]').length;
+        if (cell.classList.contains('actions') || (controls >= 2 && !ownText)) {
+          cell.setAttribute('data-actions', '');
+        } else {
+          cell.removeAttribute('data-actions');
+        }
       });
     });
   });
@@ -7815,19 +8037,23 @@ function watchTablesForRerender() {
   const shell = document.getElementById('portalShell');
   if (!shell || typeof MutationObserver !== 'function') return;
 
-  let queued = false;
-  const observer = new MutationObserver(records => {
-    const touchedRows = records.some(record =>
-      [...record.addedNodes].some(node =>
-        node.nodeType === 1 && (node.matches?.('tr, tbody, table') || node.querySelector?.('tr'))
-      )
-    );
-    if (!touchedRows || queued) return;
-    queued = true;
-    requestAnimationFrame(() => {
-      queued = false;
+  // Debounced with setTimeout rather than requestAnimationFrame on purpose.
+  // rAF does not fire in a hidden tab, so an rAF-gated "already queued"
+  // flag latches to true the moment a section renders while the tab is in
+  // the background — and never clears, silently disabling the observer for
+  // the rest of the session. setTimeout is throttled in background tabs but
+  // it does still run, so the flag always clears.
+  let pending = null;
+  const restamp = () => {
+    if (pending !== null) return;
+    pending = setTimeout(() => {
+      pending = null;
       syncTableLabels();
-    });
+    }, 60);
+  };
+
+  const observer = new MutationObserver(records => {
+    if (records.some(record => record.addedNodes.length > 0)) restamp();
   });
 
   observer.observe(shell, { childList: true, subtree: true });
