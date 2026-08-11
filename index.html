@@ -10,6 +10,21 @@
 <meta name="theme-color" content="#f7faf7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#040605" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="dark light">
+
+<!-- ═════════════════════════════════════════════════════════════════
+     INSTALLABILITY (Add to Home Screen)
+     — status-bar-style is black-translucent on purpose: it pairs with
+       viewport-fit=cover above so the shell paints under the status bar
+       instead of letterboxing. The safe-area insets keep content clear.
+     — Sign-in switches from popup to redirect when running standalone;
+       see isStandaloneDisplay(). Do not add the manifest without that.
+     ═════════════════════════════════════════════════════════════════ -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gecko Portal">
+
 <title>Gecko IT Services — Internal Portal</title>
 
 <!-- ═══════════════════════════════════════════════════════════════════
@@ -7292,7 +7307,24 @@ let activeAccount = null;
 const AUTH_REAUTH_KEY = 'gecko.auth.reauthRequired.v1';
 let authExpiredToastShown = false;
 
+/**
+ * True when the portal is running as an installed app rather than a browser tab.
+ *
+ * This decides the whole sign-in flow, so it has to be right on iOS:
+ * navigator.standalone is the only signal iOS gives an installed home-screen
+ * app, and display-mode covers installed apps everywhere else.
+ *
+ * Why it matters: an installed iOS webview hands window.open() to Safari, which
+ * breaks the opener relationship loginPopup() depends on — the popup handshake
+ * then hangs or fails silently. Redirect is used instead when this is true.
+ */
+function isStandaloneDisplay() {
+  return window.navigator.standalone === true ||
+         window.matchMedia('(display-mode: standalone)').matches;
+}
+
 function buildMsalConfig() {
+  const standalone = isStandaloneDisplay();
   return {
     auth: {
       clientId:    CONFIG.CLIENT_ID,
@@ -7301,7 +7333,11 @@ function buildMsalConfig() {
     },
     cache: {
       cacheLocation:          'localStorage',
-      storeAuthStateInCookie: false
+      // An installed iOS webview gets its own storage jar, separate from
+      // Safari's. If the redirect leg comes back through Safari, the auth
+      // state written before the redirect is not in the jar that reads it.
+      // The cookie fallback gives that state a second chance to survive.
+      storeAuthStateInCookie: standalone
     }
   };
 }
@@ -7314,6 +7350,39 @@ async function signIn() {
   btn.setAttribute('aria-busy', 'true');
   if (label) label.textContent = 'Opening Microsoft sign-in…';
   showLoading(true);
+
+  const restoreButton = () => {
+    btn.disabled = false;
+    btn.removeAttribute('aria-busy');
+    if (label) label.textContent = defaultLabel;
+    showLoading(false);
+  };
+
+  // — Installed app: redirect —
+  // Handled outside the try/finally below on purpose. loginRedirect()
+  // navigates away and does not resolve, and a finally block still runs on
+  // an early return, so sharing the cleanup would flash the button back to
+  // idle while the navigation is in flight. The result is collected by
+  // handleRedirectPromise() in init() when Microsoft sends us back.
+  if (isStandaloneDisplay()) {
+    if (label) label.textContent = 'Redirecting to Microsoft…';
+    try {
+      localStorage.removeItem(AUTH_REAUTH_KEY);
+      authExpiredToastShown = false;
+      await msalInstance.loginRedirect({
+        scopes: CONFIG.SCOPES,
+        prompt: 'select_account'
+      });
+    } catch (err) {
+      // Only reached if the redirect never started; otherwise we are gone.
+      console.error('Sign-in redirect failed:', err);
+      toast('Sign-in failed: ' + (err.message || 'unknown error'), 'error');
+      restoreButton();
+    }
+    return;
+  }
+
+  // — Browser tab: popup —
   try {
     localStorage.removeItem(AUTH_REAUTH_KEY);
     authExpiredToastShown = false;
@@ -7330,25 +7399,38 @@ async function signIn() {
     console.error('Sign-in failed:', err);
     toast('Sign-in failed: ' + (err.message || 'unknown error'), 'error');
   } finally {
-    btn.disabled = false;
-    btn.removeAttribute('aria-busy');
-    if (label) label.textContent = defaultLabel;
-    showLoading(false);
+    restoreButton();
   }
 }
 
 async function signOut() {
-  try {
-    await msalInstance.logoutPopup({
-      account:        activeAccount,
-      postLogoutRedirectUri: CONFIG.REDIRECT_URI
-    });
-  } catch (err) {
-    console.error('Sign-out failed:', err);
-    // Fall back to a manual cache clear so the user isn't stuck.
-    activeAccount = null;
-    msalInstance.setActiveAccount(null);
+  // Same popup problem as sign-in: an installed iOS webview cannot hold a
+  // popup handshake, so sign-out has to redirect there too. Without this the
+  // installed app signs in but can never sign out.
+  if (isStandaloneDisplay()) {
+    try {
+      await msalInstance.logoutRedirect({
+        account:               activeAccount,
+        postLogoutRedirectUri: CONFIG.REDIRECT_URI
+      });
+      return;
+    } catch (err) {
+      console.error('Sign-out redirect failed:', err);
+      // Fall through to the manual clear below so the user isn't stuck.
+    }
+  } else {
+    try {
+      await msalInstance.logoutPopup({
+        account:        activeAccount,
+        postLogoutRedirectUri: CONFIG.REDIRECT_URI
+      });
+    } catch (err) {
+      console.error('Sign-out failed:', err);
+      // Fall back to a manual cache clear so the user isn't stuck.
+    }
   }
+  activeAccount = null;
+  if (msalInstance) msalInstance.setActiveAccount(null);
   showLogin();
 }
 
@@ -16116,9 +16198,33 @@ async function init() {
     msalInstance = new msal.PublicClientApplication(buildMsalConfig());
     await msalInstance.initialize();
 
+    // — Collect a redirect sign-in, if we are returning from one —
+    // Must run before the account check below. Returns null on a normal
+    // load, so the browser-tab popup path is unaffected.
+    let redirectResult = null;
+    try {
+      redirectResult = await msalInstance.handleRedirectPromise();
+    } catch (err) {
+      // Distinct from the generic start-up failure below, because this
+      // error text is the main diagnostic for whether redirect sign-in
+      // survives an installed iOS webview. A state mismatch here means the
+      // return leg landed in a different storage jar than it left from.
+      console.error('Redirect sign-in failed:', err);
+      toast('Sign-in did not complete: ' + (err.message || 'unknown error') +
+            ' — please try again.', 'error', 8000);
+    }
+
     // — Detect existing session —
     const accounts = msalInstance.getAllAccounts();
-    if (localStorage.getItem(AUTH_REAUTH_KEY) === '1') {
+    if (redirectResult && redirectResult.account) {
+      // Just came back from a redirect sign-in: this wins over the
+      // re-auth flag, which the completed sign-in has now cleared.
+      localStorage.removeItem(AUTH_REAUTH_KEY);
+      authExpiredToastShown = false;
+      activeAccount = redirectResult.account;
+      msalInstance.setActiveAccount(activeAccount);
+      onSignedIn();
+    } else if (localStorage.getItem(AUTH_REAUTH_KEY) === '1') {
       showLogin();
     } else if (accounts.length > 0) {
       activeAccount = accounts[0];

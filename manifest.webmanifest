@@ -1,0 +1,24 @@
+{
+  "name": "Gecko IT Services — Internal Portal",
+  "short_name": "Gecko Portal",
+  "description": "Internal operations portal for Gecko IT Services.",
+  "start_url": "https://jackamo-8bit.github.io/gecko-intranet/",
+  "scope": "https://jackamo-8bit.github.io/gecko-intranet/",
+  "display": "standalone",
+  "theme_color": "#040605",
+  "background_color": "#040605",
+  "icons": [
+    {
+      "src": "gecko-favicon.png",
+      "sizes": "64x64",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
