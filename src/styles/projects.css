@@ -36,3 +36,127 @@
 
 .prj-error button:hover,
 .prj-empty button:hover { opacity: 0.85; }
+
+/* — Section head controls. ID-scoped to match the existing sections and to
+     outrank the inline stylesheet, which is loaded after this file. — */
+#section-projects .prj-head-actions {
+  display: flex; align-items: center; gap: 10px; margin-top: 6px; flex-wrap: wrap;
+}
+#section-projects .prj-refresh {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: var(--radius-pill);
+  background: transparent; border: 1px solid var(--border-dim);
+  color: var(--muted); font-family: var(--font-body);
+  font-size: 12px; cursor: pointer; transition: all .15s;
+}
+#section-projects .prj-refresh:hover:not(:disabled) { color: var(--green); border-color: var(--green); }
+#section-projects .prj-refresh:disabled { opacity: .5; cursor: not-allowed; }
+#section-projects .prj-last-sync { font-size: 11px; color: var(--muted); margin-left: auto; }
+
+/* — Board grid: four columns above 720px, one grouped list below.
+     A container query, not a media query: what constrains the board is
+     its own column, which the sidebar collapse state changes. — */
+.prj-board {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 1fr;
+}
+
+@container prjboard (min-width: 720px) {
+  .prj-board { grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: start; }
+}
+
+.prj-col {
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius);
+  background: var(--card);
+  overflow: hidden;
+}
+
+.prj-col-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--hair);
+  position: sticky;
+  top: 0;
+  background: var(--card);
+  z-index: 1;
+}
+
+.prj-col.is-collapsed .prj-col-head { border-bottom: 0; }
+.prj-col-head h3 { margin: 0; font-size: 0.82rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+
+.prj-count {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.prj-col-toggle {
+  border: 0; background: none; padding: 2px 4px;
+  color: var(--muted); font: inherit; font-size: 0.78rem;
+  cursor: pointer; text-decoration: underline;
+}
+
+.prj-col-body { display: flex; flex-direction: column; gap: 1px; background: var(--hair); }
+.prj-col-empty { margin: 0; padding: 16px 14px; background: var(--card); color: var(--faint); font-size: 0.85rem; }
+
+/* — Card — */
+.prj-card { background: var(--card); padding: 12px 14px 10px; }
+.prj-card.is-stale { box-shadow: inset 3px 0 0 var(--amber); }
+
+.prj-card-open {
+  display: block; width: 100%; text-align: left;
+  border: 0; background: none; padding: 0; margin: 0;
+  font: inherit; color: inherit; cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: opacity var(--dur-2) var(--ease);
+}
+.prj-card-open:hover { opacity: 0.78; }
+.prj-card-open h4 { margin: 0 0 4px; font-size: 0.94rem; font-weight: 600; color: var(--white); }
+.prj-next { margin: 0 0 8px; font-size: 0.84rem; color: var(--muted); line-height: 1.4; }
+
+.prj-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+
+.prj-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.prj-chip-wait  { background: var(--blue-dim);  color: var(--blue); }
+.prj-chip-stale { background: var(--amber-dim); color: var(--amber); font-family: var(--font-mono); }
+
+.prj-meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.76rem; color: var(--faint); }
+.prj-atera { color: var(--green); text-decoration: none; font-family: var(--font-mono); }
+.prj-atera:hover { text-decoration: underline; }
+
+/* — Status select — */
+.prj-status-wrap { display: block; margin-top: 10px; }
+.prj-status {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-sm);
+  background: var(--inset);
+  color: var(--white);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.prj-status:disabled { opacity: 0.5; cursor: progress; }
+
+/* General utility — the portal has no shared one yet. Move it to a shared
+   stylesheet the first time a second section needs it, rather than copying. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}

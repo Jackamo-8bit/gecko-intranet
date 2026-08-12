@@ -26,7 +26,8 @@ const PRJ = {
   clients:  [],     // client names, for the modal dropdown (Task 6)
   projects: [],     // Project[]
   loading:  false,
-  error:    null    // null | 'LIST_MISSING' | string
+  error:    null,   // null | 'LIST_MISSING' | string
+  doneOpen: false,  // the Done column starts collapsed
 };
 
 // ─── Pure helpers (unit-tested in tests/projects-board.mjs) ───────────
@@ -189,6 +190,76 @@ const SETUP_MESSAGE = `
     Column names must not contain spaces.
   </div>`;
 
+const ATERA_TICKET_URL = 'https://app.atera.com/new/tickets/';
+
+/** One project card. Every interpolated value is escaped. */
+function renderCard(project) {
+  const stale   = isStale(project);
+  const waiting = project.waitingOn.trim();
+
+  const badges = [
+    waiting
+      ? `<span class="prj-chip prj-chip-wait" title="Waiting on: ${escapeHtml(waiting)}">Waiting · ${escapeHtml(waiting)}</span>`
+      : '',
+    stale
+      ? `<span class="prj-chip prj-chip-stale">No movement ${weeksSince(project.modified)}w</span>`
+      : ''
+  ].join('');
+
+  const meta = [
+    project.client ? `<span>${escapeHtml(project.client)}</span>` : '',
+    project.owner  ? `<span>${escapeHtml(project.owner)}</span>`  : '',
+    project.ateraRef
+      ? `<a class="prj-atera" href="${ATERA_TICKET_URL}${encodeURIComponent(project.ateraRef)}"
+            target="_blank" rel="noopener noreferrer">#${escapeHtml(project.ateraRef)}</a>`
+      : ''
+  ].join('');
+
+  const options = STATUSES.map(s =>
+    `<option value="${escapeHtml(s)}"${s === project.status ? ' selected' : ''}>${escapeHtml(s)}</option>`
+  ).join('');
+
+  // The meta row sits OUTSIDE the card-open button on purpose: the Atera
+  // link is interactive content, and an <a> nested inside a <button> is
+  // invalid HTML that browsers handle inconsistently. Keeping it outside
+  // also means the link needs no stopPropagation to avoid opening the modal.
+  return `
+    <article class="prj-card${stale ? ' is-stale' : ''}" data-prj-id="${escapeHtml(project.id)}">
+      <button class="prj-card-open" type="button" data-prj-open="${escapeHtml(project.id)}">
+        <h4>${escapeHtml(project.title)}</h4>
+        ${project.nextAction ? `<p class="prj-next">${escapeHtml(project.nextAction)}</p>` : ''}
+        ${badges ? `<div class="prj-chips">${badges}</div>` : ''}
+      </button>
+      ${meta ? `<div class="prj-meta">${meta}</div>` : ''}
+      <label class="prj-status-wrap">
+        <span class="sr-only">Status for ${escapeHtml(project.title)}</span>
+        <select class="prj-status" data-prj-id="${escapeHtml(project.id)}">${options}</select>
+      </label>
+    </article>`;
+}
+
+/** One column. Done is collapsed by default so it cannot grow without limit. */
+function renderColumn(status, projects) {
+  const isDone    = status === 'Done';
+  const collapsed = isDone && !PRJ.doneOpen;
+  const body = collapsed
+    ? ''
+    : (projects.length
+        ? projects.map(renderCard).join('')
+        : '<p class="prj-col-empty">Nothing here.</p>');
+
+  return `
+    <section class="prj-col${collapsed ? ' is-collapsed' : ''}" data-status="${escapeHtml(status)}">
+      <header class="prj-col-head">
+        <h3>${escapeHtml(status)}</h3>
+        <span class="prj-count">${projects.length}</span>
+        ${isDone ? `<button class="prj-col-toggle" type="button" data-prj-toggle-done
+                       aria-expanded="${String(!collapsed)}">${collapsed ? 'Show' : 'Hide'}</button>` : ''}
+      </header>
+      <div class="prj-col-body">${body}</div>
+    </section>`;
+}
+
 function render() {
   const mount = document.getElementById('prjBoard');
   if (!mount) return;
@@ -213,8 +284,25 @@ function render() {
     return;
   }
 
-  // Task 4 replaces this with the board itself.
-  mount.innerHTML = `<p class="prj-empty">${PRJ.projects.length} project(s) loaded.</p>`;
+  if (!PRJ.projects.length) {
+    mount.innerHTML = `
+      <div class="prj-empty">
+        <strong>No projects yet.</strong>
+        <button type="button" data-prj-open="new">Add the first one</button>
+      </div>`;
+    return;
+  }
+
+  const grouped = groupByStatus(PRJ.projects);
+  mount.innerHTML = `
+    <div class="prj-board">
+      ${STATUSES.map(s => renderColumn(s, grouped[s])).join('')}
+    </div>`;
+
+  mount.querySelector('[data-prj-toggle-done]')?.addEventListener('click', () => {
+    PRJ.doneOpen = !PRJ.doneOpen;
+    render();
+  });
 }
 
 // ─── Section lifecycle ────────────────────────────────────────────────
