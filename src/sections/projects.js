@@ -157,6 +157,19 @@ async function fetchClientNames() {
   }
 }
 
+/**
+ * PATCH one item's fields.
+ * ponytail: last-write-wins. Add If-Match/ETag if a third person ever uses this.
+ */
+async function patchFields(id, fields) {
+  const siteId = await resolveSiteId();
+  const listId = await resolveListId();
+  await graphFetch(`/sites/${siteId}/lists/${listId}/items/${id}/fields`, {
+    method: 'PATCH',
+    body:   JSON.stringify(fields)
+  });
+}
+
 /** Load everything and render. Sets PRJ.error rather than throwing. */
 async function load() {
   if (PRJ.loading) return;
@@ -302,6 +315,32 @@ function render() {
   mount.querySelector('[data-prj-toggle-done]')?.addEventListener('click', () => {
     PRJ.doneOpen = !PRJ.doneOpen;
     render();
+  });
+
+  mount.querySelectorAll('.prj-status').forEach(select => {
+    select.addEventListener('change', async (event) => {
+      const el      = event.currentTarget;
+      const id      = el.dataset.prjId;
+      const status  = el.value;
+      const project = PRJ.projects.find(p => p.id === id);
+      if (!project) return;
+      const previous = project.status;
+
+      el.disabled = true;
+      try {
+        await patchFields(id, { Status: status });
+        // Modified moves too, so the staleness badge stays honest.
+        project.status   = status;
+        project.modified = new Date().toISOString();
+        toast(`Moved to ${status}`, 'success');
+        render();
+      } catch (err) {
+        // No optimistic update, so the card simply stays where it was.
+        el.value    = previous;
+        el.disabled = false;
+        toast(err.message || 'Could not change status', 'error');
+      }
+    });
   });
 }
 
