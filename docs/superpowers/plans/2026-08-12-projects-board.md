@@ -15,6 +15,7 @@
 - **No bundler, no npm, no `node_modules`, no CI, no framework, no dependencies.** Deploy stays `git push` to `main`.
 - **No top-level `window` access in `src/sections/projects.js`.** The test suite imports it under Node, where `window` is undefined. Anything touching `window` must be inside a function body. Registration into `window.GeckoSections` happens in `src/main.js`, never in the section module.
 - **Reuse, never re-implement:** `graphFetch`, `resolveSiteId`, `fetchAllLists`, `toast`, `escapeHtml` already exist as globals in `index.html`. Import them via `src/core/*.js`. Do not copy their bodies.
+- **Only function declarations are reachable from `src/`.** `index.html`'s code lives in a *classic* `<script>`, where top-level `function` declarations attach to `window` but top-level `const`/`let` do not. So `window.graphFetch` works and `window.CONFIG` is `undefined`. A `src/core/*.js` wrapper may only wrap a function declaration; to reach a `const` (like `CONFIG`), add a function declaration in `index.html` that closes over it and wrap that. This cost a Critical review finding in Task 3 — expect it again when the other nine sections are extracted.
 - **Every rendered field passes through `escapeHtml`.** No exceptions.
 - **Colours come from existing tokens only** (`--card`, `--hair`, `--muted`, `--faint`, `--ink`, `--on-ink`, `--green`, `--amber`, `--amber-dim`, `--radius`, `--radius-sm`, `--radius-pill`, `--ease`, `--dur-2`, `--font-mono`, `--shadow-sm`). Never a hardcoded hex — a hardcoded `#ffcc33` in the profitability section sat outside the palette and rendered at 1.4:1 for months.
 - **Status values, verbatim:** `Quoted`, `Agreed`, `In progress`, `Done`. Case and spacing exactly as written — they are SharePoint Choice values.
@@ -576,8 +577,18 @@ function mapItem(item) {
 /** Resolve the GeckoProjects list id, caching it on PRJ. */
 async function resolveListId() {
   if (PRJ.listId) return PRJ.listId;
-  const lists = await fetchAllLists();
-  const list  = lists.find(l => l.displayName === LIST_NAME || l.name === LIST_NAME);
+  const findList = lists =>
+    lists.find(l => l.displayName === LIST_NAME || l.name === LIST_NAME);
+
+  let list = findList(await fetchAllLists());
+  if (!list) {
+    // fetchAllLists() caches globally, so a list created since that cache was
+    // filled stays invisible until the cache is dropped. Without this, the
+    // setup message tells the user to create the list and then Retry never
+    // works. Same one-shot retry pnlResolveListId uses.
+    clearListsCache();
+    list = findList(await fetchAllLists());
+  }
   if (!list) {
     const err = new Error(`${LIST_NAME} list not found`);
     err.code = 'LIST_MISSING';
@@ -586,6 +597,22 @@ async function resolveListId() {
   PRJ.listId = list.id;
   return PRJ.listId;
 }
+```
+
+`clearListsCache` needs both halves, because `CONFIG` is a `const` and therefore
+not on `window` (see Global Constraints). Add to `index.html` beside
+`fetchAllLists`:
+
+```js
+function clearListsCache() {
+  CONFIG._listsCache = null;
+}
+```
+
+and to `src/core/graph.js`:
+
+```js
+export const clearListsCache = () => window.clearListsCache();
 
 /**
  * Fetch every project. No paging: this list holds tens of rows, not
