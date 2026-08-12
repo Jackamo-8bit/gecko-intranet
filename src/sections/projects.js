@@ -14,6 +14,21 @@
    ║   window.GeckoSections lives in src/main.js.                      ║
    ╚═══════════════════════════════════════════════════════════════════╝ */
 
+import { graphFetch, resolveSiteId, fetchAllLists } from '../core/graph.js';
+import { toast, escapeHtml } from '../core/ui.js';
+
+const LIST_NAME        = 'GeckoProjects';
+const CLIENTS_LIST_NAME = 'GeckoClients';
+
+/** Module state. Populated by load(), read by the renderers. */
+const PRJ = {
+  listId:   null,
+  clients:  [],     // client names, for the modal dropdown (Task 6)
+  projects: [],     // Project[]
+  loading:  false,
+  error:    null    // null | 'LIST_MISSING' | string
+};
+
 // ─── Pure helpers (unit-tested in tests/projects-board.mjs) ───────────
 
 /** Board columns, in order. Must match the SharePoint Choice values. */
@@ -63,16 +78,145 @@ export function groupByStatus(projects) {
   return groups;
 }
 
+// ─── Data ─────────────────────────────────────────────────────────────
+
+/** Graph list item → the flat shape the renderers use. */
+function mapItem(item) {
+  const f = item.fields || {};
+  return {
+    id:         item.id,
+    title:      f.Title       || '(untitled)',
+    client:     f.ClientName  || '',
+    owner:      f.Owner       || '',
+    status:     f.Status      || 'Quoted',
+    waitingOn:  f.WaitingOn   || '',
+    nextAction: f.NextAction  || '',
+    ateraRef:   f.AteraRef    || '',
+    notes:      f.Notes       || '',
+    modified:   f.Modified    || item.lastModifiedDateTime || ''
+  };
+}
+
+/** Resolve the GeckoProjects list id, caching it on PRJ. */
+async function resolveListId() {
+  if (PRJ.listId) return PRJ.listId;
+  const lists = await fetchAllLists();
+  const list  = lists.find(l => l.displayName === LIST_NAME || l.name === LIST_NAME);
+  if (!list) {
+    const err = new Error(`${LIST_NAME} list not found`);
+    err.code = 'LIST_MISSING';
+    throw err;
+  }
+  PRJ.listId = list.id;
+  return PRJ.listId;
+}
+
+/**
+ * Fetch every project. No paging: this list holds tens of rows, not
+ * thousands, and $top=999 is the same ceiling the other sections use.
+ * ponytail: unpaged. Add @odata.nextLink following if this ever exceeds 999.
+ */
+async function fetchProjects() {
+  const siteId = await resolveSiteId();
+  const listId = await resolveListId();
+  const res = await graphFetch(
+    `/sites/${siteId}/lists/${listId}/items?expand=fields&$top=999`
+  );
+  return (res.value || []).map(mapItem);
+}
+
+/** Client names for the modal dropdown. Failure here is not fatal. */
+async function fetchClientNames() {
+  try {
+    const siteId = await resolveSiteId();
+    const lists  = await fetchAllLists();
+    const list   = lists.find(
+      l => l.displayName === CLIENTS_LIST_NAME || l.name === CLIENTS_LIST_NAME
+    );
+    if (!list) return [];
+    const res = await graphFetch(
+      `/sites/${siteId}/lists/${list.id}/items?expand=fields($select=Title)&$top=999`
+    );
+    return (res.value || [])
+      .map(i => i.fields?.Title)
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b));
+  } catch {
+    return [];   // the board is still usable with a free-text client field
+  }
+}
+
+/** Load everything and render. Sets PRJ.error rather than throwing. */
+async function load() {
+  if (PRJ.loading) return;
+  PRJ.loading = true;
+  PRJ.error   = null;
+  render();
+  try {
+    const [projects, clients] = await Promise.all([fetchProjects(), fetchClientNames()]);
+    PRJ.projects = projects;
+    PRJ.clients  = clients;
+    const stamp = document.getElementById('prjLastSync');
+    if (stamp) stamp.textContent = 'Synced ' + new Date().toLocaleTimeString('en-GB',
+      { hour: '2-digit', minute: '2-digit' });
+  } catch (err) {
+    PRJ.error = err.code === 'LIST_MISSING' ? 'LIST_MISSING' : (err.message || 'Load failed');
+  } finally {
+    PRJ.loading = false;
+    render();
+  }
+}
+
+// ─── Render ───────────────────────────────────────────────────────────
+
+const SETUP_MESSAGE = `
+  <div class="prj-error">
+    <strong>The GeckoProjects list does not exist yet.</strong>
+    Create a list named <code>GeckoProjects</code> on the portal SharePoint site
+    with these columns: ClientName (text), Owner (choice: Jack, Philip),
+    Status (choice: Quoted, Agreed, In progress, Done), WaitingOn (text),
+    NextAction (text), AteraRef (text), Notes (multi-line, plain text).
+    Column names must not contain spaces.
+  </div>`;
+
+function render() {
+  const mount = document.getElementById('prjBoard');
+  if (!mount) return;
+
+  if (PRJ.loading && !PRJ.projects.length) {
+    mount.innerHTML = '<p class="prj-empty">Loading projects…</p>';
+    return;
+  }
+  if (PRJ.error === 'LIST_MISSING') {
+    mount.innerHTML = SETUP_MESSAGE;
+    return;
+  }
+  if (PRJ.error) {
+    // An empty board and a failed load must never look the same.
+    mount.innerHTML = `
+      <div class="prj-error">
+        <strong>Could not load projects.</strong>
+        ${escapeHtml(PRJ.error)}
+        <button type="button" id="prjRetry">Retry</button>
+      </div>`;
+    document.getElementById('prjRetry')?.addEventListener('click', load);
+    return;
+  }
+
+  // Task 4 replaces this with the board itself.
+  mount.innerHTML = `<p class="prj-empty">${PRJ.projects.length} project(s) loaded.</p>`;
+}
+
 // ─── Section lifecycle ────────────────────────────────────────────────
 
 /** Called once, by navTo, on first visit to the section. */
 export function init() {
-  const mount = document.getElementById('prjBoard');
-  if (!mount) return;
-  mount.innerHTML = '<p class="prj-empty">Board loading is added in Task 3.</p>';
+  document.getElementById('prjRefresh')?.addEventListener('click', refresh);
+  load();
 }
 
-/** Called by the section's Refresh button. Re-fetches and re-renders. */
+/** Called by the section's Refresh button. */
 export function refresh() {
-  init();
+  PRJ.listId = null;   // re-resolve in case the list was only just created
+  load();
 }
