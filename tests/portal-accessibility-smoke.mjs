@@ -4,7 +4,8 @@ import { readFile } from 'node:fs/promises';
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 
 const navButtons = html.match(/<button class="sb-link\b[^>]*data-section=/g) ?? [];
-assert.equal(navButtons.length, 9, 'every sidebar destination should be a semantic button');
+// 9 original sections + Projects (added in Task 2 of the projects-board work).
+assert.equal(navButtons.length, 10, 'every sidebar destination should be a semantic button');
 assert.doesNotMatch(html, /<div class="sb-link\b[^>]*onclick=/, 'sidebar destinations must not be click-only divs');
 assert.match(html, /id="sbToggle"[^>]*aria-controls="sidebar"[^>]*aria-expanded="false"/, 'the mobile menu control should expose its target and state');
 assert.match(html, /id="sbBackdrop"[^>]*type="button"[^>]*aria-label="Close navigation"/, 'the mobile backdrop should be an accessible dismissal control');
@@ -30,5 +31,14 @@ assert.match(html, /event\.key === 'Escape'[\s\S]*?closeSidebar\(/, 'the open mo
 assert.match(html, /event\.key === 'Tab'[\s\S]*?preventDefault\(/, 'keyboard focus should remain inside an open mobile drawer');
 assert.match(html, /function syncSidebarAccessibility\(\)[\s\S]*?toggleAttribute\('inert', !open\)/, 'mobile drawer accessibility state must follow its open state');
 assert.doesNotMatch(html, /heading\.focus\(\{ preventScroll: true \}\)/, 'focus should scroll a newly selected mobile destination into view');
+
+// tests/projects-board.mjs stubs escapeHtml to test the card renderers under
+// Node. Pin the production implementation so the stub cannot silently drift
+// into testing weaker escaping than the app actually performs.
+assert.match(
+  html,
+  /function escapeHtml[\s\S]{0,80}\[&<>"'\]/,
+  'escapeHtml must still escape quotes — tests/projects-board.mjs stubs this exact behaviour'
+);
 
 console.log('Portal accessibility and visual-system smoke checks passed.');
