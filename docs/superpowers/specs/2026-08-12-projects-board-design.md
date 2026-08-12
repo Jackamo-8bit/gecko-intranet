@@ -96,14 +96,25 @@ registers one entry:
 
 ```js
 window.GeckoSections = window.GeckoSections || {};
-window.GeckoSections.projects = { init, refresh };
+window.GeckoSections.projects = { init };
 ```
 
-`navTo` gains three lines: if the target section has an entry in
-`GeckoSections`, call `init()` on first visit and `refresh()` thereafter. This
-matches the existing lazy-load convention (`initProfitability()` and
+`navTo` gains four lines: if the target section has an entry in `GeckoSections`
+and has not started yet, call `init()` and record it in a `startedSections` set.
+This matches the existing lazy-load convention (`initProfitability()` and
 equivalents). Every future extracted section registers the same way, so the
 ninth extraction is no harder than the first.
+
+**The contract is `{ init }` only.** An earlier draft of this spec had `navTo`
+call `refresh()` on every later visit; that was reversed during implementation
+because it would re-fetch SharePoint on every navigation, which no other section
+does. Refreshing is a manual act via each section's Refresh button, so `refresh`
+stays a private function of the module and is not part of the contract.
+
+The started-section bookkeeping lives in that separate set rather than being
+stamped onto the registration object, so the contract stays a pure contract and
+a section whose `init()` throws can be retried by navigating away and back
+instead of needing a page reload.
 
 ### Reuse, not reimplementation
 

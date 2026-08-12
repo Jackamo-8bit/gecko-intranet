@@ -488,7 +488,7 @@ Note a deliberate deviation from the spec: the spec described `refresh()` being 
 
 - [ ] **Step 10: Verify in the browser**
 
-Rebuild the mock preview harness described in the `preview-harness` note (`scratchpad/preview/`: `mock.js` stubs `window.msal` and overrides `graphFetch`; `build.mjs` copies `index.html` and injects the mock; `serve.mjs` is a small Node static server wired into `.claude/launch.json`). The harness is session-scoped and must be rebuilt each session; it must never be committed.
+Rebuild the mock preview harness (`.superpowers/sdd/preview/`: `mock.js` stubs `window.msal` and overrides `graphFetch`; `build.mjs` copies `index.html` **and `src/`** and injects the mock; `serve.mjs` is a small Node static server). That directory is self-ignoring, so it can never be committed. The harness must be rebuilt each session.
 
 **The harness must copy `src/` alongside `index.html`,** or the module will 404. Confirm `build.mjs` does this.
 
@@ -613,7 +613,11 @@ and to `src/core/graph.js`:
 
 ```js
 export const clearListsCache = () => window.clearListsCache();
+```
 
+Back in `src/sections/projects.js`, below `mapItem`:
+
+```js
 /**
  * Fetch every project. No paging: this list holds tens of rows, not
  * thousands, and $top=999 is the same ceiling the other sections use.
@@ -1445,7 +1449,8 @@ git commit -m "feat(projects): add, edit and delete projects"
 - [ ] All nine existing sections behave exactly as before — click every one.
 - [ ] The board works on a real iPhone against the real tenant.
 - [ ] Both themes checked.
-- [ ] No mock harness files are staged (`git status` — `scratchpad/` and `.claude/` must not appear).
+- [ ] No mock harness or preview files are staged (`git status` — `.superpowers/`, `.claude/` and `preview/` must not appear; `preview/` is gitignored and published only deliberately with `git add -f` for a device test).
+- [ ] `node tools/build-preview.mjs` produces `preview/pwa/src/` — run this **before** the iPhone test, not after. Any tool that duplicates `index.html` must also copy `src/`, or the newest section silently never executes.
 - [ ] `docs/GECKO_INTRANET_PORTAL_BLUEPRINT.md` updated: add Projects to the tool table, and note that `src/` now exists and new sections go there.
 
 ## Self-review notes
