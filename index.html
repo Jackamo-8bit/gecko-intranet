@@ -6734,6 +6734,7 @@ body::before {
         <h1>Project <span>Board</span></h1>
         <p>Where every live project is up to — quoted through to done.</p>
         <div class="prj-head-actions">
+          <button class="prj-add" id="prjAdd" type="button">+ New project</button>
           <button class="prj-refresh" id="prjRefresh" type="button" title="Reload from SharePoint">
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
             Refresh
@@ -6744,6 +6745,13 @@ body::before {
 
       <div class="prj-wrap" id="prjBoard">
         <!-- Rendered by src/sections/projects.js -->
+      </div>
+
+      <div class="prj-backdrop" id="prjBackdrop" hidden>
+        <div class="prj-modal" role="dialog" aria-modal="true" aria-labelledby="prjModalTitle">
+          <h3 id="prjModalTitle">—</h3>
+          <div id="prjModalBody"></div>
+        </div>
       </div>
 
     </section>

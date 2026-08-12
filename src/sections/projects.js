@@ -357,6 +357,115 @@ function render() {
       }
     });
   });
+
+  mount.querySelectorAll('[data-prj-open]').forEach(btn => {
+    btn.addEventListener('click', () => openModal(btn.dataset.prjOpen));
+  });
+}
+
+// ─── Modal ────────────────────────────────────────────────────────────
+
+let editingId = null;   // null = creating
+
+function closeModal() {
+  editingId = null;
+  document.getElementById('prjBackdrop')?.setAttribute('hidden', '');
+}
+
+function openModal(id) {
+  const backdrop = document.getElementById('prjBackdrop');
+  const body     = document.getElementById('prjModalBody');
+  const title    = document.getElementById('prjModalTitle');
+  if (!backdrop || !body || !title) return;
+
+  const project = id === 'new' ? null : PRJ.projects.find(p => p.id === id);
+  editingId = project ? project.id : null;
+  title.textContent = project ? 'Edit project' : 'New project';
+
+  const value = key => escapeHtml(project ? project[key] : '');
+  const clientOptions = ['', ...PRJ.clients].map(name =>
+    `<option value="${escapeHtml(name)}"${project && project.client === name ? ' selected' : ''}>${escapeHtml(name || '— none —')}</option>`
+  ).join('');
+  const ownerOptions = ['', 'Jack', 'Philip'].map(name =>
+    `<option value="${escapeHtml(name)}"${project && project.owner === name ? ' selected' : ''}>${escapeHtml(name || '— none —')}</option>`
+  ).join('');
+  const statusOptions = STATUSES.map(s =>
+    `<option value="${escapeHtml(s)}"${project && project.status === s ? ' selected' : ''}>${escapeHtml(s)}</option>`
+  ).join('');
+
+  body.innerHTML = `
+    <form id="prjForm" class="prj-form">
+      <label>Project name<input name="Title" required value="${value('title')}"></label>
+      <label>Client<select name="ClientName">${clientOptions}</select></label>
+      <label>Owner<select name="Owner">${ownerOptions}</select></label>
+      <label>Status<select name="Status">${statusOptions}</select></label>
+      <label>Next action<input name="NextAction" value="${value('nextAction')}"
+        placeholder="e.g. waiting for the DNS change to propagate"></label>
+      <label>Waiting on<input name="WaitingOn" value="${value('waitingOn')}"
+        placeholder="Leave empty if not blocked"></label>
+      <label>Atera ticket<input name="AteraRef" value="${value('ateraRef')}" placeholder="131"></label>
+      <label>Notes<textarea name="Notes" rows="4">${value('notes')}</textarea></label>
+      <div class="prj-form-actions">
+        ${project ? '<button type="button" class="prj-danger" id="prjDelete">Delete</button>' : ''}
+        <button type="button" id="prjCancel">Cancel</button>
+        <button type="submit" class="prj-primary">${project ? 'Save' : 'Create'}</button>
+      </div>
+    </form>`;
+
+  backdrop.removeAttribute('hidden');
+  body.querySelector('input[name="Title"]')?.focus();
+
+  document.getElementById('prjCancel')?.addEventListener('click', closeModal);
+  document.getElementById('prjDelete')?.addEventListener('click', () => deleteProject(editingId));
+  document.getElementById('prjForm')?.addEventListener('submit', submitModal);
+}
+
+async function submitModal(event) {
+  event.preventDefault();
+  const form   = event.currentTarget;
+  const submit = form.querySelector('button[type="submit"]');
+  const fields = Object.fromEntries(
+    ['Title', 'ClientName', 'Owner', 'Status', 'NextAction', 'WaitingOn', 'AteraRef', 'Notes']
+      .map(key => [key, form.elements[key].value.trim()])
+  );
+  if (!fields.Title) { toast('A project name is required', 'error'); return; }
+
+  submit.disabled = true;
+  try {
+    if (editingId) {
+      await patchFields(editingId, fields);
+      toast('Project saved', 'success');
+    } else {
+      const siteId = await resolveSiteId();
+      const listId = await resolveListId();
+      await graphFetch(`/sites/${siteId}/lists/${listId}/items`, {
+        method: 'POST',
+        body:   JSON.stringify({ fields })
+      });
+      toast('Project created', 'success');
+    }
+    closeModal();
+    await load();
+  } catch (err) {
+    submit.disabled = false;
+    toast(err.message || 'Could not save', 'error');
+  }
+}
+
+async function deleteProject(id) {
+  const project = PRJ.projects.find(p => p.id === id);
+  if (!project) return;
+  if (!window.confirm(`Delete "${project.title}"? This cannot be undone.`)) return;
+  try {
+    const siteId = await resolveSiteId();
+    const listId = await resolveListId();
+    await graphFetch(`/sites/${siteId}/lists/${listId}/items/${id}`, { method: 'DELETE' });
+    toast('Project deleted', 'success');
+    closeModal();
+    await load();
+  } catch (err) {
+    toast(err.message || 'Could not delete', 'error');
+  }
 }
 
 // ─── Section lifecycle ────────────────────────────────────────────────
@@ -364,6 +473,15 @@ function render() {
 /** Called once, by navTo, on first visit to the section. */
 export function init() {
   document.getElementById('prjRefresh')?.addEventListener('click', refresh);
+  document.getElementById('prjAdd')?.addEventListener('click', () => openModal('new'));
+  document.getElementById('prjBackdrop')?.addEventListener('click', (event) => {
+    if (event.target.id === 'prjBackdrop') closeModal();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !document.getElementById('prjBackdrop')?.hasAttribute('hidden')) {
+      closeModal();
+    }
+  });
   load();
 }
 
