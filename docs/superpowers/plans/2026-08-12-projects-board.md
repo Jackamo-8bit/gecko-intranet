@@ -1183,11 +1183,20 @@ Append to `src/sections/projects.js`, above `// ─── Section lifecycle`:
 
 let editingId = null;        // null = creating
 let focusBeforeModal = null; // so closing returns focus where it came from
+let modalSession = 0;        // bumped on every open and close, so a write from
+                             // an abandoned modal cannot act on its replacement
 
 function closeModal() {
   editingId = null;
+  modalSession++;
   document.getElementById('prjBackdrop')?.setAttribute('hidden', '');
-  focusBeforeModal?.focus?.();
+  // The node may have been detached by a background render, in which case
+  // focusing it does nothing and focus is lost. Fall back to the one control
+  // that is always present.
+  const restoreTo = focusBeforeModal?.isConnected
+    ? focusBeforeModal
+    : document.getElementById('prjAdd');
+  restoreTo?.focus?.();
   focusBeforeModal = null;
 }
 
@@ -1199,6 +1208,7 @@ function openModal(id) {
 
   const project = id === 'new' ? null : PRJ.projects.find(p => p.id === id);
   editingId = project ? project.id : null;
+  modalSession++;
   title.textContent = project ? 'Edit project' : 'New project';
 
   const value = key => escapeHtml(project ? project[key] : '');
@@ -1244,9 +1254,12 @@ async function submitModal(event) {
   event.preventDefault();
   const form   = event.currentTarget;
   const submit = form.querySelector('button[type="submit"]');
-  // The modal may be closed and reopened on another project while this write
-  // is in flight; only tear down the modal if it is still ours.
-  const target = editingId;
+  // The modal may be closed and reopened while this write is in flight; only
+  // tear down the modal if it is still the same open. Keyed to the session,
+  // not the project id — two opens of the same project, and two new-project
+  // opens (both with a null id), are otherwise indistinguishable.
+  const target  = editingId;
+  const session = modalSession;
   const fields = Object.fromEntries(
     ['Title', 'ClientName', 'Owner', 'Status', 'NextAction', 'WaitingOn', 'AteraRef', 'Notes']
       .map(key => [key, form.elements[key].value.trim()])
@@ -1267,7 +1280,7 @@ async function submitModal(event) {
       });
       toast('Project created', 'success');
     }
-    if (editingId === target) closeModal();
+    if (modalSession === session) closeModal();
     await load();
   } catch (err) {
     submit.disabled = false;
@@ -1278,13 +1291,16 @@ async function submitModal(event) {
 async function deleteProject(id) {
   const project = PRJ.projects.find(p => p.id === id);
   if (!project) return;
+  // Captured before confirm(): confirm blocks, but the network await after
+  // it does not, so the modal can be replaced while the DELETE is in flight.
+  const session = modalSession;
   if (!window.confirm(`Delete "${project.title}"? This cannot be undone.`)) return;
   try {
     const siteId = await resolveSiteId();
     const listId = await resolveListId();
     await graphFetch(`/sites/${siteId}/lists/${listId}/items/${id}`, { method: 'DELETE' });
     toast('Project deleted', 'success');
-    if (editingId === id) closeModal();
+    if (modalSession === session) closeModal();
     await load();
   } catch (err) {
     toast(err.message || 'Could not delete', 'error');
