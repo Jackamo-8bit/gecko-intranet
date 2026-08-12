@@ -20,7 +20,7 @@
  * Delete: rm -rf preview/    (once the question is settled either way)
  */
 
-import { readFile, writeFile, mkdir, copyFile } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, copyFile, cp } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -83,6 +83,12 @@ await writeFile(
 for (const icon of manifest.icons) {
   await copyFile(resolve(REPO, icon.src), resolve(OUT, icon.src));
 }
+
+/* ── src/ (ES modules index.html requests at runtime) ──────────────────── */
+
+// Without this the preview 404s on src/main.js, no section registers itself,
+// and a device test reports the Projects board broken when it simply never ran.
+await cp(resolve(REPO, 'src'), resolve(OUT, 'src'), { recursive: true });
 
 console.log(`preview/pwa built → ${PREVIEW_URI}`);
 console.log('Register that URI as a SPA redirect URI in Entra before testing.');

@@ -170,24 +170,30 @@ async function patchFields(id, fields) {
   });
 }
 
+let loadSeq = 0;   // a later load always wins; an older one must not clobber it
+
 /** Load everything and render. Sets PRJ.error rather than throwing. */
 async function load() {
-  if (PRJ.loading) return;
+  const seq = ++loadSeq;
   PRJ.loading = true;
   PRJ.error   = null;
   render();
   try {
     const [projects, clients] = await Promise.all([fetchProjects(), fetchClientNames()]);
+    if (seq !== loadSeq) return;   // superseded — a newer load owns the state
     PRJ.projects = projects;
     PRJ.clients  = clients;
     const stamp = document.getElementById('prjLastSync');
     if (stamp) stamp.textContent = 'Synced ' + new Date().toLocaleTimeString('en-GB',
       { hour: '2-digit', minute: '2-digit' });
   } catch (err) {
+    if (seq !== loadSeq) return;
     PRJ.error = err.code === 'LIST_MISSING' ? 'LIST_MISSING' : (err.message || 'Load failed');
   } finally {
-    PRJ.loading = false;
-    render();
+    if (seq === loadSeq) {
+      PRJ.loading = false;
+      render();
+    }
   }
 }
 
@@ -211,10 +217,10 @@ const ATERA_TICKET_URL = 'https://app.atera.com/new/tickets/';
  * and still showing the old status — letting a second PATCH start for the
  * same item, where whichever response lands last silently wins.
  */
-const statusWritesInFlight = new Set();
+export const statusWritesInFlight = new Set();
 
 /** One project card. Every interpolated value is escaped. */
-function renderCard(project) {
+export function renderCard(project) {
   const stale   = isStale(project);
   const waiting = project.waitingOn.trim();
 
@@ -260,7 +266,7 @@ function renderCard(project) {
 }
 
 /** One column. Done is collapsed by default so it cannot grow without limit. */
-function renderColumn(status, projects) {
+export function renderColumn(status, projects) {
   const isDone    = status === 'Done';
   const collapsed = isDone && !PRJ.doneOpen;
   const body = collapsed
@@ -341,9 +347,13 @@ function render() {
       el.disabled = true;
       try {
         await patchFields(id, { Status: status });
-        // Modified moves too, so the staleness badge stays honest.
-        project.status   = status;
-        project.modified = new Date().toISOString();
+        // Re-find: a load() may have replaced PRJ.projects while we awaited.
+        const current = PRJ.projects.find(p => p.id === id);
+        if (current) {
+          current.status   = status;
+          // Modified moves too, so the staleness badge stays honest.
+          current.modified = new Date().toISOString();
+        }
         toast(`Moved to ${status}`, 'success');
       } catch (err) {
         // No optimistic update - project.status is untouched, so the
@@ -458,8 +468,10 @@ async function submitModal(event) {
       });
       toast('Project created', 'success');
     }
-    if (modalSession === session) closeModal();
+    // Reload first: closeModal() restores focus, and load()'s render() would
+    // detach whatever it just focused if the modal closed before the rebuild.
     await load();
+    if (modalSession === session) closeModal();
   } catch (err) {
     submit.disabled = false;
     toast(err.message || 'Could not save', 'error');
@@ -476,8 +488,9 @@ async function deleteProject(id) {
     const listId = await resolveListId();
     await graphFetch(`/sites/${siteId}/lists/${listId}/items/${id}`, { method: 'DELETE' });
     toast('Project deleted', 'success');
-    if (modalSession === session) closeModal();
+    // Reload before closing, so focus is restored into the rebuilt board.
     await load();
+    if (modalSession === session) closeModal();
   } catch (err) {
     toast(err.message || 'Could not delete', 'error');
   }

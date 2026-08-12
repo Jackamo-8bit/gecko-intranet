@@ -6744,7 +6744,9 @@ body::before {
       </div>
 
       <div class="prj-wrap" id="prjBoard">
-        <!-- Rendered by src/sections/projects.js -->
+        <!-- Rendered by src/sections/projects.js. This text is what the user
+             sees if that module never loads, instead of a blank panel. -->
+        <p class="prj-empty">Loading the project board…</p>
       </div>
 
       <div class="prj-backdrop" id="prjBackdrop" hidden>
@@ -7421,6 +7423,11 @@ const SECTION_TITLES = {
   settings:      'SETTINGS'
 };
 
+// Sections whose init() has run. Kept out of the registration objects so the
+// { init } contract stays a pure contract, and so a throwing init() can be
+// retried by navigating away and back rather than needing a reload.
+const startedSections = new Set();
+
 const SETTINGS_PREF_KEY = 'gecko.portal.preferences.v1';
 const SETTINGS_PREF_DEFAULTS = {
   // Light is the portal's default surface. Dark remains fully supported
@@ -7842,7 +7849,10 @@ function navTo(sectionKey) {
   // visit, matching the lazy-load convention used by the sections above.
   // Re-fetching is a manual act via each section's Refresh button.
   const mod = window.GeckoSections?.[sectionKey];
-  if (mod && !mod._started) { mod._started = true; mod.init(); }
+  if (mod && !startedSections.has(sectionKey)) {
+    mod.init();
+    startedSections.add(sectionKey);
+  }
 }
 
 let sidebarFocusBeforeOpen = null;

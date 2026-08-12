@@ -66,11 +66,13 @@
   .prj-board { grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: start; }
 }
 
+/* No `overflow: hidden` here: it would make the column the scroll container
+   for its own sticky heading, which then never sticks because the column
+   itself never scrolls. The children round their own outer corners instead. */
 .prj-col {
   border: 1px solid var(--border-dim);
   border-radius: var(--radius);
   background: var(--card);
-  overflow: hidden;
 }
 
 .prj-col-head {
@@ -80,12 +82,20 @@
   padding: 12px 14px;
   border-bottom: 1px solid var(--hair);
   position: sticky;
-  top: 0;
+  /* Stop below the app's own sticky top bar rather than sliding under it. */
+  top: calc(var(--header-h) + var(--safe-t));
   background: var(--card);
   z-index: 1;
+  border-radius: var(--radius) var(--radius) 0 0;
 }
 
-.prj-col.is-collapsed .prj-col-head { border-bottom: 0; }
+/* The top bar is desktop-hidden at this breakpoint — same rule #loadingBar
+   follows in index.html — so the heading can sit at the very top there. */
+@media (min-width: 881px) {
+  .prj-col-head { top: 0; }
+}
+
+.prj-col.is-collapsed .prj-col-head { border-bottom: 0; border-radius: var(--radius); }
 .prj-col-head h3 { margin: 0; font-size: 0.82rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
 
 .prj-count {
@@ -102,7 +112,13 @@
   cursor: pointer; text-decoration: underline;
 }
 
-.prj-col-body { display: flex; flex-direction: column; gap: 1px; background: var(--hair); }
+/* Rounds the last card's corners now that .prj-col no longer clips. Safe to
+   clip here: the sticky heading is a sibling, not a descendant. */
+.prj-col-body {
+  display: flex; flex-direction: column; gap: 1px; background: var(--hair);
+  border-radius: 0 0 var(--radius) var(--radius);
+  overflow: hidden;
+}
 .prj-col-empty { margin: 0; padding: 16px 14px; background: var(--card); color: var(--faint); font-size: 0.85rem; }
 
 /* — Card — */
