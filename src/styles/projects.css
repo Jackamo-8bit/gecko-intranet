@@ -1,0 +1,38 @@
+/* ═══ PROJECTS BOARD ═══════════════════════════════════════════════════
+   Section-scoped styles for src/sections/projects.js.
+   Existing design tokens only — never a hardcoded colour.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.prj-wrap {
+  container-type: inline-size;
+  container-name: prjboard;
+}
+
+.prj-empty,
+.prj-error {
+  padding: 28px 22px;
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--muted);
+  text-align: center;
+}
+
+.prj-error strong { display: block; color: var(--white); margin-bottom: 6px; }
+
+.prj-error button,
+.prj-empty button {
+  margin-top: 14px;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--ink);
+  color: var(--on-ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--dur-2) var(--ease);
+}
+
+.prj-error button:hover,
+.prj-empty button:hover { opacity: 0.85; }

@@ -62,3 +62,17 @@ export function groupByStatus(projects) {
   }
   return groups;
 }
+
+// ─── Section lifecycle ────────────────────────────────────────────────
+
+/** Called once, by navTo, on first visit to the section. */
+export function init() {
+  const mount = document.getElementById('prjBoard');
+  if (!mount) return;
+  mount.innerHTML = '<p class="prj-empty">Board loading is added in Task 3.</p>';
+}
+
+/** Called by the section's Refresh button. Re-fetches and re-renders. */
+export function refresh() {
+  init();
+}
