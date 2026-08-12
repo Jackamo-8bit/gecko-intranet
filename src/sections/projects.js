@@ -14,7 +14,7 @@
    ║   window.GeckoSections lives in src/main.js.                      ║
    ╚═══════════════════════════════════════════════════════════════════╝ */
 
-import { graphFetch, resolveSiteId, fetchAllLists } from '../core/graph.js';
+import { graphFetch, resolveSiteId, fetchAllLists, clearListsCache } from '../core/graph.js';
 import { toast, escapeHtml } from '../core/ui.js';
 
 const LIST_NAME        = 'GeckoProjects';
@@ -100,8 +100,18 @@ function mapItem(item) {
 /** Resolve the GeckoProjects list id, caching it on PRJ. */
 async function resolveListId() {
   if (PRJ.listId) return PRJ.listId;
-  const lists = await fetchAllLists();
-  const list  = lists.find(l => l.displayName === LIST_NAME || l.name === LIST_NAME);
+  const findList = lists =>
+    lists.find(l => l.displayName === LIST_NAME || l.name === LIST_NAME);
+
+  let list = findList(await fetchAllLists());
+  if (!list) {
+    // fetchAllLists() caches globally, so a list created since that cache was
+    // filled stays invisible until the cache is dropped. Without this, the
+    // setup message tells the user to create the list and then Retry never
+    // works. Same one-shot retry pnlResolveListId uses.
+    clearListsCache();
+    list = findList(await fetchAllLists());
+  }
   if (!list) {
     const err = new Error(`${LIST_NAME} list not found`);
     err.code = 'LIST_MISSING';

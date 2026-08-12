@@ -12,3 +12,6 @@
 export const graphFetch    = (path, options) => window.graphFetch(path, options);
 export const resolveSiteId = () => window.resolveSiteId();
 export const fetchAllLists = () => window.fetchAllLists();
+
+/** Drop the global lists cache so the next fetchAllLists() re-reads the site. */
+export const clearListsCache = () => { window.CONFIG._listsCache = null; };
