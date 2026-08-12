@@ -774,8 +774,7 @@ function renderCard(project) {
     project.owner  ? `<span>${escapeHtml(project.owner)}</span>`  : '',
     project.ateraRef
       ? `<a class="prj-atera" href="${ATERA_TICKET_URL}${encodeURIComponent(project.ateraRef)}"
-            target="_blank" rel="noopener noreferrer"
-            onclick="event.stopPropagation()">#${escapeHtml(project.ateraRef)}</a>`
+            target="_blank" rel="noopener noreferrer">#${escapeHtml(project.ateraRef)}</a>`
       : ''
   ].join('');
 
@@ -783,14 +782,18 @@ function renderCard(project) {
     `<option value="${escapeHtml(s)}"${s === project.status ? ' selected' : ''}>${escapeHtml(s)}</option>`
   ).join('');
 
+  // The meta row sits OUTSIDE the card-open button on purpose: the Atera
+  // link is interactive content, and an <a> nested inside a <button> is
+  // invalid HTML that browsers handle inconsistently. Keeping it outside
+  // also means the link needs no stopPropagation to avoid opening the modal.
   return `
     <article class="prj-card${stale ? ' is-stale' : ''}" data-prj-id="${escapeHtml(project.id)}">
       <button class="prj-card-open" type="button" data-prj-open="${escapeHtml(project.id)}">
         <h4>${escapeHtml(project.title)}</h4>
         ${project.nextAction ? `<p class="prj-next">${escapeHtml(project.nextAction)}</p>` : ''}
         ${badges ? `<div class="prj-chips">${badges}</div>` : ''}
-        ${meta ? `<div class="prj-meta">${meta}</div>` : ''}
       </button>
+      ${meta ? `<div class="prj-meta">${meta}</div>` : ''}
       <label class="prj-status-wrap">
         <span class="sr-only">Status for ${escapeHtml(project.title)}</span>
         <select class="prj-status" data-prj-id="${escapeHtml(project.id)}">${options}</select>
@@ -975,7 +978,7 @@ With the mock harness:
 2. The `In progress` item older than 21 days shows an amber "No movement Nw" badge and an amber left edge. The ancient `Quoted` item shows **no** badge.
 3. The `Done` column shows its count and a **Show** button, with no cards. Clicking **Show** reveals them and the button reads **Hide**.
 4. An item with `WaitingOn` set shows a blue "Waiting · …" chip.
-5. An item with `AteraRef` shows a `#131` link; clicking it opens Atera in a new tab and does **not** open the card.
+5. An item with `AteraRef` shows a `#131` link; clicking it opens Atera in a new tab and does **not** open the card. Confirm in DevTools that no `<a>` is nested inside the `.prj-card-open` button.
 6. Narrow the window below 720px (or collapse the sidebar). Expected: the board becomes a single stacked list with sticky column headings.
 7. Set a mock project's title to `<img src=x onerror=alert(1)>`. Expected: it renders as literal text, no alert.
 8. Check both themes via `document.documentElement.setAttribute('data-theme','light')` and `'dark'`.
