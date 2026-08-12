@@ -1181,11 +1181,14 @@ Append to `src/sections/projects.js`, above `// ─── Section lifecycle`:
 ```js
 // ─── Modal ────────────────────────────────────────────────────────────
 
-let editingId = null;   // null = creating
+let editingId = null;        // null = creating
+let focusBeforeModal = null; // so closing returns focus where it came from
 
 function closeModal() {
   editingId = null;
   document.getElementById('prjBackdrop')?.setAttribute('hidden', '');
+  focusBeforeModal?.focus?.();
+  focusBeforeModal = null;
 }
 
 function openModal(id) {
@@ -1228,6 +1231,7 @@ function openModal(id) {
       </div>
     </form>`;
 
+  focusBeforeModal = document.activeElement;
   backdrop.removeAttribute('hidden');
   body.querySelector('input[name="Title"]')?.focus();
 
@@ -1240,6 +1244,9 @@ async function submitModal(event) {
   event.preventDefault();
   const form   = event.currentTarget;
   const submit = form.querySelector('button[type="submit"]');
+  // The modal may be closed and reopened on another project while this write
+  // is in flight; only tear down the modal if it is still ours.
+  const target = editingId;
   const fields = Object.fromEntries(
     ['Title', 'ClientName', 'Owner', 'Status', 'NextAction', 'WaitingOn', 'AteraRef', 'Notes']
       .map(key => [key, form.elements[key].value.trim()])
@@ -1248,8 +1255,8 @@ async function submitModal(event) {
 
   submit.disabled = true;
   try {
-    if (editingId) {
-      await patchFields(editingId, fields);
+    if (target) {
+      await patchFields(target, fields);
       toast('Project saved', 'success');
     } else {
       const siteId = await resolveSiteId();
@@ -1260,7 +1267,7 @@ async function submitModal(event) {
       });
       toast('Project created', 'success');
     }
-    closeModal();
+    if (editingId === target) closeModal();
     await load();
   } catch (err) {
     submit.disabled = false;
@@ -1277,7 +1284,7 @@ async function deleteProject(id) {
     const listId = await resolveListId();
     await graphFetch(`/sites/${siteId}/lists/${listId}/items/${id}`, { method: 'DELETE' });
     toast('Project deleted', 'success');
-    closeModal();
+    if (editingId === id) closeModal();
     await load();
   } catch (err) {
     toast(err.message || 'Could not delete', 'error');
@@ -1287,19 +1294,22 @@ async function deleteProject(id) {
 
 - [ ] **Step 3: Wire the open handlers**
 
-In `render()`, after the `.prj-status` loop, add:
+Card clicks are **delegated once** in `init()`, not bound per render. `#prjBoard`
+is never replaced — only its `innerHTML` is — so one listener survives every
+render and covers all three branches. Binding per render inside `render()` would
+miss the empty state, whose early `return` happens before any wiring runs,
+leaving its only button dead on exactly the first screen a new list shows.
 
-```js
-  mount.querySelectorAll('[data-prj-open]').forEach(btn => {
-    btn.addEventListener('click', () => openModal(btn.dataset.prjOpen));
-  });
-```
-
-And in `init()`, replace the body with:
+Replace the body of `init()` with:
 
 ```js
 export function init() {
   document.getElementById('prjRefresh')?.addEventListener('click', refresh);
+  // Delegated once: covers the empty state, the error state and the board.
+  document.getElementById('prjBoard')?.addEventListener('click', (event) => {
+    const btn = event.target.closest?.('[data-prj-open]');
+    if (btn) openModal(btn.dataset.prjOpen);
+  });
   document.getElementById('prjAdd')?.addEventListener('click', () => openModal('new'));
   document.getElementById('prjBackdrop')?.addEventListener('click', (event) => {
     if (event.target.id === 'prjBackdrop') closeModal();
@@ -1415,7 +1425,7 @@ git commit -m "feat(projects): add, edit and delete projects"
 
 ## Final verification before merge
 
-- [ ] All three test files pass.
+- [ ] All three test files pass. (`tests/portal-accessibility-smoke.mjs` had a hardcoded sidebar count of 9, stale since Task 2 added the Projects nav item; corrected to 10 during Task 6.)
 - [ ] All nine existing sections behave exactly as before — click every one.
 - [ ] The board works on a real iPhone against the real tenant.
 - [ ] Both themes checked.
