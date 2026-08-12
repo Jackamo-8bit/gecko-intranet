@@ -8282,6 +8282,15 @@ async function fetchAllLists() {
   return CONFIG._listsCache;
 }
 
+/**
+ * Drop the cached list array so the next fetchAllLists() re-reads the site.
+ * Needed when a list is created while the app is open — otherwise the cache
+ * keeps insisting it does not exist until a full page reload.
+ */
+function clearListsCache() {
+  CONFIG._listsCache = null;
+}
+
 
 /* ╔═══════════════════════════════════════════════════════════════════╗
    ║   AUTH STATE — UI WIRING                                          ║
