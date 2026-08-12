@@ -782,6 +782,14 @@ In `src/sections/projects.js`, immediately above `function render()`, add:
 ```js
 const ATERA_TICKET_URL = 'https://app.atera.com/new/tickets/';
 
+/**
+ * Project ids with a status write in flight. render() rebuilds the whole
+ * board, so without this a pending card's select would come back enabled
+ * and still showing the old status — letting a second PATCH start for the
+ * same item, where whichever response lands last silently wins.
+ */
+const statusWritesInFlight = new Set();
+
 /** One project card. Every interpolated value is escaped. */
 function renderCard(project) {
   const stale   = isStale(project);
@@ -823,7 +831,7 @@ function renderCard(project) {
       ${meta ? `<div class="prj-meta">${meta}</div>` : ''}
       <label class="prj-status-wrap">
         <span class="sr-only">Status for ${escapeHtml(project.title)}</span>
-        <select class="prj-status" data-prj-id="${escapeHtml(project.id)}">${options}</select>
+        <select class="prj-status" data-prj-id="${escapeHtml(project.id)}"${statusWritesInFlight.has(project.id) ? ' disabled' : ''}>${options}</select>
       </label>
     </article>`;
 }
@@ -1083,21 +1091,31 @@ In `render()`, immediately after the `data-prj-toggle-done` listener, add:
       const status  = el.value;
       const project = PRJ.projects.find(p => p.id === id);
       if (!project) return;
+      if (statusWritesInFlight.has(id)) return;
       const previous = project.status;
 
+      statusWritesInFlight.add(id);
       el.disabled = true;
+      let written = false;
       try {
         await patchFields(id, { Status: status });
         // Modified moves too, so the staleness badge stays honest.
         project.status   = status;
         project.modified = new Date().toISOString();
-        toast(`Moved to ${status}`, 'success');
-        render();
+        written = true;
       } catch (err) {
         // No optimistic update, so the card simply stays where it was.
         el.value    = previous;
         el.disabled = false;
         toast(err.message || 'Could not change status', 'error');
+      } finally {
+        statusWritesInFlight.delete(id);
+      }
+      // Ordering matters: the id leaves the set before render(), so the
+      // freshly rendered select comes back enabled.
+      if (written) {
+        toast(`Moved to ${status}`, 'success');
+        render();
       }
     });
   });
