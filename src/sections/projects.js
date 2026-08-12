@@ -357,19 +357,18 @@ function render() {
       }
     });
   });
-
-  mount.querySelectorAll('[data-prj-open]').forEach(btn => {
-    btn.addEventListener('click', () => openModal(btn.dataset.prjOpen));
-  });
 }
 
 // ─── Modal ────────────────────────────────────────────────────────────
 
 let editingId = null;   // null = creating
+let focusBeforeModal = null;
 
 function closeModal() {
   editingId = null;
   document.getElementById('prjBackdrop')?.setAttribute('hidden', '');
+  focusBeforeModal?.focus?.();
+  focusBeforeModal = null;
 }
 
 function openModal(id) {
@@ -412,6 +411,7 @@ function openModal(id) {
       </div>
     </form>`;
 
+  focusBeforeModal = document.activeElement;
   backdrop.removeAttribute('hidden');
   body.querySelector('input[name="Title"]')?.focus();
 
@@ -424,6 +424,9 @@ async function submitModal(event) {
   event.preventDefault();
   const form   = event.currentTarget;
   const submit = form.querySelector('button[type="submit"]');
+  // The modal may be closed and reopened on another project while this
+  // write is in flight; only tear down the modal if it is still ours.
+  const target = editingId;
   const fields = Object.fromEntries(
     ['Title', 'ClientName', 'Owner', 'Status', 'NextAction', 'WaitingOn', 'AteraRef', 'Notes']
       .map(key => [key, form.elements[key].value.trim()])
@@ -432,8 +435,8 @@ async function submitModal(event) {
 
   submit.disabled = true;
   try {
-    if (editingId) {
-      await patchFields(editingId, fields);
+    if (target) {
+      await patchFields(target, fields);
       toast('Project saved', 'success');
     } else {
       const siteId = await resolveSiteId();
@@ -444,7 +447,7 @@ async function submitModal(event) {
       });
       toast('Project created', 'success');
     }
-    closeModal();
+    if (editingId === target) closeModal();
     await load();
   } catch (err) {
     submit.disabled = false;
@@ -461,7 +464,7 @@ async function deleteProject(id) {
     const listId = await resolveListId();
     await graphFetch(`/sites/${siteId}/lists/${listId}/items/${id}`, { method: 'DELETE' });
     toast('Project deleted', 'success');
-    closeModal();
+    if (editingId === id) closeModal();
     await load();
   } catch (err) {
     toast(err.message || 'Could not delete', 'error');
@@ -474,6 +477,13 @@ async function deleteProject(id) {
 export function init() {
   document.getElementById('prjRefresh')?.addEventListener('click', refresh);
   document.getElementById('prjAdd')?.addEventListener('click', () => openModal('new'));
+  // Delegated once: #prjBoard survives every render, so this covers the
+  // empty state, the error state and the board itself. Binding per render
+  // missed the empty state, whose early return skipped the wiring.
+  document.getElementById('prjBoard')?.addEventListener('click', (event) => {
+    const btn = event.target.closest?.('[data-prj-open]');
+    if (btn) openModal(btn.dataset.prjOpen);
+  });
   document.getElementById('prjBackdrop')?.addEventListener('click', (event) => {
     if (event.target.id === 'prjBackdrop') closeModal();
   });
