@@ -859,9 +859,31 @@ with:
 
 - [ ] **Step 4: Add the board styles**
 
-Append to `src/styles/projects.css`:
+Append to `src/styles/projects.css`.
+
+**Specificity note:** `src/styles/projects.css` is linked *before* the inline
+`<style>` block in `index.html`, so at equal specificity the inline rules win.
+The section-head controls are therefore ID-scoped, exactly as the equivalent
+controls in all nine existing sections are (`#section-timesheets .tsh-refresh`
+and friends). Do not drop the `#section-projects` prefix on those three rules.
 
 ```css
+/* — Section head controls. ID-scoped to match the existing sections and to
+     outrank the inline stylesheet, which is loaded after this file. — */
+#section-projects .prj-head-actions {
+  display: flex; align-items: center; gap: 10px; margin-top: 6px; flex-wrap: wrap;
+}
+#section-projects .prj-refresh {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: var(--radius-pill);
+  background: transparent; border: 1px solid var(--border-dim);
+  color: var(--muted); font-family: var(--font-body);
+  font-size: 12px; cursor: pointer; transition: all .15s;
+}
+#section-projects .prj-refresh:hover:not(:disabled) { color: var(--green); border-color: var(--green); }
+#section-projects .prj-refresh:disabled { opacity: .5; cursor: not-allowed; }
+#section-projects .prj-last-sync { font-size: 11px; color: var(--muted); margin-left: auto; }
+
 /* — Board grid: four columns above 720px, one grouped list below.
      A container query, not a media query: what constrains the board is
      its own column, which the sidebar collapse state changes. — */
