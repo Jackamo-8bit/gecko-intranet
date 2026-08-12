@@ -483,6 +483,10 @@ async function deleteProject(id) {
   const project = PRJ.projects.find(p => p.id === id);
   if (!project) return;
   if (!window.confirm(`Delete "${project.title}"? This cannot be undone.`)) return;
+  // The modal now stays open until the reload finishes, so without this a
+  // second click would fire a second DELETE and toast a 404 over the success.
+  const btn = document.getElementById('prjDelete');
+  if (btn) btn.disabled = true;
   try {
     const siteId = await resolveSiteId();
     const listId = await resolveListId();
