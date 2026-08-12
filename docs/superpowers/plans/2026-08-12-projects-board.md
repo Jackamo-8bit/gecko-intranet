@@ -1091,30 +1091,27 @@ In `render()`, immediately after the `data-prj-toggle-done` listener, add:
       const status  = el.value;
       const project = PRJ.projects.find(p => p.id === id);
       if (!project) return;
+      // A disabled select cannot emit a user-driven change event, so this
+      // only guards against a synthetic one. render() below re-syncs the
+      // displayed value either way.
       if (statusWritesInFlight.has(id)) return;
-      const previous = project.status;
 
       statusWritesInFlight.add(id);
       el.disabled = true;
-      let written = false;
       try {
         await patchFields(id, { Status: status });
         // Modified moves too, so the staleness badge stays honest.
         project.status   = status;
         project.modified = new Date().toISOString();
-        written = true;
+        toast(`Moved to ${status}`, 'success');
       } catch (err) {
-        // No optimistic update, so the card simply stays where it was.
-        el.value    = previous;
-        el.disabled = false;
+        // No optimistic update — project.status is untouched, so the
+        // re-render below puts the card back exactly where it was, with an
+        // enabled select showing the old value. Never hand-patch `el`: an
+        // interim render may already have detached it.
         toast(err.message || 'Could not change status', 'error');
       } finally {
         statusWritesInFlight.delete(id);
-      }
-      // Ordering matters: the id leaves the set before render(), so the
-      // freshly rendered select comes back enabled.
-      if (written) {
-        toast(`Moved to ${status}`, 'success');
         render();
       }
     });
