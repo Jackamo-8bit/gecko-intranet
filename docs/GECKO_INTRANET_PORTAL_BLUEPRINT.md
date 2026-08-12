@@ -15,18 +15,28 @@ The portal is a shell that houses individual tools as sections. Each section is 
 
 The Mileage Tracker is fully built and working. It is the proven foundation the portal will be built around — not the other way around.
 
+All ten sections are built and live at https://jackamo-8bit.github.io/gecko-intranet/
+
 | Tool | Status |
 |---|---|
-| Mileage Tracker | ✅ Live at https://jackamo-8bit.github.io/mileage-tracker/ |
-| Client Profitability Dashboard | 🔶 Prototype exists (Philip's gecko_dashboard_2.html) — data hardcoded, needs SharePoint |
-| Client Directory | 🔲 Planned |
-| Timesheets | 🔶 Exists as Power App — web version planned |
-| Cyber / Compliance | 🔲 Future |
-| Home / Overview | 🔲 Planned — aggregates data from other sections |
+| Home / Overview | ✅ Live — aggregates mileage, profitability, timesheets and clients |
+| Client Profitability | ✅ Live — reads/writes `GeckoClients` + `GeckoServices` |
+| Profit & Loss | ✅ Live — `GeckoPnLReports`, Xero import |
+| Mileage Tracker | ✅ Live — `MileageJourneys`, `MileageClients` |
+| Client Directory | ✅ Live — `GeckoClients` + `Clients` (SSA) |
+| **Projects** | ✅ Live — `GeckoProjects`. **First ES module** (2026-08-12) |
+| Timesheets | ✅ Live — `Timesheets` + SSA hours on `Clients` |
+| Annual Leave | ✅ Live — `GeckoLeaveEntitlements`, `GeckoLeaveRequests` |
+| Compliance | ✅ Live — `GeckoCompliance` |
+| Settings | ✅ Live — theme, density, accent, sidebar |
 
 ---
 
 ## Architecture Decision
+
+**Superseded in part, 2026-08-12 — see "Migrating to modules" below.** The
+single-file description still holds for the nine original sections. New sections
+go in `src/` as ES modules.
 
 **Single HTML file with clear internal section structure.** Not multiple pages, not a framework.
 
@@ -66,6 +76,58 @@ index.html
     ├── // ═══ CLIENT DIRECTORY ══════════════════════════════════════
     └── // ═══ INIT ══════════════════════════════════════════════════
 ```
+
+---
+
+## Migrating to modules (2026-08-12)
+
+`index.html` reached 16,445 lines. Rather than one heroic refactor of the file
+the business runs on, sections move to native ES modules **one at a time**, as
+and when there is another reason to touch them. The Projects board was the
+first, and is the reference implementation.
+
+```
+index.html            shell + the nine original sections
+src/
+  main.js             registers sections into window.GeckoSections
+  core/               graph.js, ui.js — thin wrappers over index.html's globals
+  sections/           projects.js
+  styles/             projects.css
+tests/                plain `node tests/*.mjs`, no framework
+```
+
+**No bundler, no npm, no build step.** Native `<script type="module">`, served
+as-is by GitHub Pages. Deploy is still `git push`.
+
+**The contract is `{ init }`.** A module does
+`window.GeckoSections.projects = { init }`; `navTo` calls `init()` once on first
+visit and records the key in a `startedSections` set. Everything else a section
+needs — its Refresh button, its modal — it wires up itself inside `init()`.
+
+**Four rules that cost real bugs to learn:**
+
+1. **Only function declarations are reachable from `src/`.** `index.html` is a
+   *classic* script: top-level `function` attaches to `window`, top-level
+   `const`/`let` does not. So `window.graphFetch` works and `window.CONFIG` is
+   `undefined`. To reach a `const`, add a function declaration in `index.html`
+   that closes over it (see `clearListsCache`) and wrap that.
+2. **`src/core/*.js` wrap, never copy.** There must be exactly one Graph client,
+   one site-id resolution, one lists cache. A later real extraction then changes
+   one file and no consumer.
+3. **No `window`/`document` at module scope** in a section module, so its logic
+   stays importable by `node tests/*.mjs`. This is enforced by the test suite
+   itself, not by convention.
+4. **Any tool that duplicates `index.html` must also copy `src/`.** The file is
+   no longer self-contained. A preview missing `src/` fails *silently* — the
+   section opens as a blank panel with no error.
+
+**Async safety.** `render()` rebuilds a section wholesale, so anything captured
+before an `await` may be detached by the time it resolves. Three separate bugs
+during the Projects build shared that one cause. Don't hand-patch a captured
+node — re-render, and key any "is this still mine?" check to the *operation*
+(a sequence counter) rather than to the data's identity.
+
+Full detail: `docs/superpowers/specs/2026-08-12-projects-board-design.md`.
 
 ---
 
