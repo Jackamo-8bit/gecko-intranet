@@ -10394,7 +10394,9 @@ async function cspImportFile(file) {
   showLoading(true);
   try {
     const rows = prfParseCsv(await file.text());
-    if (seq !== cspImportSeq) return;   // superseded — a newer import owns the state
+    // Superseded by a newer import, or an apply claimed PRF.csp while this
+    // file was being read — either way this preview must not land.
+    if (seq !== cspImportSeq || PRF.csp.applying) return;
     if (!rows.length) {
       toast('That CSV has no data rows.', 'error', 4000);
       return;
@@ -10403,9 +10405,11 @@ async function cspImportFile(file) {
       toast('Missing Customer Name / Seller Cost (GBP). Is this the Microsoft CSP Billing Customers Report?', 'error', 6000);
       return;
     }
-    const unparsable = window.CspCosts.countUnparsableCosts(rows);
-    if (unparsable) {
-      toast(`${unparsable} row(s) have a Seller Cost this importer cannot read. Refusing rather than treating them as zero — check the export's number format.`, 'error', 8000);
+    // toast() escapes its message, so the raw CSV values are safe to name.
+    const unreadable = window.CspCosts.findUnparsableCosts(rows);
+    if (unreadable.length) {
+      const first = unreadable[0];
+      toast(`${unreadable.length} row(s) have a Seller Cost this importer cannot read — first: ${first.customer} = "${first.value}". Refusing rather than treating them as zero.`, 'error', 9000);
       return;
     }
 
@@ -10427,15 +10431,23 @@ async function cspImportFile(file) {
         // caught on a 24-row table where everything arrives ticked, and a
         // zero or negative total would wipe a real cost and read as a
         // green "good news" drop. Both stay importable, neither by default.
-        const exact = prfXeroNormaliseName(window.CspCosts.stripContact(customer))
-                   === prfXeroNormaliseName(client.name);
+        // Two portal clients can normalise to the same key ("ABC Ltd" and
+        // "ABC Limited"), and prfXeroMatchName just returns the first. That
+        // is the last silent auto-tick against a possibly-wrong client.
+        const clientKey = prfXeroNormaliseName(client.name);
+        const clash = PRF.clients.filter(c => prfXeroNormaliseName(c.name) === clientKey).length > 1;
+        const nameMatched = prfXeroNormaliseName(window.CspCosts.stripContact(customer)) === clientKey;
+        const exact = !clash && nameMatched;
         previewRows.push({
           csvName: customer,
           client,
           service: found.row,
           oldCost: found.row.cost,
           newCost: cost,
-          fuzzy:   !exact,
+          // Distinct flags: the name did not match, versus it matched two
+          // clients at once. A clash is not a loose match.
+          fuzzy:     !nameMatched,
+          nameClash: clash,
           ticked:  window.CspCosts.isPreTicked(found.row.name) && exact && cost > 0,
           status:  'ok'
         });
@@ -10460,7 +10472,7 @@ async function cspImportFile(file) {
       }
     }
 
-    if (seq !== cspImportSeq) return;   // superseded — a newer import owns the state
+    if (seq !== cspImportSeq || PRF.csp.applying) return;   // superseded, or an apply owns the state
     PRF.csp.rows      = previewRows.sort((a, b) => a.client.name.localeCompare(b.client.name));
     PRF.csp.unmatched = unmatched;
     PRF.csp.total     = aggregated.reduce((sum, a) => sum + a.cost, 0);
@@ -10469,7 +10481,13 @@ async function cspImportFile(file) {
     if (!PRF.csp.month) PRF.csp.month = cspDefaultMonth();
     const base  = cspBaseline(new Set(previewRows.map(r => r.client.name)));
     const check = window.CspCosts.checkTotalPlausible(PRF.csp.total, base.value);
-    PRF.csp.warning = check.ok ? null : {
+    // The `high` bound only means something against a real previous import.
+    // The fallback baseline is the stale stored costs this feature exists to
+    // replace, so a correct first import is *supposed* to be far above it —
+    // warning there would deadlock: every import warns, every warning is
+    // overridden, and an overridden import never records a baseline.
+    const suppressHigh = check.direction === 'high' && base.source !== 'last-import';
+    PRF.csp.warning = (check.ok || suppressHigh) ? null : {
       ratio:         check.ratio,
       direction:     check.direction,
       baseline:      base.value,
@@ -10529,6 +10547,7 @@ function cspRenderPreviewRow(row, index) {
     [
       !window.CspCosts.isPreTicked(row.service.name) ? 'bundled — check before ticking'            : '',
       row.fuzzy                                      ? 'name matched loosely — check before ticking' : '',
+      row.nameClash                                  ? 'two clients share this name — check before ticking' : '',
       row.newCost <= 0                               ? 'zero or negative total — check before ticking' : ''
     ].filter(Boolean).map(t => `<span class="csp-flag csp-flag-warn">${t}</span>`).join(' ');
 
@@ -10715,7 +10734,7 @@ function cspRenderWarning() {
       ${body}
       <label>
         <input type="checkbox" ${PRF.csp.confirmed ? 'checked' : ''} onchange="cspConfirm(this.checked)">
-        I've checked — this export covers a full month
+        I've checked — this export covers exactly one full month
       </label>
     </div>`;
 }

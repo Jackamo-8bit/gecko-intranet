@@ -49,18 +49,23 @@ export function aggregateByCustomer(rows) {
   }));
 }
 
+/** A plain decimal, optionally signed, optionally in scientific notation. */
+const NUMERIC_RE = /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/;
+
 /**
- * Count rows whose Seller Cost is not a plain decimal number.
- * parseFloat would quietly turn "1,234.56" into 1 and "£99.00" into NaN,
- * both of which understate a cost with no visible symptom, so the import
- * refuses rather than guessing.
+ * Costs this importer cannot read. parseFloat fails downward and silently —
+ * "1,234.56" becomes 1 and "£99.00" becomes NaN — so an unreadable value
+ * refuses the whole import rather than being folded to zero.
+ * A blank cost is not an error: in a billing report it means no charge.
  */
-export function countUnparsableCosts(rows) {
-  let bad = 0;
+export function findUnparsableCosts(rows) {
+  const bad = [];
   for (const row of rows || []) {
-    if (!String(row?.[NAME_COLUMN] ?? '').trim()) continue;
+    const customer = String(row?.[NAME_COLUMN] ?? '').trim();
+    if (!customer) continue;
     const raw = String(row?.[COST_COLUMN] ?? '').trim();
-    if (!/^-?\d+(\.\d+)?$/.test(raw)) bad++;
+    if (raw === '') continue;
+    if (!NUMERIC_RE.test(raw)) bad.push({ customer, value: raw });
   }
   return bad;
 }

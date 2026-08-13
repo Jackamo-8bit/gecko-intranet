@@ -5,7 +5,7 @@ import {
   findM365Row,
   isPreTicked,
   checkTotalPlausible,
-  countUnparsableCosts,
+  findUnparsableCosts,
   sumStoredM365,
   PURE_TICK_TITLE,
   PLAUSIBLE_MIN_RATIO,
@@ -79,41 +79,72 @@ assert.deepEqual(
 assert.deepEqual(aggregateByCustomer([]), [], 'no rows gives no entries');
 assert.deepEqual(aggregateByCustomer(null), [], 'null input is safe');
 
-// ─── countUnparsableCosts ─────────────────────────────────────────────
+// ─── findUnparsableCosts ──────────────────────────────────────────────
 // aggregateByCustomer folds anything parseFloat cannot read to zero, which
 // on a money import understates silently. The import refuses on these first.
+const unreadable = findUnparsableCosts([
+  { 'Customer Name': 'A', 'Seller Cost (GBP)': '' },
+  { 'Customer Name': 'B', 'Seller Cost (GBP)': '1,234.56' },
+  { 'Customer Name': 'C', 'Seller Cost (GBP)': '£99.00' },
+  { 'Customer Name': 'D', 'Seller Cost (GBP)': 'abc' },
+  { 'Customer Name': 'E' }
+]);
 assert.equal(
-  countUnparsableCosts([
-    { 'Customer Name': 'A', 'Seller Cost (GBP)': '' },
-    { 'Customer Name': 'B', 'Seller Cost (GBP)': '1,234.56' },
-    { 'Customer Name': 'C', 'Seller Cost (GBP)': '£99.00' },
-    { 'Customer Name': 'D', 'Seller Cost (GBP)': 'abc' },
-    { 'Customer Name': 'E' }
-  ]),
-  5,
-  'blank, thousands-separated, currency-prefixed, non-numeric and missing all count'
+  unreadable.length,
+  3,
+  'thousands-separated, currency-prefixed and non-numeric are unreadable — blank and missing are not'
 );
-assert.equal(
-  countUnparsableCosts([
+assert.deepEqual(
+  unreadable[0],
+  { customer: 'B', value: '1,234.56' },
+  'the first offender is returned by name and raw value so the toast can point at it'
+);
+assert.deepEqual(
+  unreadable.map(u => u.customer),
+  ['B', 'C', 'D'],
+  'every offender is reported, in file order'
+);
+assert.deepEqual(
+  findUnparsableCosts([
+    { 'Customer Name': 'A', 'Seller Cost (GBP)': '' },
+    { 'Customer Name': 'B', 'Seller Cost (GBP)': '   ' },
+    { 'Customer Name': 'C' }
+  ]),
+  [],
+  'a blank cost is NOT an error — in a billing report it means no charge'
+);
+assert.deepEqual(
+  findUnparsableCosts([
     { 'Customer Name': 'A', 'Seller Cost (GBP)': '0' },
     { 'Customer Name': 'B', 'Seller Cost (GBP)': '21.78' },
     { 'Customer Name': 'C', 'Seller Cost (GBP)': '-5.5' },
-    { 'Customer Name': 'D', 'Seller Cost (GBP)': '236.98656799999998' }
+    { 'Customer Name': 'D', 'Seller Cost (GBP)': '236.98656799999998' },
+    { 'Customer Name': 'E', 'Seller Cost (GBP)': '1.23e-5' },
+    { 'Customer Name': 'F', 'Seller Cost (GBP)': '1.23E-05' },
+    { 'Customer Name': 'G', 'Seller Cost (GBP)': '2e3' },
+    { 'Customer Name': 'H', 'Seller Cost (GBP)': '+5' },
+    { 'Customer Name': 'I', 'Seller Cost (GBP)': '.5' },
+    { 'Customer Name': 'J', 'Seller Cost (GBP)': '5.' }
   ]),
-  0,
-  'zero, plain decimals, a negative and full float precision are all readable'
+  [],
+  'plain decimals, a negative, full float precision, both scientific spellings, a leading + and bare .5 / 5. all read'
 );
-assert.equal(
-  countUnparsableCosts([
+assert.deepEqual(
+  findUnparsableCosts([{ 'Customer Name': 'A', 'Seller Cost (GBP)': '1.23e-5' }]).length,
+  0,
+  'scientific notation is what a raw-float pipeline emits for small values — never a refusal'
+);
+assert.deepEqual(
+  findUnparsableCosts([
     { 'Customer Name': '', 'Seller Cost (GBP)': '1,234.56' },
     { 'Customer Name': '   ', 'Seller Cost (GBP)': 'abc' },
     { 'Seller Cost (GBP)': '£99' }
   ]),
-  0,
+  [],
   'rows with no customer name are skipped entirely — aggregate ignores them too'
 );
-assert.equal(countUnparsableCosts([]), 0, 'no rows is safe');
-assert.equal(countUnparsableCosts(null), 0, 'null input is safe');
+assert.deepEqual(findUnparsableCosts([]), [], 'no rows is safe');
+assert.deepEqual(findUnparsableCosts(null), [], 'null input is safe');
 
 // ─── sumStoredM365 ────────────────────────────────────────────────────
 const stored = [
