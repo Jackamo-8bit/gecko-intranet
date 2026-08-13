@@ -10637,9 +10637,49 @@ function cspRenderWarning() {
     </div>`;
 }
 
-/** Task 4 replaces this with the real write. */
-function cspApply() {
-  toast('Apply is added in Task 4.', 'info', 3000);
+/**
+ * Write every ticked row. Failures are collected rather than aborting, so
+ * one bad row cannot strand the rest, and the result is reported honestly.
+ */
+async function cspApply() {
+  const btn = document.getElementById('cspApply');
+  const targets = PRF.csp.rows.filter(r => r.status === 'ok' && r.ticked && r.service);
+  if (!targets.length) return;
+  if (PRF.csp.warning && !PRF.csp.confirmed) return;
+
+  if (btn) btn.disabled = true;
+  showLoading(true);
+
+  const failures = [];
+  let applied = 0;
+  for (const row of targets) {
+    try {
+      await prfPatchService(row.service.id, { CostPerMonth: row.newCost });
+      applied++;
+    } catch (err) {
+      failures.push(`${row.client.name}: ${err.message || 'write failed'}`);
+    }
+  }
+
+  // Only record a baseline when everything landed — a partial write would
+  // set a misleadingly low bar for next month's sanity check.
+  if (applied && !failures.length) {
+    cspWriteLastImport(PRF.csp.month, PRF.csp.total);
+  }
+
+  showLoading(false);
+
+  if (failures.length) {
+    toast(`${applied} updated, ${failures.length} failed — ${failures[0]}`, 'error', 8000);
+  } else {
+    toast(`${applied} cost${applied === 1 ? '' : 's'} updated.`, 'success', 4000);
+  }
+
+  // Re-read from SharePoint so the board shows what was actually stored,
+  // not what we hoped we wrote. prfRefreshData re-renders, which rebuilds
+  // the card — so never touch `btn` after this point.
+  PRF.csp = { imported: false, month: PRF.csp.month, rows: [], unmatched: [], total: 0, warning: null, confirmed: false };
+  await prfRefreshData(true);
 }
 
 
