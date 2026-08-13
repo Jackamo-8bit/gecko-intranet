@@ -10573,8 +10573,9 @@ function cspRenderImport() {
   let body = `
     <p class="csp-hint">
       TD SYNNEX → StreamOne Ion → Reports → <strong>Microsoft CSP Billing Customers Report</strong>.
-      Set <strong>Date Range to a full month</strong> before exporting — a part-month export
-      understates every cost and the file gives no way to detect it.
+      Set <strong>Date Range to exactly one full month</strong> before exporting. The file
+      carries no date range, so nothing here can tell a part-month export (which understates
+      every cost) from one spanning two months (which overstates them).
     </p>
     <label class="csp-month">Month covered
       <select onchange="cspSetMonth(this.value)">${cspMonthOptions(PRF.csp.month || cspDefaultMonth())}</select>

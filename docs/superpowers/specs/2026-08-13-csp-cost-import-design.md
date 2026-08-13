@@ -133,6 +133,36 @@ The client's `GeckoServices` row where `Category === 'm365'`:
 | None | Listed as "no m365 row" — **never created** |
 | Two or more | Listed as ambiguous — not written, no guessing |
 
+**Two CSV customers can also claim the *same* service row.** The matcher's
+starts-with and Levenshtein tiers make this easy — `MSA Safety Products (…)` and
+`MSA Safety (…)` both resolve to `MSA Safety`. Both would then PATCH the same
+row and the last write would win, leaving one subscription's figure in place of
+their sum, behind a preview that looks entirely correct. So after the preview is
+built, any service row claimed by more than one CSV customer marks **every**
+claimant `duplicate`: no checkbox, nothing written, each naming the others.
+
+### Pre-ticking
+
+A row is pre-ticked only when **all** of these hold. Any one failing leaves it
+importable by a deliberate tick, with a warning chip saying why:
+
+1. The service title is exactly `M365 Reselling` (not a bundle).
+2. The client name matched **exactly**, not via starts-with or Levenshtein.
+   Showing the matched-from name makes a mis-match catchable, but reviewing
+   ~24 pre-ticked rows every month is a vigilance task, and habituation is
+   certain. The fuzzy tier is not too dangerous to exist — only to default to.
+3. The incoming total is **greater than zero**. A cancelled subscription or a
+   credit note can aggregate to zero or negative, and writing that would wipe a
+   real cost and show the drop in green, which in a cost column reads as good
+   news.
+4. The row is not `duplicate`, `none` or `ambiguous`.
+
+### Clients the export does not cover
+
+Clients holding an `m365` row that the export never mentions keep their stored
+cost, and are listed with a count. Without that, success criterion 5 fails
+silently for them.
+
 Creating service rows is out of scope. A new row needs a category, a title and a
 `SellPerMonth` that only a human knows, and inventing them would corrupt the
 list the profitability screen depends on.
@@ -165,8 +195,14 @@ whether it covers a full month or 13 days, so the importer cannot detect a
 part-month export. A month-to-date file would silently understate every cost.
 
 The card therefore states plainly that the export must be taken with
-**Date Range set to a full month**, and the month selector must be confirmed
-before Apply.
+**Date Range set to exactly one full month**.
+
+**The month selector is a label, not a validation.** It records which month the
+import covers so the recorded baseline can name it, and so the warning can say
+"only 44% of last import (July 2026)". Nothing verifies it against the file —
+nothing can. It offers the current month as well as prior ones, because
+exporting month-to-date for the *current* month is the commonest version of the
+mistake and the UI should at least be able to express it.
 
 ### The sanity check
 
@@ -182,11 +218,25 @@ incoming total looks too small to be a full month.
 2. **First run, or a cleared browser:** the sum of `CostPerMonth` across the
    `m365` rows of matched clients.
 
-**Trigger:** incoming total < **70%** of the baseline.
+**Trigger:** incoming total **< 70%** or **> 140%** of the baseline.
 
 70% sits well clear of legitimate month-to-month movement — month lengths vary
 by ~10%, and losing a sizeable client might be 15% — while a 13-of-31-day export
 lands near 42%. A part-month export cannot avoid tripping it.
+
+**The check is symmetric on purpose.** "The CSV carries no date range" cuts both
+ways: a Date Range spanning two months, or a file appended or pasted twice,
+roughly doubles every cost and would otherwise pass silently, overstating every
+cost permanently. 140% clears legitimate growth — a new client, a seat
+expansion — while a doubled file lands near 200%. `checkTotalPlausible` reports
+`direction: 'low' | 'high'` so the warning can say which mistake it suspects;
+both route through the same confirmation checkbox.
+
+**An overridden warning is never recorded as the next baseline.** Otherwise an
+accepted part-month total becomes next month's bar, the following part-month
+export sits near 100% of it, and the check silently stops detecting anything
+after the first override — it would catch a *change* in habit rather than a
+wrong habit.
 
 **Why the fallback is weaker, stated honestly:** the stored `CostPerMonth`
 values are known to be badly stale and mostly *too low* — that is the premise of
@@ -250,12 +300,20 @@ No new SharePoint list, no new columns, no new Graph scopes.
 ### Pure functions in `src/core/csp-costs.js`
 
 ```
-stripContact(name)                     → string
-aggregateByCustomer(rows)              → [{ customer, cost }]
-findM365Row(clientName, services)      → { row } | { none: true } | { ambiguous: n }
-isPreTicked(serviceTitle)              → boolean
-checkTotalPlausible(incoming, baseline) → { ok: true } | { ok: false, ratio }
+stripContact(name)                      → string
+aggregateByCustomer(rows)               → [{ customer, cost }]
+countUnparsableCosts(rows)              → number
+findM365Row(clientName, services)       → { row } | { none: true } | { ambiguous: n }
+isPreTicked(serviceTitle)               → boolean
+sumStoredM365(services, clientNames)    → number
+checkTotalPlausible(incoming, baseline) → { ok: true } | { ok: false, ratio, direction }
 ```
+
+`countUnparsableCosts` exists because `parseFloat` fails *downward and
+silently*: `'1,234.56'` becomes `1`, `'£99.00'` becomes `NaN`. Folding either to
+zero understates a cost with no visible symptom — the same trap the Direct Debit
+PDF's `1.363,92` would spring. Any unreadable cost refuses the whole import
+rather than guessing.
 
 `aggregateByCustomer` sums `Seller Cost (GBP)` per `Customer Name`, rounded to
 2dp. Zero-cost rows sum harmlessly; one exists in the sample export.
