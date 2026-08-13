@@ -232,6 +232,18 @@ expansion — while a doubled file lands near 200%. `checkTotalPlausible` report
 `direction: 'low' | 'high'` so the warning can say which mistake it suspects;
 both route through the same confirmation checkbox.
 
+**But the upper bound only applies against a previous import's total, never
+against the fallback.** This is not a softening — without it the feature
+deadlocks. The fallback baseline *is* the stale stored costs this feature exists
+to replace, so a correct first import is supposed to sit far above it: measured
+against the drift table, a right answer lands at ~370%. It would warn, be
+overridden, and — because an overridden import records no baseline — never
+converge. Every import would warn, every warning would be overridden, and the
+good baseline would never arrive, training exactly the override reflex that
+makes the low check worthless. "Much higher than costs we already know are too
+low" is the desired result of a first import, never a signal. The low bound
+applies against both baselines.
+
 **An overridden warning is never recorded as the next baseline.** Otherwise an
 accepted part-month total becomes next month's bar, the following part-month
 export sits near 100% of it, and the check silently stops detecting anything
