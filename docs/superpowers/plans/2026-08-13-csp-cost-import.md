@@ -380,7 +380,8 @@ In `index.html`, inside the `const PRF = { ... }` object, add:
     unmatched: [],      // [{ csvName, cost }]
     total:     0,       // sum of Seller Cost across the whole file
     warning:   null,    // null | { ratio, baseline }
-    confirmed: false    // user ticked "I've checked this is a full month"
+    confirmed: false,   // user ticked "I've checked this is a full month"
+    applying:  false    // an apply is in flight; keeps Apply disabled regardless of ticks
   },
 ```
 
@@ -485,7 +486,7 @@ function cspToggleRow(index, checked) {
 }
 
 function cspClear() {
-  PRF.csp = { imported: false, month: PRF.csp.month, rows: [], unmatched: [], total: 0, warning: null, confirmed: false };
+  PRF.csp = { imported: false, month: PRF.csp.month, rows: [], unmatched: [], total: 0, warning: null, confirmed: false, applying: false };
   prfRenderAll();
 }
 ```
@@ -516,7 +517,12 @@ function cspRenderPreviewRow(row, index) {
 
   // prfFmtForce, not prfFmt: prfFmt renders 0 as an em dash, which in a
   // money column would read as "no data" rather than "zero pounds".
-  const delta = row.status === 'ok' ? row.newCost - row.oldCost : null;
+  // Rounded to pence before comparing: a stored cost carrying sub-penny
+  // float precision would otherwise give a delta of ~1e-14, which is not
+  // === 0 and would render as "+£0.00" instead of "no change".
+  const delta = row.status === 'ok'
+    ? Math.round((row.newCost - row.oldCost) * 100) / 100
+    : null;
   const deltaHtml =
     delta === null ? '—' :
     delta === 0    ? '<span class="csp-same">no change</span>' :
@@ -779,10 +785,14 @@ function cspConfirm(checked) {
   cspSyncApplyState();
 }
 
-/** Apply is disabled with nothing ticked, or on an unconfirmed warning. */
+/** Apply is disabled with nothing ticked, on an unconfirmed warning, or mid-apply. */
 function cspSyncApplyState() {
   const btn = document.getElementById('cspApply');
   if (!btn) return;
+  // An apply in flight outranks everything else: the row checkboxes stay
+  // live during the PATCH loop, and without this a tick would re-enable
+  // the button and allow a second, concurrent apply.
+  if (PRF.csp.applying) { btn.disabled = true; return; }
   const anyTicked = PRF.csp.rows.some(r => r.status === 'ok' && r.ticked);
   const blocked   = PRF.csp.warning && !PRF.csp.confirmed;
   btn.disabled = !anyTicked || !!blocked;
@@ -888,7 +898,9 @@ async function cspApply() {
   const targets = PRF.csp.rows.filter(r => r.status === 'ok' && r.ticked && r.service);
   if (!targets.length) return;
   if (PRF.csp.warning && !PRF.csp.confirmed) return;
+  if (PRF.csp.applying) return;
 
+  PRF.csp.applying = true;
   if (btn) btn.disabled = true;
   showLoading(true);
 
@@ -920,7 +932,7 @@ async function cspApply() {
   // Re-read from SharePoint so the board shows what was actually stored,
   // not what we hoped we wrote. prfRefreshData re-renders, which rebuilds
   // the card — so never touch `btn` after this point.
-  PRF.csp = { imported: false, month: PRF.csp.month, rows: [], unmatched: [], total: 0, warning: null, confirmed: false };
+  PRF.csp = { imported: false, month: PRF.csp.month, rows: [], unmatched: [], total: 0, warning: null, confirmed: false, applying: false };
   await prfRefreshData(true);
 }
 ```
