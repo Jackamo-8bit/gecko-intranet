@@ -166,8 +166,51 @@ part-month export. A month-to-date file would silently understate every cost.
 
 The card therefore states plainly that the export must be taken with
 **Date Range set to a full month**, and the month selector must be confirmed
-before Apply. This is a stated instruction, not a validated one. It is the
-single weakest point in the design and is recorded as such.
+before Apply.
+
+### The sanity check
+
+Because the instruction alone cannot be enforced, the import warns when the
+incoming total looks too small to be a full month.
+
+**Baseline, in order of preference:**
+
+1. **The previous import's total.** A single record — `{ month, total }` — kept
+   in `localStorage` under `gecko.csp.lastImport.v1`, written on a successful
+   Apply. This is *not* the per-client cost history that was rejected; it is one
+   number for one purpose.
+2. **First run, or a cleared browser:** the sum of `CostPerMonth` across the
+   `m365` rows of matched clients.
+
+**Trigger:** incoming total < **70%** of the baseline.
+
+70% sits well clear of legitimate month-to-month movement — month lengths vary
+by ~10%, and losing a sizeable client might be 15% — while a 13-of-31-day export
+lands near 42%. A part-month export cannot avoid tripping it.
+
+**Why the fallback is weaker, stated honestly:** the stored `CostPerMonth`
+values are known to be badly stale and mostly *too low* — that is the premise of
+this whole feature. Against that baseline even the sample part-month export
+totals more than the stored figures, so the fallback would not have caught it.
+It only catches an incoming total below an already-understated one, which is
+still a real signal but a much weaker one. The check becomes trustworthy from
+the second import onward.
+
+**Behaviour when tripped:** a prominent warning above the preview naming both
+figures and the percentage, e.g.
+
+> This export totals **£1,721.07** — only **44%** of last month's
+> **£3,940.12**. If you exported *Month to date* rather than a full month,
+> every cost below is understated. Re-export before applying.
+
+Apply is **disabled until an explicit "I've checked this is a full month"
+checkbox is ticked.** It is not a hard block: legitimately losing a large client
+must remain importable. It converts a silent error into a loud one, which is the
+whole point.
+
+`localStorage` is per-browser, so Jack and Philip keep separate baselines. That
+is accepted — the check is advisory, and a missing baseline degrades to the
+fallback rather than failing.
 
 ---
 
@@ -207,10 +250,11 @@ No new SharePoint list, no new columns, no new Graph scopes.
 ### Pure functions in `src/core/csp-costs.js`
 
 ```
-stripContact(name)                  → string
-aggregateByCustomer(rows)           → [{ customer, cost }]
-findM365Row(clientName, services)   → { row } | { none: true } | { ambiguous: n }
-isPreTicked(serviceTitle)           → boolean
+stripContact(name)                     → string
+aggregateByCustomer(rows)              → [{ customer, cost }]
+findM365Row(clientName, services)      → { row } | { none: true } | { ambiguous: n }
+isPreTicked(serviceTitle)              → boolean
+checkTotalPlausible(incoming, baseline) → { ok: true } | { ok: false, ratio }
 ```
 
 `aggregateByCustomer` sums `Seller Cost (GBP)` per `Customer Name`, rounded to
@@ -230,6 +274,9 @@ isPreTicked(serviceTitle)           → boolean
 | A single `PATCH` fails | Collected; other rows still apply |
 | Some rows fail | Reported as partial — never "done" |
 | Apply with nothing ticked | Disabled |
+| Incoming total < 70% of baseline | Warning shown; Apply disabled until confirmed |
+| No baseline and no matched `m365` rows | No check possible; import proceeds |
+| `localStorage` unavailable or corrupt | Falls back to the stored-total baseline; never throws |
 
 **Values are overwritten, not merged.** Per the decision recorded below, there
 is no cost history: the previous value is visible in the preview and then gone.
@@ -250,6 +297,13 @@ state, and key any "is this still current?" check to the operation.
 drift could be reviewed later. Rejected as unnecessary. The preview shows
 old → new at the moment of import, which is when it matters; there is no
 retrospective view, and that is accepted.
+
+The single `{ month, total }` in `localStorage` is not a reversal of that
+decision: it is one number, portal-wide, existing solely to make the part-month
+sanity check possible. No per-client figures are retained.
+
+**Sanity check added** (Jack, 2026-08-13) after the part-month risk was flagged
+as the design's weakest point.
 
 **Overwrite `CostPerMonth` directly** rather than staging changes elsewhere.
 
@@ -274,6 +328,10 @@ of the existing test files (`node:assert/strict`, a final `console.log`).
    `M365 + Exclaimer`, `M365 Reselling + Exclaimer`, and an empty title.
 4. **`findM365Row`** — none, exactly one, and two-or-more cases each return the
    documented shape.
+5. **`checkTotalPlausible`** — the 70% boundary in both directions (69% trips,
+   71% does not); an equal total passes; a *larger* incoming total passes; a
+   baseline of `0` or `null` returns `ok` rather than dividing by zero or
+   warning on every first run.
 
 Parsing, rendering and Graph writes are not unit-tested: parsing reuses the
 already-shipped `prfParseCsv`, and the rest needs a browser and a live tenant.
