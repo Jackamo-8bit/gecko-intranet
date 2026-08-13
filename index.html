@@ -10468,7 +10468,12 @@ function cspRenderPreviewRow(row, index) {
 
   // prfFmtForce, not prfFmt: prfFmt renders 0 as an em dash, which in a
   // money column would read as "no data" rather than "zero pounds".
-  const delta = row.status === 'ok' ? row.newCost - row.oldCost : null;
+  // Rounded to pence before comparing: a stored cost carrying sub-penny
+  // float precision would otherwise give a delta of ~1e-14, which is not
+  // === 0 and would render as "+£0.00" instead of "no change".
+  const delta = row.status === 'ok'
+    ? Math.round((row.newCost - row.oldCost) * 100) / 100
+    : null;
   const deltaHtml =
     delta === null ? '—' :
     delta === 0    ? '<span class="csp-same">no change</span>' :
