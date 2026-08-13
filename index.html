@@ -1565,6 +1565,61 @@ body {
 }
 #section-profitability .prf-xero-unmatched .xu-row select:focus { border-color: var(--green); }
 
+/* — CSP cost import card (2026-08-13) —
+     Reuses .prf-xero-import for the card shell; only the preview table
+     and its controls are new. — */
+#section-profitability .prf-csp-import { margin-top: 14px; }
+#section-profitability .csp-hint { font-size: 12px; color: var(--muted); margin-bottom: 10px; line-height: 1.5; }
+#section-profitability .csp-month { display: block; font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+#section-profitability .csp-month select {
+  margin-left: 8px; padding: 5px 9px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border-dim); background: var(--inset);
+  color: var(--white); font: inherit; font-size: 12px;
+}
+#section-profitability .csp-preview { max-height: 420px; overflow: auto; margin-top: 12px; border: 1px solid var(--border-dim); border-radius: var(--radius-sm); }
+#section-profitability .csp-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+#section-profitability .csp-table th {
+  position: sticky; top: 0; background: var(--card); text-align: left;
+  padding: 8px 10px; border-bottom: 1px solid var(--hair);
+  font-weight: 600; color: var(--muted); white-space: nowrap;
+}
+#section-profitability .csp-table td { padding: 7px 10px; border-bottom: 1px solid var(--hair); color: var(--white); }
+#section-profitability .csp-table .csp-num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+#section-profitability .csp-from { color: var(--faint); }
+#section-profitability .csp-up { color: var(--amber); }
+#section-profitability .csp-down { color: var(--green); }
+#section-profitability .csp-same { color: var(--faint); font-family: var(--font-body); }
+#section-profitability .csp-flag {
+  display: inline-block; margin-left: 6px; padding: 1px 7px;
+  border-radius: var(--radius-pill); background: var(--hair);
+  color: var(--faint); font-size: 11px;
+}
+#section-profitability .csp-flag-warn { background: var(--amber-dim); color: var(--amber); }
+#section-profitability .csp-unmatched {
+  margin-top: 10px; padding: 10px 12px; border-radius: var(--radius-sm);
+  background: var(--amber-dim); color: var(--amber); font-size: 12px; line-height: 1.6;
+}
+#section-profitability .csp-actions { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+#section-profitability .csp-summary { font-size: 12px; color: var(--muted); margin-right: auto; }
+#section-profitability .csp-clear,
+#section-profitability .csp-apply {
+  padding: 7px 15px; border-radius: var(--radius-pill); font: inherit;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: opacity var(--dur-2) var(--ease);
+}
+#section-profitability .csp-clear { background: none; border: 1px solid var(--border-dim); color: var(--muted); }
+#section-profitability .csp-apply { background: var(--ink); border: 0; color: var(--on-ink); }
+#section-profitability .csp-apply:hover:not(:disabled),
+#section-profitability .csp-clear:hover { opacity: .85; }
+#section-profitability .csp-apply:disabled { opacity: .45; cursor: not-allowed; }
+#section-profitability .csp-warn {
+  margin-top: 12px; padding: 12px 14px; border-radius: var(--radius-sm);
+  background: var(--red-dim); border: 1px solid var(--red); color: var(--white);
+  font-size: 12px; line-height: 1.6;
+}
+#section-profitability .csp-warn strong { color: var(--red); }
+#section-profitability .csp-warn label { display: block; margin-top: 8px; color: var(--white); }
+
 /* — Month selector (Phase 10) — */
 #section-profitability .prf-month-sel {
   display: flex; align-items: center; gap: 4px; margin-right: 8px;
@@ -9109,7 +9164,17 @@ const PRF = {
   xeroMonth:      null,         // 'YYYY-MM' of the currently imported CSV month
   xeroUnmatched:  [],           // [{ xeroName, total, assignedTo }] — contacts that didn't auto-match
   xeroData:       {},           // { normalisedClientName: totalExVat } — parsed CSV data
-  includeDrafts:  false         // whether to include Draft invoices in the import
+  includeDrafts:  false,        // whether to include Draft invoices in the import
+  // CSP cost import (2026-08-13)
+  csp: {
+    imported:  false,   // a file has been parsed this session
+    month:     '',      // 'YYYY-MM' the user confirmed the export covers
+    rows:      [],      // [{ csvName, client, service, oldCost, newCost, ticked, status }]
+    unmatched: [],      // [{ csvName, cost }]
+    total:     0,       // sum of Seller Cost across the whole file
+    warning:   null,    // null | { ratio, baseline }
+    confirmed: false    // user ticked "I've checked this is a full month"
+  }
 };
 
 // Categories — single source of truth for pill colours, filter buttons, dropdowns
@@ -9342,6 +9407,7 @@ function prfRenderAll() {
   // — Normal render: Xero import + KPIs + filter bar + legend + cards + grand total —
   wrap.innerHTML =
     prfRenderXeroImport() +
+    cspRenderImport() +
     prfRenderSummary() +
     prfRenderControls() +
     prfRenderLegend() +
@@ -10279,6 +10345,223 @@ function prfRenderUnmatchedList() {
       ${unm.length} Xero contact${unm.length !== 1 ? 's' : ''} not matched:
     </div>
     ${rows}`;
+}
+
+// ─── CSP cost import (2026-08-13) ─────────────────────────────────────
+// Reads Seller Cost from a TD SYNNEX StreamOne Ion CSP billing export and
+// overwrites CostPerMonth on each client's m365 row. Pure logic lives in
+// src/core/csp-costs.js so it can be unit-tested — this writes money.
+
+const CSP_LAST_IMPORT_KEY = 'gecko.csp.lastImport.v1';
+
+/** Default the month selector to last month. */
+function cspDefaultMonth() {
+  const d = new Date();
+  d.setMonth(d.getMonth() - 1);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+function cspHandleDrop(event) {
+  const file = event.dataTransfer?.files?.[0];
+  if (file) cspImportFile(file);
+}
+
+function cspHandleFileInput(input) {
+  const file = input.files?.[0];
+  if (file) cspImportFile(file);
+}
+
+/**
+ * Parse the export, match every customer to a client and an m365 row, and
+ * render the preview. Writes nothing — Apply does that.
+ */
+async function cspImportFile(file) {
+  if (!file) return;
+  showLoading(true);
+  try {
+    const rows = prfParseCsv(await file.text());
+    if (!rows.length) {
+      toast('That CSV has no data rows.', 'error', 4000);
+      return;
+    }
+    if (!('Customer Name' in rows[0]) || !('Seller Cost (GBP)' in rows[0])) {
+      toast('Missing Customer Name / Seller Cost (GBP). Is this the Microsoft CSP Billing Customers Report?', 'error', 6000);
+      return;
+    }
+
+    const aggregated = window.CspCosts.aggregateByCustomer(rows);
+    const previewRows = [];
+    const unmatched   = [];
+
+    for (const { customer, cost } of aggregated) {
+      const client = prfXeroMatchName(window.CspCosts.stripContact(customer), PRF.clients);
+      if (!client) { unmatched.push({ csvName: customer, cost }); continue; }
+
+      const found = window.CspCosts.findM365Row(client.name, PRF.services);
+      if (found.none) {
+        previewRows.push({ csvName: customer, client, service: null, oldCost: null, newCost: cost, ticked: false, status: 'none' });
+      } else if (found.ambiguous) {
+        previewRows.push({ csvName: customer, client, service: null, oldCost: null, newCost: cost, ticked: false, status: 'ambiguous' });
+      } else {
+        previewRows.push({
+          csvName: customer,
+          client,
+          service: found.row,
+          oldCost: found.row.cost,
+          newCost: cost,
+          ticked:  window.CspCosts.isPreTicked(found.row.name),
+          status:  'ok'
+        });
+      }
+    }
+
+    PRF.csp.rows      = previewRows.sort((a, b) => a.client.name.localeCompare(b.client.name));
+    PRF.csp.unmatched = unmatched;
+    PRF.csp.total     = aggregated.reduce((sum, a) => sum + a.cost, 0);
+    PRF.csp.imported  = true;
+    PRF.csp.confirmed = false;
+    if (!PRF.csp.month) PRF.csp.month = cspDefaultMonth();
+    PRF.csp.warning   = null;   // Task 3 populates this
+
+    prfRenderAll();
+    toast(`Parsed ${previewRows.length} client(s). Review before applying.`, 'success', 4000);
+  } catch (err) {
+    toast('Could not read that file: ' + (err.message || 'unknown error'), 'error', 6000);
+  } finally {
+    showLoading(false);
+  }
+}
+
+function cspSetMonth(value) {
+  PRF.csp.month = value;
+}
+
+function cspToggleRow(index, checked) {
+  const row = PRF.csp.rows[index];
+  if (row && row.status === 'ok') row.ticked = checked;
+  cspSyncApplyState();
+}
+
+function cspClear() {
+  PRF.csp = { imported: false, month: PRF.csp.month, rows: [], unmatched: [], total: 0, warning: null, confirmed: false };
+  prfRenderAll();
+}
+
+/** Month options for the selector — the last 12 months, newest first. */
+function cspMonthOptions(selected) {
+  const opts = [];
+  const d = new Date();
+  for (let i = 1; i <= 12; i++) {
+    const m = new Date(d.getFullYear(), d.getMonth() - i, 1);
+    const value = m.getFullYear() + '-' + String(m.getMonth() + 1).padStart(2, '0');
+    opts.push(`<option value="${value}"${value === selected ? ' selected' : ''}>${prfMonthLabel(value)}</option>`);
+  }
+  return opts.join('');
+}
+
+function cspRenderPreviewRow(row, index) {
+  const note =
+    row.status === 'none'      ? '<span class="csp-flag">no m365 row — skipped</span>' :
+    row.status === 'ambiguous' ? '<span class="csp-flag">two m365 rows — skipped</span>' :
+    !window.CspCosts.isPreTicked(row.service.name)
+      ? '<span class="csp-flag csp-flag-warn">bundled — check before ticking</span>' : '';
+
+  // prfFmtForce, not prfFmt: prfFmt renders 0 as an em dash, which in a
+  // money column would read as "no data" rather than "zero pounds".
+  const delta = row.status === 'ok' ? row.newCost - row.oldCost : null;
+  const deltaHtml =
+    delta === null ? '—' :
+    delta === 0    ? '<span class="csp-same">no change</span>' :
+    `<span class="${delta > 0 ? 'csp-up' : 'csp-down'}">${delta > 0 ? '+' : '−'}${prfFmtForce(Math.abs(delta))}</span>`;
+
+  return `
+    <tr>
+      <td>${row.status === 'ok'
+            ? `<input type="checkbox" ${row.ticked ? 'checked' : ''} onchange="cspToggleRow(${index},this.checked)" aria-label="Apply ${escapeHtml(row.client.name)}">`
+            : ''}</td>
+      <td>${escapeHtml(row.client.name)}</td>
+      <td class="csp-from">${escapeHtml(row.csvName)}</td>
+      <td>${row.service ? escapeHtml(row.service.name) : '—'} ${note}</td>
+      <td class="csp-num">${row.oldCost === null ? '—' : prfFmtForce(row.oldCost)}</td>
+      <td class="csp-num">${prfFmtForce(row.newCost)}</td>
+      <td class="csp-num">${deltaHtml}</td>
+    </tr>`;
+}
+
+function cspRenderImport() {
+  const dropZone = `
+    <div class="prf-drop-zone" id="cspDropZone"
+         ondragover="event.preventDefault();this.classList.add('drag-over')"
+         ondragleave="this.classList.remove('drag-over')"
+         ondrop="event.preventDefault();this.classList.remove('drag-over');cspHandleDrop(event)">
+      <div class="dz-text"><strong>Drag &amp; drop</strong> the CSP billing CSV here, or</div>
+      <button type="button" class="dz-browse" onclick="document.getElementById('cspCsvFile').click()">Browse…</button>
+      <input type="file" id="cspCsvFile" accept=".csv" onchange="cspHandleFileInput(this)">
+    </div>`;
+
+  let body = `
+    <p class="csp-hint">
+      TD SYNNEX → StreamOne Ion → Reports → <strong>Microsoft CSP Billing Customers Report</strong>.
+      Set <strong>Date Range to a full month</strong> before exporting — a part-month export
+      understates every cost and the file gives no way to detect it.
+    </p>
+    <label class="csp-month">Month covered
+      <select onchange="cspSetMonth(this.value)">${cspMonthOptions(PRF.csp.month || cspDefaultMonth())}</select>
+    </label>
+    ${dropZone}`;
+
+  if (PRF.csp.imported) {
+    const applicable = PRF.csp.rows.filter(r => r.status === 'ok');
+    const skipped    = PRF.csp.rows.filter(r => r.status !== 'ok');
+
+    const unmatchedHtml = PRF.csp.unmatched.length ? `
+      <div class="csp-unmatched">
+        <strong>${PRF.csp.unmatched.length} unmatched client(s)</strong> — no match in the Directory, nothing written:
+        ${PRF.csp.unmatched.map(u => `<div>${escapeHtml(u.csvName)} — ${prfFmtForce(u.cost)}</div>`).join('')}
+      </div>` : '';
+
+    body += `
+      ${cspRenderWarning()}
+      <div class="csp-preview">
+        <table class="csp-table">
+          <thead><tr>
+            <th></th><th>Client</th><th>Matched from</th><th>Service row</th>
+            <th class="csp-num">Now</th><th class="csp-num">New</th><th class="csp-num">Change</th>
+          </tr></thead>
+          <tbody>${PRF.csp.rows.map(cspRenderPreviewRow).join('')}</tbody>
+        </table>
+      </div>
+      ${unmatchedHtml}
+      <div class="csp-actions">
+        <span class="csp-summary">${applicable.length} applicable · ${skipped.length} skipped · file total ${prfFmtForce(PRF.csp.total)}</span>
+        <button type="button" class="csp-clear" onclick="cspClear()">Clear</button>
+        <button type="button" class="csp-apply" id="cspApply" onclick="cspApply()">Apply ticked</button>
+      </div>`;
+  }
+
+  return `
+    <div class="prf-xero-import prf-csp-import" id="prfCspImportCard">
+      <div style="flex:1;min-width:250px">
+        <h4>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+          Import CSP costs
+        </h4>
+        ${body}
+      </div>
+    </div>`;
+}
+
+/** Task 3 replaces this with the real warning banner. */
+function cspRenderWarning() {
+  return '';
+}
+
+/** Task 3 replaces this. */
+function cspSyncApplyState() {}
+
+/** Task 4 replaces this with the real write. */
+function cspApply() {
+  toast('Apply is added in Task 4.', 'info', 3000);
 }
 
 
