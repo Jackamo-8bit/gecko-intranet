@@ -486,7 +486,10 @@ function cspToggleRow(index, checked) {
 }
 
 function cspClear() {
-  PRF.csp = { imported: false, month: PRF.csp.month, rows: [], unmatched: [], total: 0, warning: null, confirmed: false, applying: false };
+  // `applying` is preserved, not reset: Clear stays clickable during the
+  // PATCH loop, and zeroing the flag would let a second, concurrent apply
+  // start while the first is still running.
+  PRF.csp = { imported: false, month: PRF.csp.month, rows: [], unmatched: [], total: 0, warning: null, confirmed: false, applying: PRF.csp.applying };
   prfRenderAll();
 }
 ```
@@ -896,6 +899,11 @@ In `index.html`, replace the Task 2 `cspApply` stub with:
 async function cspApply() {
   const btn = document.getElementById('cspApply');
   const targets = PRF.csp.rows.filter(r => r.status === 'ok' && r.ticked && r.service);
+  // Snapshotted with targets: Clear is still clickable during the loop and
+  // reassigns PRF.csp wholesale, so reading these live after the await would
+  // record a zeroed total for a run that actually succeeded.
+  const importMonth = PRF.csp.month;
+  const importTotal = PRF.csp.total;
   if (!targets.length) return;
   if (PRF.csp.warning && !PRF.csp.confirmed) return;
   if (PRF.csp.applying) return;
@@ -918,7 +926,7 @@ async function cspApply() {
   // Only record a baseline when everything landed — a partial write would
   // set a misleadingly low bar for next month's sanity check.
   if (applied && !failures.length) {
-    cspWriteLastImport(PRF.csp.month, PRF.csp.total);
+    cspWriteLastImport(importMonth, importTotal);
   }
 
   showLoading(false);
