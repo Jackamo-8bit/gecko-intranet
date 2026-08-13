@@ -10595,6 +10595,9 @@ function cspRenderImport() {
       Set <strong>Date Range to exactly one full month</strong> before exporting. The file
       carries no date range, so nothing here can tell a part-month export (which understates
       every cost) from one spanning two months (which overstates them).
+      ${cspReadLastImport() ? '' : `<br><strong>This is the first import on this browser</strong>,
+      so there is no previous total to compare against — neither the too-low nor the too-high
+      check can fire. Read the per-client changes below before applying.`}
     </p>
     <label class="csp-month">Month covered
       <select onchange="cspSetMonth(this.value)">${cspMonthOptions(PRF.csp.month || cspDefaultMonth())}</select>
