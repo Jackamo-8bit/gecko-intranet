@@ -10408,15 +10408,40 @@ async function cspImportFile(file) {
       } else if (found.ambiguous) {
         previewRows.push({ csvName: customer, client, service: null, oldCost: null, newCost: cost, ticked: false, status: 'ambiguous' });
       } else {
+        // A loose match (starts-with or Levenshtein) is catchable but not
+        // caught on a 24-row table where everything arrives ticked, and a
+        // zero or negative total would wipe a real cost and read as a
+        // green "good news" drop. Both stay importable, neither by default.
+        const exact = prfXeroNormaliseName(window.CspCosts.stripContact(customer))
+                   === prfXeroNormaliseName(client.name);
         previewRows.push({
           csvName: customer,
           client,
           service: found.row,
           oldCost: found.row.cost,
           newCost: cost,
-          ticked:  window.CspCosts.isPreTicked(found.row.name),
+          fuzzy:   !exact,
+          ticked:  window.CspCosts.isPreTicked(found.row.name) && exact && cost > 0,
           status:  'ok'
         });
+      }
+    }
+
+    // Two CSV customers can match the same client, and therefore the same
+    // service row. Writing both would leave one subscription's figure in
+    // place of their sum, with a preview that looks entirely correct.
+    // Never guess which one wins — flag them all and write neither.
+    const byServiceId = new Map();
+    for (const r of previewRows) {
+      if (r.status !== 'ok') continue;
+      byServiceId.set(r.service.id, [...(byServiceId.get(r.service.id) || []), r]);
+    }
+    for (const claimants of byServiceId.values()) {
+      if (claimants.length < 2) continue;
+      for (const r of claimants) {
+        r.status        = 'duplicate';
+        r.ticked        = false;
+        r.duplicateWith = claimants.filter(o => o !== r).map(o => o.csvName);
       }
     }
 
@@ -10474,11 +10499,17 @@ function cspMonthOptions(selected) {
 }
 
 function cspRenderPreviewRow(row, index) {
+  // An 'ok' row can carry more than one caution at once — a loosely matched
+  // bundle is both — so these accumulate rather than shadowing each other.
   const note =
     row.status === 'none'      ? '<span class="csp-flag">no m365 row — skipped</span>' :
     row.status === 'ambiguous' ? '<span class="csp-flag">two m365 rows — skipped</span>' :
-    !window.CspCosts.isPreTicked(row.service.name)
-      ? '<span class="csp-flag csp-flag-warn">bundled — check before ticking</span>' : '';
+    row.status === 'duplicate' ? `<span class="csp-flag csp-flag-warn">also matched by ${escapeHtml(row.duplicateWith.join(', '))} — skipped</span>` :
+    [
+      !window.CspCosts.isPreTicked(row.service.name) ? 'bundled — check before ticking'            : '',
+      row.fuzzy                                      ? 'name matched loosely — check before ticking' : '',
+      row.newCost <= 0                               ? 'zero or negative total — check before ticking' : ''
+    ].filter(Boolean).map(t => `<span class="csp-flag csp-flag-warn">${t}</span>`).join(' ');
 
   // prfFmtForce, not prfFmt: prfFmt renders 0 as an em dash, which in a
   // money column would read as "no data" rather than "zero pounds".
@@ -10539,6 +10570,21 @@ function cspRenderImport() {
         ${PRF.csp.unmatched.map(u => `<div>${escapeHtml(u.csvName)} — ${prfFmtForce(u.cost)}</div>`).join('')}
       </div>` : '';
 
+    // A client the export simply didn't cover keeps a stale cost with no
+    // signal at all, which is the quiet version of the failure this
+    // feature exists to fix.
+    const coveredClients = new Set(PRF.csp.rows.map(r => r.client.name));
+    // Deduped: a client with two m365 rows is one uncovered client, not two.
+    const uncovered = [...new Set(PRF.services
+      .filter(s => s.category === 'm365' && !coveredClients.has(s.clientName))
+      .map(s => s.clientName))];
+    const uncoveredHtml = uncovered.length ? `
+      <div class="csp-unmatched">
+        <strong>${uncovered.length} client(s) with an m365 row had no line in this export</strong>
+        — their stored cost is unchanged:
+        ${uncovered.map(n => `<div>${escapeHtml(n)}</div>`).join('')}
+      </div>` : '';
+
     body += `
       ${cspRenderWarning()}
       <div class="csp-preview">
@@ -10551,6 +10597,7 @@ function cspRenderImport() {
         </table>
       </div>
       ${unmatchedHtml}
+      ${uncoveredHtml}
       <div class="csp-actions">
         <span class="csp-summary">${applicable.length} applicable · ${skipped.length} skipped · file total ${prfFmtForce(PRF.csp.total)}</span>
         <button type="button" class="csp-clear" onclick="cspClear()">Clear</button>
