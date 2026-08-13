@@ -10359,6 +10359,8 @@ function prfRenderUnmatchedList() {
 
 const CSP_LAST_IMPORT_KEY = 'gecko.csp.lastImport.v1';
 
+let cspImportSeq = 0;   // a later import always wins; an older one must not clobber it
+
 /** Default the month selector to last month. */
 function cspDefaultMonth() {
   const d = new Date();
@@ -10382,15 +10384,28 @@ function cspHandleFileInput(input) {
  */
 async function cspImportFile(file) {
   if (!file) return;
+  // An apply in flight owns PRF.csp — a fresh import would replace the
+  // preview underneath the loop that is still writing from it.
+  if (PRF.csp.applying) {
+    toast('An import is still being applied — wait for it to finish.', 'error', 4000);
+    return;
+  }
+  const seq = ++cspImportSeq;
   showLoading(true);
   try {
     const rows = prfParseCsv(await file.text());
+    if (seq !== cspImportSeq) return;   // superseded — a newer import owns the state
     if (!rows.length) {
       toast('That CSV has no data rows.', 'error', 4000);
       return;
     }
     if (!('Customer Name' in rows[0]) || !('Seller Cost (GBP)' in rows[0])) {
       toast('Missing Customer Name / Seller Cost (GBP). Is this the Microsoft CSP Billing Customers Report?', 'error', 6000);
+      return;
+    }
+    const unparsable = window.CspCosts.countUnparsableCosts(rows);
+    if (unparsable) {
+      toast(`${unparsable} row(s) have a Seller Cost this importer cannot read. Refusing rather than treating them as zero — check the export's number format.`, 'error', 8000);
       return;
     }
 
@@ -10445,16 +10460,18 @@ async function cspImportFile(file) {
       }
     }
 
+    if (seq !== cspImportSeq) return;   // superseded — a newer import owns the state
     PRF.csp.rows      = previewRows.sort((a, b) => a.client.name.localeCompare(b.client.name));
     PRF.csp.unmatched = unmatched;
     PRF.csp.total     = aggregated.reduce((sum, a) => sum + a.cost, 0);
     PRF.csp.imported  = true;
     PRF.csp.confirmed = false;
     if (!PRF.csp.month) PRF.csp.month = cspDefaultMonth();
-    const base  = cspBaseline();
+    const base  = cspBaseline(new Set(previewRows.map(r => r.client.name)));
     const check = window.CspCosts.checkTotalPlausible(PRF.csp.total, base.value);
     PRF.csp.warning = check.ok ? null : {
       ratio:         check.ratio,
+      direction:     check.direction,
       baseline:      base.value,
       source:        base.source,
       baselineMonth: base.month
@@ -10486,11 +10503,15 @@ function cspClear() {
   prfRenderAll();
 }
 
-/** Month options for the selector — the last 12 months, newest first. */
+/**
+ * Month options for the selector — this month and the 12 before it, newest
+ * first. The current month is offered because the commonest part-month
+ * mistake is a month-to-date export of it; the default stays last month.
+ */
 function cspMonthOptions(selected) {
   const opts = [];
   const d = new Date();
-  for (let i = 1; i <= 12; i++) {
+  for (let i = 0; i <= 12; i++) {
     const m = new Date(d.getFullYear(), d.getMonth() - i, 1);
     const value = m.getFullYear() + '-' + String(m.getMonth() + 1).padStart(2, '0');
     opts.push(`<option value="${value}"${value === selected ? ' selected' : ''}>${prfMonthLabel(value)}</option>`);
@@ -10636,19 +10657,16 @@ function cspWriteLastImport(month, total) {
 
 /**
  * What to compare this import against.
- * Preferred: the previous import's total. Fallback: the sum of stored m365
- * costs — much weaker, because those values are known to be stale and
- * mostly too low, which is the reason this feature exists.
+ * Preferred: the previous import's total. Fallback: the stored m365 cost of
+ * the clients this export covers — much weaker, because those values are
+ * known to be stale and mostly too low, which is the reason this feature
+ * exists.
  */
-function cspBaseline() {
+function cspBaseline(clientNames) {
   const last = cspReadLastImport();
   if (last) return { value: last.total, source: 'last-import', month: last.month };
-
-  const stored = PRF.services
-    .filter(s => s.category === 'm365')
-    .reduce((sum, s) => sum + (Number(s.cost) || 0), 0);
+  const stored = window.CspCosts.sumStoredM365(PRF.services, clientNames);
   if (stored > 0) return { value: stored, source: 'stored', month: null };
-
   return { value: null, source: 'none', month: null };
 }
 
@@ -10672,18 +10690,28 @@ function cspSyncApplyState() {
 
 function cspRenderWarning() {
   if (!PRF.csp.warning) return '';
-  const { ratio, baseline, source, baselineMonth } = PRF.csp.warning;
+  const { ratio, direction, baseline, source, baselineMonth } = PRF.csp.warning;
   const pct = Math.round(ratio * 100);
   const against = source === 'last-import'
     ? `last import${baselineMonth ? ' (' + escapeHtml(prfMonthLabel(baselineMonth)) + ')' : ''}`
     : 'your current stored m365 costs';
 
+  // The file carries no date range, so both failures look identical on the
+  // page: too small is a month-to-date export, too large is a range covering
+  // more than one month or a file pasted in twice.
+  const body = direction === 'high'
+    ? `This export totals <strong>${prfFmtForce(PRF.csp.total)}</strong> —
+       <strong>${pct}%</strong> of ${against}, <strong>${prfFmtForce(baseline)}</strong>.
+       If the Date Range spanned more than one month, or the file was pasted
+       twice, every cost below is overstated. Re-export before applying.`
+    : `This export totals <strong>${prfFmtForce(PRF.csp.total)}</strong> — only
+       <strong>${pct}%</strong> of ${against}, <strong>${prfFmtForce(baseline)}</strong>.
+       If you exported <em>Month to date</em> rather than a full month, every cost
+       below is understated. Re-export before applying.`;
+
   return `
     <div class="csp-warn">
-      This export totals <strong>${prfFmtForce(PRF.csp.total)}</strong> — only
-      <strong>${pct}%</strong> of ${against}, <strong>${prfFmtForce(baseline)}</strong>.
-      If you exported <em>Month to date</em> rather than a full month, every cost
-      below is understated. Re-export before applying.
+      ${body}
       <label>
         <input type="checkbox" ${PRF.csp.confirmed ? 'checked' : ''} onchange="cspConfirm(this.checked)">
         I've checked — this export covers a full month
@@ -10701,8 +10729,9 @@ async function cspApply() {
   // Snapshotted with targets: Clear is still clickable during the loop and
   // reassigns PRF.csp wholesale, so reading these live after the await would
   // record a zeroed total for a run that actually succeeded.
-  const importMonth = PRF.csp.month;
-  const importTotal = PRF.csp.total;
+  const importMonth  = PRF.csp.month;
+  const importTotal  = PRF.csp.total;
+  const importWarned = !!PRF.csp.warning;
   if (!targets.length) return;
   if (PRF.csp.warning && !PRF.csp.confirmed) return;
   if (PRF.csp.applying) return;
@@ -10724,7 +10753,9 @@ async function cspApply() {
 
   // Only record a baseline when everything landed — a partial write would
   // set a misleadingly low bar for next month's sanity check.
-  if (applied && !failures.length) {
+  // Not recorded when the plausibility warning was overridden: an accepted
+  // part-month total would become next month's bar and disarm the check.
+  if (applied && !failures.length && !importWarned) {
     cspWriteLastImport(importMonth, importTotal);
   }
 

@@ -5,13 +5,17 @@ import {
   findM365Row,
   isPreTicked,
   checkTotalPlausible,
+  countUnparsableCosts,
+  sumStoredM365,
   PURE_TICK_TITLE,
-  PLAUSIBLE_MIN_RATIO
+  PLAUSIBLE_MIN_RATIO,
+  PLAUSIBLE_MAX_RATIO
 } from '../src/core/csp-costs.js';
 
 // ─── constants ────────────────────────────────────────────────────────
 assert.equal(PURE_TICK_TITLE, 'M365 Reselling');
 assert.equal(PLAUSIBLE_MIN_RATIO, 0.7);
+assert.equal(PLAUSIBLE_MAX_RATIO, 1.4);
 
 // ─── stripContact ─────────────────────────────────────────────────────
 assert.equal(
@@ -75,6 +79,70 @@ assert.deepEqual(
 assert.deepEqual(aggregateByCustomer([]), [], 'no rows gives no entries');
 assert.deepEqual(aggregateByCustomer(null), [], 'null input is safe');
 
+// ─── countUnparsableCosts ─────────────────────────────────────────────
+// aggregateByCustomer folds anything parseFloat cannot read to zero, which
+// on a money import understates silently. The import refuses on these first.
+assert.equal(
+  countUnparsableCosts([
+    { 'Customer Name': 'A', 'Seller Cost (GBP)': '' },
+    { 'Customer Name': 'B', 'Seller Cost (GBP)': '1,234.56' },
+    { 'Customer Name': 'C', 'Seller Cost (GBP)': '£99.00' },
+    { 'Customer Name': 'D', 'Seller Cost (GBP)': 'abc' },
+    { 'Customer Name': 'E' }
+  ]),
+  5,
+  'blank, thousands-separated, currency-prefixed, non-numeric and missing all count'
+);
+assert.equal(
+  countUnparsableCosts([
+    { 'Customer Name': 'A', 'Seller Cost (GBP)': '0' },
+    { 'Customer Name': 'B', 'Seller Cost (GBP)': '21.78' },
+    { 'Customer Name': 'C', 'Seller Cost (GBP)': '-5.5' },
+    { 'Customer Name': 'D', 'Seller Cost (GBP)': '236.98656799999998' }
+  ]),
+  0,
+  'zero, plain decimals, a negative and full float precision are all readable'
+);
+assert.equal(
+  countUnparsableCosts([
+    { 'Customer Name': '', 'Seller Cost (GBP)': '1,234.56' },
+    { 'Customer Name': '   ', 'Seller Cost (GBP)': 'abc' },
+    { 'Seller Cost (GBP)': '£99' }
+  ]),
+  0,
+  'rows with no customer name are skipped entirely — aggregate ignores them too'
+);
+assert.equal(countUnparsableCosts([]), 0, 'no rows is safe');
+assert.equal(countUnparsableCosts(null), 0, 'null input is safe');
+
+// ─── sumStoredM365 ────────────────────────────────────────────────────
+const stored = [
+  { clientName: 'CDA Ltd', category: 'm365', cost: 73.75 },
+  { clientName: 'CDA Ltd', category: 'stack', cost: 40 },
+  { clientName: 'Cowan Consultancy', category: 'm365', cost: 165.25 },
+  { clientName: 'Never In Export Ltd', category: 'm365', cost: 500 },
+  { clientName: 'Broken Ltd', category: 'm365', cost: 'not-a-number' },
+  { clientName: 'Missing Ltd', category: 'm365' }
+];
+assert.equal(
+  sumStoredM365(stored, new Set(['CDA Ltd', 'Cowan Consultancy'])),
+  239,
+  'only m365 rows of covered clients count — the stack row and the uncovered client do not'
+);
+assert.equal(
+  sumStoredM365(stored, ['CDA Ltd', 'Cowan Consultancy']),
+  239,
+  'a plain array of names is accepted as well as a Set'
+);
+assert.equal(
+  sumStoredM365(stored, new Set(['Broken Ltd', 'Missing Ltd'])),
+  0,
+  'a non-numeric or absent cost counts as zero rather than NaN'
+);
+assert.equal(sumStoredM365(stored, new Set()), 0, 'an empty name set gives zero');
+assert.equal(sumStoredM365(null, new Set(['CDA Ltd'])), 0, 'null services is safe');
+assert.equal(sumStoredM365(stored, null), 0, 'null names is safe');
+
 // ─── isPreTicked ──────────────────────────────────────────────────────
 assert.equal(isPreTicked('M365 Reselling'), true);
 assert.equal(isPreTicked('m365 reselling'), true, 'case-insensitive');
@@ -127,15 +195,29 @@ assert.deepEqual(
 );
 assert.deepEqual(
   checkTotalPlausible(690, 1000),
-  { ok: false, ratio: 0.69 },
-  '69% trips the check and reports the ratio'
+  { ok: false, ratio: 0.69, direction: 'low' },
+  '69% trips the check, reports the ratio, and names the direction'
 );
 assert.deepEqual(
-  checkTotalPlausible(1721.07, 3940.12).ok,
-  false,
-  'the real part-month case (44%) trips'
+  checkTotalPlausible(1721.07, 3940.12),
+  { ok: false, ratio: 0.44, direction: 'low' },
+  'the real part-month case (44%) trips low'
 );
-assert.deepEqual(checkTotalPlausible(2000, 1000), { ok: true }, 'a larger total never warns');
+assert.deepEqual(
+  checkTotalPlausible(2000, 1000),
+  { ok: false, ratio: 2, direction: 'high' },
+  'a doubled total warns high — a two-month range or a file pasted twice'
+);
+assert.deepEqual(
+  checkTotalPlausible(1400, 1000),
+  { ok: true },
+  'exactly 140% passes — the rule is ABOVE 140%'
+);
+assert.deepEqual(
+  checkTotalPlausible(1410, 1000),
+  { ok: false, ratio: 1.41, direction: 'high' },
+  '141% trips the upper bound'
+);
 assert.deepEqual(checkTotalPlausible(1000, 1000), { ok: true }, 'an equal total passes');
 assert.deepEqual(
   checkTotalPlausible(500, null),
