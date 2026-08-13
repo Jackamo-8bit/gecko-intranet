@@ -9419,6 +9419,10 @@ function prfRenderAll() {
 
   // Phase 10: update month selector label
   prfUpdateMonthUI();
+
+  // The Apply button's enabled state depends on ticks and the warning, both
+  // of which live in state rather than in the markup.
+  cspSyncApplyState();
 }
 
 function prfRenderSeedBanner() {
@@ -10421,7 +10425,14 @@ async function cspImportFile(file) {
     PRF.csp.imported  = true;
     PRF.csp.confirmed = false;
     if (!PRF.csp.month) PRF.csp.month = cspDefaultMonth();
-    PRF.csp.warning   = null;   // Task 3 populates this
+    const base  = cspBaseline();
+    const check = window.CspCosts.checkTotalPlausible(PRF.csp.total, base.value);
+    PRF.csp.warning = check.ok ? null : {
+      ratio:         check.ratio,
+      baseline:      base.value,
+      source:        base.source,
+      baselineMonth: base.month
+    };
 
     prfRenderAll();
     toast(`Parsed ${previewRows.length} client(s). Review before applying.`, 'success', 4000);
@@ -10556,13 +10567,75 @@ function cspRenderImport() {
     </div>`;
 }
 
-/** Task 3 replaces this with the real warning banner. */
-function cspRenderWarning() {
-  return '';
+/** The previous import's total, if this browser has one. */
+function cspReadLastImport() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(CSP_LAST_IMPORT_KEY) || 'null');
+    if (raw && typeof raw.total === 'number' && raw.total > 0) return raw;
+  } catch { /* corrupt or unavailable — fall through to the weaker baseline */ }
+  return null;
 }
 
-/** Task 3 replaces this. */
-function cspSyncApplyState() {}
+function cspWriteLastImport(month, total) {
+  try {
+    localStorage.setItem(CSP_LAST_IMPORT_KEY, JSON.stringify({ month, total }));
+  } catch (err) {
+    console.warn('Could not record the CSP import baseline', err);
+  }
+}
+
+/**
+ * What to compare this import against.
+ * Preferred: the previous import's total. Fallback: the sum of stored m365
+ * costs — much weaker, because those values are known to be stale and
+ * mostly too low, which is the reason this feature exists.
+ */
+function cspBaseline() {
+  const last = cspReadLastImport();
+  if (last) return { value: last.total, source: 'last-import', month: last.month };
+
+  const stored = PRF.services
+    .filter(s => s.category === 'm365')
+    .reduce((sum, s) => sum + (Number(s.cost) || 0), 0);
+  if (stored > 0) return { value: stored, source: 'stored', month: null };
+
+  return { value: null, source: 'none', month: null };
+}
+
+function cspConfirm(checked) {
+  PRF.csp.confirmed = checked;
+  cspSyncApplyState();
+}
+
+/** Apply is disabled with nothing ticked, or on an unconfirmed warning. */
+function cspSyncApplyState() {
+  const btn = document.getElementById('cspApply');
+  if (!btn) return;
+  const anyTicked = PRF.csp.rows.some(r => r.status === 'ok' && r.ticked);
+  const blocked   = PRF.csp.warning && !PRF.csp.confirmed;
+  btn.disabled = !anyTicked || !!blocked;
+}
+
+function cspRenderWarning() {
+  if (!PRF.csp.warning) return '';
+  const { ratio, baseline, source, baselineMonth } = PRF.csp.warning;
+  const pct = Math.round(ratio * 100);
+  const against = source === 'last-import'
+    ? `last import${baselineMonth ? ' (' + escapeHtml(prfMonthLabel(baselineMonth)) + ')' : ''}`
+    : 'your current stored m365 costs';
+
+  return `
+    <div class="csp-warn">
+      This export totals <strong>${prfFmtForce(PRF.csp.total)}</strong> — only
+      <strong>${pct}%</strong> of ${against}, <strong>${prfFmtForce(baseline)}</strong>.
+      If you exported <em>Month to date</em> rather than a full month, every cost
+      below is understated. Re-export before applying.
+      <label>
+        <input type="checkbox" ${PRF.csp.confirmed ? 'checked' : ''} onchange="cspConfirm(this.checked)">
+        I've checked — this export covers a full month
+      </label>
+    </div>`;
+}
 
 /** Task 4 replaces this with the real write. */
 function cspApply() {
