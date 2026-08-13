@@ -984,6 +984,36 @@ git commit -m "feat(csp): apply ticked cost changes and record the baseline"
 - [ ] **Real-tenant test, which needs Jack:** export a genuine full month from StreamOne Ion, import it, review the preview against the figures in the spec's drift table, apply, and confirm `GeckoServices` in SharePoint.
 - [ ] `docs/GECKO_INTRANET_PORTAL_BLUEPRINT.md` — note that CSP costs are imported rather than typed.
 
+## Amendments after the whole-branch review
+
+The four tasks below describe the build as planned. The whole-branch review then
+found one Critical and six Important issues, all fixed in `5af7228`, `a94b335`
+and `8462f27`. **`docs/superpowers/specs/2026-08-13-csp-cost-import-design.md`
+is the accurate design record from here** — it was amended to cover all of them.
+In summary:
+
+- **Duplicate service targets.** Two CSV customers can match one client and
+  therefore one `m365` row; both PATCHed it and the last write won, leaving one
+  subscription's figure instead of their sum. Every claimant is now marked
+  `duplicate` and none is written.
+- **Pre-ticking tightened** to require an exact name match and a positive total,
+  on top of the existing exact-title rule. Loose matches and zero-or-negative
+  totals arrive unticked and flagged.
+- **The plausibility check is symmetric** (`> 140%` as well as `< 70%`), returns
+  a `direction`, and no longer records a baseline when its warning was
+  overridden — which previously disarmed it permanently.
+- **Unreadable costs refuse the import** rather than folding to zero, via
+  `countUnparsableCosts`.
+- **`cspImportFile` gained a supersede guard** — the fifth instance in this
+  project of an async operation acting on stale shared state.
+- **`sumStoredM365` moved into the pure module**, tested, and filtered to
+  covered clients as the spec always specified.
+- Clients with an `m365` row but no line in the export are now listed.
+
+Not done, deliberately: a stale preview when the post-apply refresh early-returns
+because a load is already in flight (cosmetic; handlers are inert against empty
+rows), and two unused element ids.
+
 ## Self-review notes
 
 Checked against the spec: data source and the ignored columns (Global Constraints, Task 1); `stripContact` and matcher reuse (Tasks 1–2); aggregation (Task 1); target-row rules none/one/many (Tasks 1–2); the bundle guard (Tasks 1–2); the preview including the matched-from column (Task 2); the month selector and full-month instruction (Task 2); the sanity check with both baselines, the 70% threshold and the confirmation gate (Task 3); write behaviour, partial failure and baseline recording (Task 4); escaping throughout; and all five pure functions tested (Task 1).
